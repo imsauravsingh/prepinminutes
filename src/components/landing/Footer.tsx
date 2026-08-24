@@ -11,9 +11,9 @@ const socials = [
 
 export function Footer() {
   return (
-    <footer className="flex flex-col items-start border-t border-line px-[120px] pb-10 pt-20">
-      <div className="flex w-full items-start justify-between">
-        <div className="flex w-[360px] flex-col items-start gap-4">
+    <footer className="flex flex-col items-start border-t border-line px-4 pb-10 pt-14 sm:px-6 lg:px-[120px] lg:pt-20">
+      <div className="grid w-full grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:flex lg:items-start lg:justify-between lg:gap-0">
+        <div className="col-span-2 flex flex-col items-start gap-4 sm:col-span-4 lg:col-span-1 lg:w-[360px]">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-7 items-center justify-center rounded-md bg-brand">
               <Zap className="size-3.5 fill-white text-white" />
@@ -27,7 +27,7 @@ export function Footer() {
           <p className="text-[13px] text-ink-muted">© 2026 PrepInMinutes. All rights reserved.</p>
         </div>
 
-        <div className="flex w-[180px] flex-col items-start gap-4 text-sm">
+        <div className="flex flex-col items-start gap-4 text-sm lg:w-[180px]">
           <p className="font-display font-bold uppercase text-ink">Platform</p>
           {platformLinks.map((link) => (
             <a key={link} href="#" className="text-ink-muted hover:text-ink">
@@ -36,7 +36,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="flex w-[180px] flex-col items-start gap-4 text-sm">
+        <div className="flex flex-col items-start gap-4 text-sm lg:w-[180px]">
           <p className="font-display font-bold uppercase text-ink">Company</p>
           {companyLinks.map((link) => (
             <a key={link} href="#" className="text-ink-muted hover:text-ink">
@@ -45,7 +45,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="flex w-60 flex-col items-start gap-4">
+        <div className="flex flex-col items-start gap-4 lg:w-60">
           <p className="font-display text-sm font-bold uppercase text-ink">Connect</p>
           <div className="flex items-start gap-3">
             {socials.map(({ icon: Icon, label }) => (

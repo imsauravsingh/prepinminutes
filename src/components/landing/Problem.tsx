@@ -44,27 +44,27 @@ const problems: {
 
 export function Problem() {
   return (
-    <section className="relative overflow-hidden border-y border-line bg-cream px-[120px] py-[100px]">
+    <section className="relative overflow-hidden border-y border-line bg-cream px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
       <RuledLines height={600} spacing={32} opacity={0.5} color="#d6cfc4" />
-      <Blob size={300} color="#FF6C47" opacity={0.08} className="-left-[140px] top-[159px]" />
+      <Blob size={300} color="#FF6C47" opacity={0.08} className="-left-[140px] top-[159px] hidden sm:block" />
 
-      <div className="relative flex flex-col items-center gap-16">
+      <div className="relative flex flex-col items-center gap-10 lg:gap-16">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase text-brand">The Challenge</p>
-          <h2 className="font-display text-[40px] font-extrabold leading-[48px] text-ink">
+          <h2 className="font-display text-[28px] font-extrabold leading-[34px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
             Interview preparation shouldn&apos;t feel random
           </h2>
-          <p className="w-[720px] text-base leading-[26px] text-ink-muted">
+          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
             Traditional interview prep is broken. Candidates spend hundreds of hours studying the
             wrong things in the dark, leading to high anxiety and poor performance.
           </p>
         </div>
 
-        <div className="flex w-full gap-6">
+        <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           {problems.map(({ icon: Icon, iconBg, iconColor, title, description }) => (
             <div
               key={title}
-              className="flex flex-1 flex-col gap-4 rounded-[20px] border border-line bg-white p-7 shadow-[0_8px_8px_rgba(107,102,97,0.03)]"
+              className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-6 shadow-[0_8px_8px_rgba(107,102,97,0.03)] lg:p-7"
             >
               <div
                 className="flex size-11 items-center justify-center rounded-xl"
