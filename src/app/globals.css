@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand: #ff6c47;
+  --color-brand-soft: #fff0ec;
+  --color-ink: #1e1c1a;
+  --color-ink-muted: #6b6661;
+  --color-cream: #faf6f0;
+  --color-line: #f4efe8;
+  --color-line-strong: #d6cfc4;
+  --color-success: #10b981;
+  --color-blue: #3b82f6;
+  --color-purple: #8b5cf6;
+  --color-pink: #ec4899;
+  --color-amber: #f59e0b;
+  --color-red: #ef4444;
+  --color-cyan: #06b6d4;
+}
+
+@theme inline {
+  --color-brand: var(--color-brand);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-cream: var(--color-cream);
+  --color-line: var(--color-line);
+  --color-line-strong: var(--color-line-strong);
+  --color-success: var(--color-success);
+  --color-blue: var(--color-blue);
+  --color-purple: var(--color-purple);
+  --color-pink: var(--color-pink);
+  --color-amber: var(--color-amber);
+  --color-red: var(--color-red);
+  --color-cyan: var(--color-cyan);
+  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-outfit);
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
