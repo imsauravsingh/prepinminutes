@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Outfit } from "next/font/google";
+import { ClerkProviderClient } from "@/components/providers/ClerkProviderClient";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,7 +26,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${outfit.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ClerkProviderClient publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+          {children}
+        </ClerkProviderClient>
+      </body>
     </html>
   );
 }

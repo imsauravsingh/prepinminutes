@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Menu, X, Zap } from "lucide-react";
+import { useAuth, UserButton } from "@clerk/react";
 
 const navLinks = ["How It Works", "Features", "Pricing"];
 
 export function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -53,15 +55,26 @@ export function NavBar() {
         </nav>
 
         <div className="hidden items-center gap-5 lg:flex">
-          <a href="#" className="text-sm font-semibold text-ink">
-            Log in
-          </a>
-          <a
-            href="#"
-            className="rounded-full bg-brand px-6 py-3 text-[15px] font-semibold text-white shadow-[0_4px_6px_rgba(255,108,71,0.2)]"
-          >
-            Get Started →
-          </a>
+          {isLoaded && isSignedIn ? (
+            <>
+              <a href="/dashboard" className="text-sm font-semibold text-ink">
+                Dashboard
+              </a>
+              <UserButton />
+            </>
+          ) : isLoaded ? (
+            <>
+              <a href="/login" className="text-sm font-semibold text-ink">
+                Log in
+              </a>
+              <a
+                href="/sign-up"
+                className="rounded-full bg-brand px-6 py-3 text-[15px] font-semibold text-white shadow-[0_4px_6px_rgba(255,108,71,0.2)]"
+              >
+                Get Started →
+              </a>
+            </>
+          ) : null}
         </div>
 
         <button
@@ -90,20 +103,37 @@ export function NavBar() {
             ))}
           </nav>
           <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
-            <a
-              href="#"
-              onClick={() => setMenuOpen(false)}
-              className="px-3 text-base font-semibold text-ink"
-            >
-              Log in
-            </a>
-            <a
-              href="#"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-full bg-brand px-6 py-3 text-center text-[15px] font-semibold text-white shadow-[0_4px_6px_rgba(255,108,71,0.2)]"
-            >
-              Get Started →
-            </a>
+            {isLoaded && isSignedIn ? (
+              <>
+                <a
+                  href="/dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-3 text-base font-semibold text-ink"
+                >
+                  Dashboard
+                </a>
+                <div className="px-3">
+                  <UserButton showName />
+                </div>
+              </>
+            ) : isLoaded ? (
+              <>
+                <a
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-3 text-base font-semibold text-ink"
+                >
+                  Log in
+                </a>
+                <a
+                  href="/sign-up"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full bg-brand px-6 py-3 text-center text-[15px] font-semibold text-white shadow-[0_4px_6px_rgba(255,108,71,0.2)]"
+                >
+                  Get Started →
+                </a>
+              </>
+            ) : null}
           </div>
         </div>
       )}
