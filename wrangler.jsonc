@@ -2,9 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "prepinminutes",
   "compatibility_date": "2026-08-20",
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./out",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Run the Worker before asset matching so the coming-soon gate can
+    // intercept "/" (which would otherwise resolve straight to index.html).
+    "run_worker_first": true
   },
   "observability": {
     "enabled": true
