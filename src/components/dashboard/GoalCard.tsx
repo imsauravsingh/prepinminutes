@@ -2,15 +2,15 @@ import { Users2, Building2, Calendar, ChevronDown, ArrowRight } from "lucide-rea
 
 export function GoalCard() {
   return (
-    <div className="flex w-full flex-col gap-7 rounded-3xl border-[1.5px] border-brand bg-white p-8 shadow-[0px_16px_16px_rgba(255,108,71,0.05)]">
+    <div className="flex w-full flex-col gap-6 rounded-3xl border-[1.5px] border-brand bg-white p-5 shadow-[0px_16px_16px_rgba(255,108,71,0.05)] sm:gap-7 sm:p-8">
       <div className="flex flex-col gap-1.5">
-        <p className="font-display text-[22px] font-extrabold text-ink">What are you preparing for?</p>
+        <p className="font-display text-lg font-extrabold text-ink sm:text-[22px]">What are you preparing for?</p>
         <p className="text-sm text-ink-muted">
           We calibrate our questions and evaluations specifically to your target parameters.
         </p>
       </div>
 
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex flex-1 flex-col gap-2">
           <p className="text-xs font-semibold uppercase text-ink">Target Role</p>
           <div className="flex items-center gap-2 rounded-lg border border-[#ede6db] bg-[#fbf9f4] p-3">
@@ -42,7 +42,7 @@ export function GoalCard() {
         </div>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-5">
         <button
           type="button"
           className="flex items-center justify-center rounded-full bg-brand px-6 py-3 text-[15px] font-semibold text-white shadow-[0px_4px_6px_rgba(255,108,71,0.2)]"

@@ -15,6 +15,8 @@ import {
   Settings,
   UserCog,
   LogOut,
+  Menu,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,7 +36,7 @@ const checklistItems: { label: string; done?: boolean }[] = [
   { label: "Prep preferences" },
 ];
 
-export function Sidebar() {
+function SidebarContent() {
   const completed = checklistItems.filter((item) => item.done).length;
   const { user } = useUser();
   const clerk = useClerk();
@@ -57,18 +59,8 @@ export function Sidebar() {
   }, [accountMenuOpen]);
 
   return (
-    <aside className="flex w-[280px] shrink-0 flex-col justify-between self-stretch border-r border-line bg-white p-7">
+    <div className="flex h-full flex-col justify-between">
       <div className="flex flex-col gap-8">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-[10px] bg-brand">
-            <Zap className="size-[18px] fill-white text-white" />
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <p className="font-display text-xl font-extrabold text-ink">PrepInMinutes</p>
-            <p className="text-[11px] text-ink-muted">Get interview-ready in minutes.</p>
-          </div>
-        </div>
-
         <nav className="flex flex-col gap-1.5">
           {navLinks.map((link) => (
             <a
@@ -121,9 +113,9 @@ export function Sidebar() {
 
         <div className="flex flex-col gap-3 border-t border-line pt-3">
           <div className="relative flex items-center justify-between" ref={accountMenuRef}>
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               <UserAvatar appearance={{ elements: { avatarBox: "size-8" } }} />
-              <div className="flex flex-col gap-0.5">
+              <div className="flex min-w-0 flex-col gap-0.5">
                 <p className="max-w-35 truncate text-[13px] font-semibold text-ink">
                   {displayName}
                 </p>
@@ -135,7 +127,7 @@ export function Sidebar() {
               aria-label="Account settings"
               aria-expanded={accountMenuOpen}
               onClick={() => setAccountMenuOpen((open) => !open)}
-              className="flex size-7 items-center justify-center rounded-md text-ink-muted hover:bg-cream"
+              className="flex size-7 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-cream"
             >
               <Settings className="size-[18px]" />
             </button>
@@ -169,6 +161,86 @@ export function Sidebar() {
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+function Logo({ compact }: { compact?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className={`flex items-center justify-center rounded-[10px] bg-brand ${compact ? "size-8" : "size-9"}`}
+      >
+        <Zap className="size-[18px] fill-white text-white" />
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <p className="font-display text-lg font-extrabold text-ink sm:text-xl">PrepInMinutes</p>
+        {!compact && (
+          <p className="text-[11px] text-ink-muted">Get interview-ready in minutes.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
+        <Logo compact />
+        <button
+          type="button"
+          aria-label="Open menu"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen(true)}
+          className="flex size-10 items-center justify-center rounded-full text-ink"
+        >
+          <Menu className="size-6" />
+        </button>
+      </div>
+
+      {/* Mobile off-canvas drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+          <div className="absolute inset-y-0 left-0 flex w-[85%] max-w-[300px] flex-col gap-8 overflow-y-auto bg-white p-6">
+            <div className="flex items-center justify-between">
+              <Logo />
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setMobileOpen(false)}
+                className="flex size-9 shrink-0 items-center justify-center rounded-full text-ink"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <SidebarContent />
+          </div>
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
+      <aside className="hidden w-[280px] shrink-0 flex-col self-stretch border-r border-line bg-white p-7 lg:flex">
+        <div className="mb-8">
+          <Logo />
+        </div>
+        <SidebarContent />
+      </aside>
+    </>
   );
 }

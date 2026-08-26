@@ -45,11 +45,11 @@ export function ProfileSetup() {
     <div className="flex w-full flex-col gap-4">
       <p className="font-display text-lg font-extrabold text-ink">Add Your Profile</p>
 
-      <div className="flex w-full items-start gap-5">
+      <div className="flex w-full flex-col gap-5 sm:flex-row sm:items-start">
         {uploadCards.map((card) => (
           <div
             key={card.title}
-            className="flex flex-1 flex-col gap-5 rounded-2xl border border-line bg-white p-6"
+            className="flex flex-1 flex-col gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6"
           >
             <div className="flex items-center gap-3">
               <div
@@ -77,13 +77,13 @@ export function ProfileSetup() {
         ))}
       </div>
 
-      <div className="flex w-full items-center justify-between rounded-xl border border-[#ede6db] bg-cream p-4">
+      <div className="flex w-full flex-col gap-3 rounded-xl border border-[#ede6db] bg-cream p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p className="text-[13px] text-ink-muted">
           You can upload files now or fill them later during mock generation.
         </p>
         <button
           type="button"
-          className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white"
+          className="self-start rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white sm:self-auto"
         >
           Analyze My Profile →
         </button>
