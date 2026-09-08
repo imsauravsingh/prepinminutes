@@ -60,7 +60,7 @@ export function Footer() {
             ))}
           </div>
           <div className="flex flex-col gap-2 text-[13px] text-ink-muted">
-            <a href="#" className="hover:text-ink">
+            <a href="/privacy-policy" className="hover:text-ink">
               Privacy Policy
             </a>
             <a href="#" className="hover:text-ink">
