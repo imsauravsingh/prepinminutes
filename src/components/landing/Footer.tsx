@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { LinkedinIcon, TwitterIcon, FacebookIcon } from "./social-icons";
 
 const platformLinks = ["How it Works", "Features", "Pricing", "Enterprise"];
@@ -15,16 +15,18 @@ export function Footer() {
       <div className="grid w-full grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:flex lg:items-start lg:justify-between lg:gap-0">
         <div className="col-span-2 flex flex-col items-start gap-4 sm:col-span-4 lg:col-span-1 lg:w-[360px]">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-7 items-center justify-center rounded-md bg-brand">
-              <Zap className="size-3.5 fill-white text-white" />
-            </div>
-            <p className="font-display text-lg font-extrabold text-ink">PrepInMinutes</p>
+            <BrandMark className="size-7" />
+            <p className="font-display text-lg font-extrabold text-ink">
+              PrepInMinutes
+            </p>
           </div>
           <p className="text-sm leading-[22px] text-ink-muted">
-            An intelligent, adaptive platform built to automate interview preparation, reduce
-            stress, and maximize hire outcomes.
+            An intelligent, adaptive platform built to automate interview
+            preparation, reduce stress, and maximize hire outcomes.
           </p>
-          <p className="text-[13px] text-ink-muted">© 2026 PrepInMinutes. All rights reserved.</p>
+          <p className="text-[13px] text-ink-muted">
+            © 2026 PrepInMinutes. All rights reserved.
+          </p>
         </div>
 
         <div className="flex flex-col items-start gap-4 text-sm lg:w-[180px]">
@@ -46,7 +48,9 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col items-start gap-4 lg:w-60">
-          <p className="font-display text-sm font-bold uppercase text-ink">Connect</p>
+          <p className="font-display text-sm font-bold uppercase text-ink">
+            Connect
+          </p>
           <div className="flex items-start gap-3">
             {socials.map(({ icon: Icon, label }) => (
               <a

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth, UserButton } from "@clerk/react";
+import { BrandMark } from "@/components/BrandMark";
 
 const navLinks = ["How It Works", "Features", "Pricing"];
 
@@ -33,9 +34,7 @@ export function NavBar() {
     >
       <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-[120px] lg:py-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-[10px] bg-brand">
-            <Zap className="size-[18px] fill-white text-white" />
-          </div>
+          <BrandMark />
           <div className="flex flex-col gap-0.5">
             <p className="font-display text-lg font-extrabold text-ink sm:text-xl">
               PrepInMinutes

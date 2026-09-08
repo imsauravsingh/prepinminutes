@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useUser, useClerk, UserAvatar } from "@clerk/react";
 import { toTitleCase } from "@/lib/format";
+import { BrandMark } from "@/components/BrandMark";
 import {
-  Zap,
   Home,
   BookOpen,
   BarChart3,
@@ -168,11 +168,7 @@ function SidebarContent() {
 function Logo({ compact }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div
-        className={`flex items-center justify-center rounded-[10px] bg-brand ${compact ? "size-8" : "size-9"}`}
-      >
-        <Zap className="size-[18px] fill-white text-white" />
-      </div>
+      <BrandMark className={compact ? "size-8" : "size-9"} />
       <div className="flex flex-col gap-0.5">
         <p className="font-display text-lg font-extrabold text-ink sm:text-xl">PrepInMinutes</p>
         {!compact && (

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Zap } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { Blob, DotGrid } from "@/components/landing/decorative";
 
 export const metadata: Metadata = {
@@ -21,9 +21,7 @@ export default function ComingSoon() {
 
       <div className="relative flex max-w-xl flex-col items-center gap-6 text-center">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-9 items-center justify-center rounded-md bg-brand">
-            <Zap className="size-4 fill-white text-white" />
-          </div>
+          <BrandMark className="size-9" />
           <p className="font-display text-xl font-extrabold text-ink">PrepInMinutes</p>
         </div>
 
