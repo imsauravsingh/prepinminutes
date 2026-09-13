@@ -51,13 +51,11 @@ const checklistItems: { label: string; done?: boolean }[] = [
 
 function SidebarContent() {
   const pathname = usePathname();
-  const isSetupComplete =
-    pathname.startsWith("/preparation-plan") ||
-    pathname.startsWith("/practice");
-  const currentChecklist = isSetupComplete
-    ? checklistItems.map((item) => ({ ...item, done: true }))
-    : checklistItems;
-  const completed = currentChecklist.filter((item) => item.done).length;
+  const isDashboard =
+    pathname === "/dashboard" ||
+    pathname === "/" ||
+    pathname.startsWith("/dashboard/");
+  const completed = checklistItems.filter((item) => item.done).length;
 
   const { user } = useUser();
   const clerk = useClerk();
@@ -128,49 +126,51 @@ function SidebarContent() {
       </div>
 
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4 rounded-2xl border border-[#ede6db] bg-cream p-5">
-          <div className="flex flex-col gap-1">
-            <p className="font-display text-sm font-bold text-ink">
-              Your Prep Plan
-            </p>
-            <p className="text-[11px] text-ink-muted">
-              {isSetupComplete ? "Setup complete" : "Complete onboarding setup"}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2.5">
-            {currentChecklist.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <span
-                  className={`flex size-4 shrink-0 items-center justify-center rounded ${
-                    item.done
-                      ? "border-[1.5px] border-success bg-[#edf5ec]"
-                      : "border-[1.5px] border-[#b0a898]"
-                  }`}
-                >
-                  {item.done && <Check className="size-2.5 text-success" />}
-                </span>
-                <p
-                  className={`text-[13px] ${item.done ? "font-medium text-ink" : "text-ink-muted"}`}
-                >
-                  {item.label}
-                </p>
+        {isDashboard && (
+          <div className="flex flex-col gap-4 rounded-2xl border border-[#ede6db] bg-cream p-5">
+            <div className="flex flex-col gap-1">
+              <p className="font-display text-sm font-bold text-ink">
+                Your Prep Plan
+              </p>
+              <p className="text-[11px] text-ink-muted">
+                Complete onboarding setup
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              {checklistItems.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span
+                    className={`flex size-4 shrink-0 items-center justify-center rounded ${
+                      item.done
+                        ? "border-[1.5px] border-success bg-[#edf5ec]"
+                        : "border-[1.5px] border-[#b0a898]"
+                    }`}
+                  >
+                    {item.done && <Check className="size-2.5 text-success" />}
+                  </span>
+                  <p
+                    className={`text-[13px] ${item.done ? "font-medium text-ink" : "text-ink-muted"}`}
+                  >
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] font-semibold text-brand">
+                {completed} / {checklistItems.length} completed
+              </p>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
+                <div
+                  className="h-full rounded-full bg-brand"
+                  style={{
+                    width: `${(completed / checklistItems.length) * 100}%`,
+                  }}
+                />
               </div>
-            ))}
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-[11px] font-semibold text-brand">
-              {completed} / {currentChecklist.length} completed
-            </p>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-              <div
-                className="h-full rounded-full bg-brand"
-                style={{
-                  width: `${(completed / currentChecklist.length) * 100}%`,
-                }}
-              />
             </div>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-col gap-3 border-t border-line pt-3">
           <div
