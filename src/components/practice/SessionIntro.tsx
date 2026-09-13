@@ -52,9 +52,9 @@ export function SessionIntro() {
             3 preparation areas · ~27 min
           </p>
           <p className="text-[15px] leading-relaxed text-ink-muted">
-            Your practice is based on today&apos;s personalized preparation plan.
-            PrepInMinutes will guide you through the most valuable activities in
-            sequence.
+            Your practice is based on today&apos;s personalized preparation
+            plan. PrepInMinutes will guide you through the most valuable
+            activities in sequence.
           </p>
         </div>
 
