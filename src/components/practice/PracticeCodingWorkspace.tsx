@@ -137,12 +137,12 @@ export function PracticeCodingWorkspace() {
               Skip this activity
             </Link>
 
-            <button
-              type="button"
+            <Link
+              href="/practice/session/coding/evaluation"
               className="flex items-center justify-center rounded-full bg-brand px-6 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
             >
               Submit Answer →
-            </button>
+            </Link>
           </div>
         </div>
       </div>
