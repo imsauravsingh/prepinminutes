@@ -5,7 +5,8 @@ import { SessionComplete } from "@/components/practice/SessionComplete";
 
 export const metadata: Metadata = {
   title: "Today's Practice Complete | PrepInMinutes",
-  description: "Review your completed daily practice session and readiness score update",
+  description:
+    "Review your completed daily practice session and readiness score update",
 };
 
 export default function SessionCompletePage() {

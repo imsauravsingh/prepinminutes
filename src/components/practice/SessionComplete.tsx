@@ -76,9 +76,7 @@ export function SessionComplete() {
                   <span className="text-sm font-semibold text-ink">
                     {item.area}
                   </span>
-                  <span className="text-xs text-ink-muted">
-                    {item.topic}
-                  </span>
+                  <span className="text-xs text-ink-muted">{item.topic}</span>
                 </div>
               </div>
 
