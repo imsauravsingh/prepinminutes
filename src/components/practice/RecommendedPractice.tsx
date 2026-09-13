@@ -19,7 +19,8 @@ const cards: PracticeCardData[] = [
     categoryColor: "text-[#ff6c47]",
     accentColor: "bg-[#ff6c47]",
     duration: "10 min",
-    description: "Solve a targeted coding problem focusing on sliding window technique",
+    description:
+      "Solve a targeted coding problem focusing on sliding window technique",
     whyText:
       "Why: Part of today's preparation plan — your coding patterns readiness is at 78% and this topic needs more practice.",
   },
@@ -30,7 +31,8 @@ const cards: PracticeCardData[] = [
     categoryColor: "text-[#3b82f6]",
     accentColor: "bg-[#3b82f6]",
     duration: "10 min",
-    description: "Design a scalable system scenario with follow-up architecture questions",
+    description:
+      "Design a scalable system scenario with follow-up architecture questions",
     whyText:
       "Why: System Design is your biggest preparation gap at 32% readiness. Load balancing is foundational for your Google interview.",
   },
@@ -41,7 +43,8 @@ const cards: PracticeCardData[] = [
     categoryColor: "text-[#8b5cf6]",
     accentColor: "bg-[#8b5cf6]",
     duration: "7 min",
-    description: "Answer an interview question with AI evaluation of your STAR response",
+    description:
+      "Answer an interview question with AI evaluation of your STAR response",
     whyText:
       "Why: Recommended based on your preparation plan and previous evaluation — strengthen your behavioral storytelling.",
   },
@@ -68,7 +71,10 @@ export function RecommendedPractice() {
             className="flex overflow-hidden rounded-2xl border border-line bg-white shadow-[0_4px_16px_rgba(30,28,26,0.03)]"
           >
             {/* Left accent bar */}
-            <div className={`w-1.5 shrink-0 self-stretch ${card.accentColor}`} aria-hidden />
+            <div
+              className={`w-1.5 shrink-0 self-stretch ${card.accentColor}`}
+              aria-hidden
+            />
 
             {/* Card Content */}
             <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">

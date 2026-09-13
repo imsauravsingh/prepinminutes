@@ -52,7 +52,8 @@ const checklistItems: { label: string; done?: boolean }[] = [
 function SidebarContent() {
   const pathname = usePathname();
   const isSetupComplete =
-    pathname.startsWith("/preparation-plan") || pathname.startsWith("/practice");
+    pathname.startsWith("/preparation-plan") ||
+    pathname.startsWith("/practice");
   const currentChecklist = isSetupComplete
     ? checklistItems.map((item) => ({ ...item, done: true }))
     : checklistItems;

@@ -6,7 +6,8 @@ export function PracticeHeader() {
           Practice
         </h1>
         <p className="text-sm text-ink-muted sm:text-[15px]">
-          AI-recommended practice based on your preparation plan, readiness, and performance
+          AI-recommended practice based on your preparation plan, readiness, and
+          performance
         </p>
       </div>
 
