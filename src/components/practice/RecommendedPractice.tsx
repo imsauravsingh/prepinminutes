@@ -1,4 +1,5 @@
 import { Clock, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 type PracticeCardData = {
   title: string;
@@ -108,12 +109,12 @@ export function RecommendedPractice() {
                   <span>{card.whyText}</span>
                 </div>
 
-                <button
-                  type="button"
+                <Link
+                  href="/practice/session"
                   className="shrink-0 text-[13px] font-semibold text-brand transition-colors hover:underline text-left sm:text-right"
                 >
                   Start Practice →
-                </button>
+                </Link>
               </div>
             </div>
           </div>
