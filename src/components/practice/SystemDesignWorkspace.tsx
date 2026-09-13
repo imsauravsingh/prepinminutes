@@ -79,7 +79,8 @@ export function SystemDesignWorkspace() {
           <ul className="flex flex-col gap-1.5 pl-1 text-[15px] leading-relaxed text-ink-muted">
             <li>• How would you handle server failures?</li>
             <li>
-              • How would you distribute traffic for different types of requests?
+              • How would you distribute traffic for different types of
+              requests?
             </li>
             <li>
               • What trade-offs exist between different load balancing
@@ -121,12 +122,12 @@ export function SystemDesignWorkspace() {
               Skip this activity
             </Link>
 
-            <button
-              type="button"
+            <Link
+              href="/practice/session/system-design/evaluation"
               className="flex items-center justify-center rounded-full bg-brand px-6 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
             >
               Submit Design →
-            </button>
+            </Link>
           </div>
         </div>
       </div>
