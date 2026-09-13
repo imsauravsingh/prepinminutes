@@ -5,15 +5,15 @@ import { SessionComplete } from "@/components/practice/SessionComplete";
 
 export const metadata: Metadata = {
   title: "Today's Practice Complete | PrepInMinutes",
-  description: "Session completed results and updated interview readiness",
+  description: "Review your completed daily practice session and readiness score update",
 };
 
-export default function PracticeSessionCompletePage() {
+export default function SessionCompletePage() {
   return (
     <AuthGate>
       <div className="flex flex-1 flex-col bg-[#fbf9f4] lg:flex-row lg:items-start min-h-screen">
         <Sidebar />
-        <main className="flex flex-1 flex-col px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10 min-h-screen">
+        <main className="flex flex-1 flex-col px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:pt-16 lg:pb-10 min-h-screen">
           <SessionComplete />
         </main>
       </div>
