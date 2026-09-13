@@ -299,7 +299,7 @@ export function Sidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-[280px] shrink-0 flex-col self-stretch border-r border-line bg-white p-7 lg:flex lg:min-h-[1120px]">
+      <aside className="hidden w-[280px] shrink-0 flex-col self-stretch border-r border-line bg-white p-7 lg:flex">
         <div className="mb-8">
           <Logo />
         </div>
