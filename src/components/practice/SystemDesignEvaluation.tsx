@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Check, ArrowUp, Lightbulb, TrendingUp } from "lucide-react";
 
 export function SystemDesignEvaluation() {
@@ -127,12 +128,12 @@ export function SystemDesignEvaluation() {
 
           {/* Continue CTA */}
           <div className="flex justify-end">
-            <button
-              type="button"
+            <Link
+              href="/practice/session/behavioral"
               className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
             >
               Continue →
-            </button>
+            </Link>
           </div>
         </div>
       </div>
