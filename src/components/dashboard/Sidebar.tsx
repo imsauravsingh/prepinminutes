@@ -35,7 +35,7 @@ const navLinks: {
     label: "My Preparation Plan",
     href: "/preparation-plan",
   },
-  { icon: CodeXml, label: "Practice", href: "#", locked: true },
+  { icon: CodeXml, label: "Practice", href: "/practice" },
   { icon: ClipboardCheck, label: "Evaluation", href: "#", locked: true },
   { icon: BookOpen, label: "Revision", href: "#", locked: true },
   { icon: Users, label: "Mock Interview", href: "#", locked: true },
@@ -51,8 +51,9 @@ const checklistItems: { label: string; done?: boolean }[] = [
 
 function SidebarContent() {
   const pathname = usePathname();
-  const isPreparationPlan = pathname.startsWith("/preparation-plan");
-  const currentChecklist = isPreparationPlan
+  const isSetupComplete =
+    pathname.startsWith("/preparation-plan") || pathname.startsWith("/practice");
+  const currentChecklist = isSetupComplete
     ? checklistItems.map((item) => ({ ...item, done: true }))
     : checklistItems;
   const completed = currentChecklist.filter((item) => item.done).length;
@@ -90,7 +91,9 @@ function SidebarContent() {
                 ? pathname === "/dashboard" || pathname === "/"
                 : link.href === "/preparation-plan"
                   ? pathname.startsWith("/preparation-plan")
-                  : false;
+                  : link.href === "/practice"
+                    ? pathname.startsWith("/practice")
+                    : false;
 
             if (link.locked) {
               return (
@@ -130,9 +133,7 @@ function SidebarContent() {
               Your Prep Plan
             </p>
             <p className="text-[11px] text-ink-muted">
-              {isPreparationPlan
-                ? "Setup complete"
-                : "Complete onboarding setup"}
+              {isSetupComplete ? "Setup complete" : "Complete onboarding setup"}
             </p>
           </div>
           <div className="flex flex-col gap-2.5">
