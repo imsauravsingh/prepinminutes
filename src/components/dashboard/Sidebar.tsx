@@ -83,7 +83,7 @@ function SidebarContent() {
   }, [accountMenuOpen]);
 
   return (
-    <div className="flex h-full flex-col justify-between">
+    <div className="flex flex-1 flex-col justify-between">
       <div className="flex flex-col gap-8">
         <nav className="flex flex-col gap-1.5">
           {navLinks.map((link) => {
@@ -299,7 +299,7 @@ export function Sidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-[280px] shrink-0 flex-col self-stretch border-r border-line bg-white p-7 lg:flex">
+      <aside className="hidden w-[280px] shrink-0 flex-col self-stretch border-r border-line bg-white p-7 lg:flex lg:min-h-[1120px]">
         <div className="mb-8">
           <Logo />
         </div>
