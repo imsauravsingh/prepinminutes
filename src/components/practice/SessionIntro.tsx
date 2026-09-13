@@ -85,12 +85,12 @@ export function SessionIntro() {
 
         {/* Start Practice CTA */}
         <div>
-          <button
-            type="button"
+          <Link
+            href="/practice/session/coding"
             className="flex items-center justify-center rounded-full bg-brand px-8 py-3.5 text-base font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
           >
             Start Practice →
-          </button>
+          </Link>
         </div>
       </div>
     </div>
