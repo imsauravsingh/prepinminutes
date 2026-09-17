@@ -118,7 +118,7 @@ export function SessionComplete() {
         {/* View Recommendations CTA */}
         <div className="flex w-full sm:w-auto justify-start sm:justify-end">
           <Link
-            href="/preparation-plan"
+            href="/practice/session/recommendations"
             className="flex w-full sm:w-auto items-center justify-center rounded-full bg-brand pl-9 pr-8 py-3.5 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
           >
             View Recommendations →
