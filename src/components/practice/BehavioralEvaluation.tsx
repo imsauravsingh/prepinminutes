@@ -3,7 +3,7 @@ import { Check, ArrowUp, Lightbulb, TrendingUp } from "lucide-react";
 
 export function BehavioralEvaluation() {
   return (
-    <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1064px]">
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
       {/* Practice Header & Progress */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
