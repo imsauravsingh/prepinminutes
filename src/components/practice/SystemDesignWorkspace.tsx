@@ -217,7 +217,7 @@ export function SystemDesignWorkspace() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-[1064px] flex-col gap-7">
+    <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4] p-4 sm:p-6 lg:p-7 gap-7">
       {/* 1. Header Row matching Figma node 190:4 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Practice Header & Progress Track */}
