@@ -740,8 +740,8 @@ export function BehavioralWorkspace() {
               End Practice Session?
             </h3>
             <p className="mt-2 text-sm text-[#6b6661]">
-              You have completed all 3 practice modules (Coding, System Design,
-              and Behavioral). Are you ready to view your performance summary?
+              You have completed your behavioral interview practice. Ready to
+              view your evaluation and performance feedback?
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -753,10 +753,12 @@ export function BehavioralWorkspace() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push("/practice/session/complete")}
+                onClick={() =>
+                  router.push("/practice/session/behavioral/evaluation")
+                }
                 className="rounded-full bg-[#ff6c47] px-5 py-2 text-xs font-semibold text-white hover:bg-[#fa552b]"
               >
-                End &amp; View Summary
+                View Evaluation →
               </button>
             </div>
           </div>
