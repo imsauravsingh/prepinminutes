@@ -277,7 +277,7 @@ export function OnboardingFormCard() {
       <div className="flex flex-col gap-3.5 pt-2">
         <div className="flex flex-wrap items-center gap-4 sm:gap-5">
           <Link
-            href="/preparation-plan"
+            href="/dashboard/plan-ready"
             className="flex items-center justify-center rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-[0_4px_12px_rgba(255,108,71,0.25)] transition-all hover:bg-[#fa552b] active:scale-[0.99]"
           >
             Create My Preparation Plan →
