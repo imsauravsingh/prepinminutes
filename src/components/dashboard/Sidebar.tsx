@@ -41,12 +41,16 @@ const navLinks: {
   { icon: Users, label: "Mock Interview", href: "#", locked: true },
 ];
 
-const checklistItems: { label: string; done?: boolean }[] = [
+const requiredChecklist: { label: string; done: boolean }[] = [
   { label: "Account created", done: true },
-  { label: "Target role" },
-  { label: "Resume uploaded" },
-  { label: "Job description" },
-  { label: "Prep preferences" },
+  { label: "Target role", done: true },
+  { label: "Experience level", done: true },
+  { label: "Prep timeline", done: true },
+];
+
+const optionalChecklist: { label: string; done: boolean }[] = [
+  { label: "Resume", done: false },
+  { label: "Job description", done: false },
 ];
 
 function SidebarContent() {
@@ -55,7 +59,9 @@ function SidebarContent() {
     pathname === "/dashboard" ||
     pathname === "/" ||
     pathname.startsWith("/dashboard/");
-  const completed = checklistItems.filter((item) => item.done).length;
+  const completedRequired = requiredChecklist.filter(
+    (item) => item.done,
+  ).length;
 
   const { user } = useUser();
   const clerk = useClerk();
@@ -127,8 +133,8 @@ function SidebarContent() {
 
       <div className="flex flex-col gap-6">
         {isDashboard && (
-          <div className="flex flex-col gap-4 rounded-2xl border border-[#ede6db] bg-cream p-5">
-            <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-[#faf6f0] p-4 sm:p-5">
+            <div className="flex flex-col gap-0.5">
               <p className="font-display text-sm font-bold text-ink">
                 Your Prep Plan
               </p>
@@ -136,35 +142,54 @@ function SidebarContent() {
                 Complete onboarding setup
               </p>
             </div>
-            <div className="flex flex-col gap-2.5">
-              {checklistItems.map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <span
-                    className={`flex size-4 shrink-0 items-center justify-center rounded ${
-                      item.done
-                        ? "border-[1.5px] border-success bg-[#edf5ec]"
-                        : "border-[1.5px] border-[#b0a898]"
-                    }`}
-                  >
-                    {item.done && <Check className="size-2.5 text-success" />}
-                  </span>
-                  <p
-                    className={`text-[13px] ${item.done ? "font-medium text-ink" : "text-ink-muted"}`}
-                  >
-                    {item.label}
-                  </p>
-                </div>
-              ))}
+
+            {/* REQUIRED Group */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                Required
+              </span>
+              <div className="flex flex-col gap-2">
+                {requiredChecklist.map((item) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded border-[1.5px] border-[#10b981] bg-[#edf5ec] text-[#10b981]">
+                      <Check className="size-2.5 stroke-[2.5]" />
+                    </span>
+                    <p className="text-xs font-medium text-ink">{item.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-[11px] font-semibold text-brand">
-                {completed} / {checklistItems.length} completed
+
+            {/* OPTIONAL Group */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                Optional
+              </span>
+              <div className="flex flex-col gap-2">
+                {optionalChecklist.map((item) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded border-[1.5px] border-[#ede6db] bg-white">
+                      {item.done && (
+                        <Check className="size-2.5 text-[#10b981]" />
+                      )}
+                    </span>
+                    <p className="text-xs text-ink-muted">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="flex flex-col gap-1.5 pt-2 border-t border-[#ede6db]/60">
+              <p className="text-[11px] font-semibold text-[#10b981]">
+                {completedRequired} / {requiredChecklist.length} required
+                complete
               </p>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
                 <div
-                  className="h-full rounded-full bg-brand"
+                  className="h-full rounded-full bg-[#10b981] transition-all duration-300"
                   style={{
-                    width: `${(completed / checklistItems.length) * 100}%`,
+                    width: `${(completedRequired / requiredChecklist.length) * 100}%`,
                   }}
                 />
               </div>
