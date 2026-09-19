@@ -10,6 +10,7 @@ type PracticeCardData = {
   duration: string;
   description: string;
   whyText: string;
+  href: string;
 };
 
 const cards: PracticeCardData[] = [
@@ -24,6 +25,7 @@ const cards: PracticeCardData[] = [
       "Solve a targeted coding problem focusing on sliding window technique",
     whyText:
       "Why: Part of today's preparation plan — your coding patterns readiness is at 78% and this topic needs more practice.",
+    href: "/practice/session/coding",
   },
   {
     title: "Load Balancing Strategies",
@@ -36,6 +38,7 @@ const cards: PracticeCardData[] = [
       "Design a scalable system scenario with follow-up architecture questions",
     whyText:
       "Why: System Design is your biggest preparation gap at 32% readiness. Load balancing is foundational for your Google interview.",
+    href: "/practice/session/system-design",
   },
   {
     title: "Leadership & Conflict Resolution",
@@ -48,6 +51,7 @@ const cards: PracticeCardData[] = [
       "Answer an interview question with AI evaluation of your STAR response",
     whyText:
       "Why: Recommended based on your preparation plan and previous evaluation — strengthen your behavioral storytelling.",
+    href: "/practice/session/behavioral",
   },
 ];
 
@@ -81,11 +85,12 @@ export function RecommendedPractice() {
             <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
               {/* Header row */}
               <div className="flex items-center justify-between">
-                <span
-                  className={`rounded-md px-2 py-1 text-[11px] font-bold ${card.categoryBg} ${card.categoryColor}`}
+                <Link
+                  href={card.href}
+                  className={`rounded-md px-2 py-1 text-[11px] font-bold transition-opacity hover:opacity-85 ${card.categoryBg} ${card.categoryColor}`}
                 >
                   {card.category}
-                </span>
+                </Link>
                 <div className="flex items-center gap-1.5 text-[13px] font-medium text-ink-muted">
                   <Clock className="size-3.5 text-ink-muted" />
                   <span>{card.duration}</span>
@@ -94,9 +99,12 @@ export function RecommendedPractice() {
 
               {/* Title & Description */}
               <div className="flex flex-col gap-1.5">
-                <h3 className="font-display text-base font-bold text-ink sm:text-lg">
+                <Link
+                  href={card.href}
+                  className="font-display text-base font-bold text-ink transition-colors hover:text-brand sm:text-lg w-fit"
+                >
                   {card.title}
-                </h3>
+                </Link>
                 <p className="text-sm text-ink-muted">{card.description}</p>
               </div>
 
@@ -110,7 +118,7 @@ export function RecommendedPractice() {
                 </div>
 
                 <Link
-                  href="/practice/session"
+                  href={card.href}
                   className="shrink-0 text-[13px] font-semibold text-brand transition-colors hover:underline text-left sm:text-right"
                 >
                   Start Practice →

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Settings,
   Cpu,
@@ -30,8 +29,6 @@ const WAVEFORM_HEIGHTS = [
 ];
 
 export function SystemDesignWorkspace() {
-  const router = useRouter();
-
   // Timer: starts at 02:34 (154 seconds) and counts up towards 30:00
   const [secondsElapsed, setSecondsElapsed] = useState(154);
   const [isPaused, setIsPaused] = useState(false);
@@ -103,7 +100,7 @@ export function SystemDesignWorkspace() {
   };
 
   const handleStopSession = () => {
-    router.push("/practice/session/system-design/evaluation");
+    setShowEndModal(true);
   };
 
   const handleSendText = (e: React.FormEvent) => {
@@ -621,7 +618,7 @@ export function SystemDesignWorkspace() {
                 Continue Session
               </button>
               <Link
-                href="/practice"
+                href="/practice/session/system-design/evaluation"
                 className="rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600"
               >
                 End Now
