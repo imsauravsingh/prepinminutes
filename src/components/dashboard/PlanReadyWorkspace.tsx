@@ -46,35 +46,34 @@ export function PlanReadyWorkspace() {
           </p>
         </div>
 
-        {/* Right: Stepper (1 Set Up done -> 2 Get Plan active -> 3 Start Preparing) */}
-        <div className="flex items-center gap-2.5 self-start lg:self-auto">
-          {/* Step 1 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-              <Check className="size-4 stroke-[3]" />
-            </div>
-            <span className="text-xs font-medium text-ink">Set Up</span>
-          </div>
+        {/* Right side: Setup Progress Stepper */}
+        <div className="flex flex-col gap-2 lg:items-end">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
+            Setup Progress · Step 2 of 3
+          </span>
 
-          <div className="mb-4 h-[2px] w-8 sm:w-12 bg-brand" />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Step 1 */}
+            <Link
+              href="/dashboard?setup=true"
+              className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
+            >
+              <Check className="size-3 stroke-[3]" />
+              <span>1 Set Up</span>
+            </Link>
 
-          {/* Step 2 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full bg-brand text-white font-bold text-xs">
-              2
-            </div>
-            <span className="text-xs font-bold text-ink">Get Plan</span>
-          </div>
+            <span className="text-xs font-medium text-brand">→</span>
 
-          <div className="mb-4 h-[2px] w-8 sm:w-12 bg-line" />
+            {/* Step 2 */}
+            <span className="inline-flex items-center rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs">
+              2 Get Plan
+            </span>
 
-          {/* Step 3 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full border border-line-strong/60 bg-white text-ink-muted font-medium text-xs">
-              3
-            </div>
-            <span className="text-xs font-medium text-ink-muted">
-              Start Preparing
+            <span className="text-xs font-medium text-[#b0a898]">→</span>
+
+            {/* Step 3 */}
+            <span className="inline-flex items-center rounded-full border border-[#ede6db] bg-[#faf6f0] px-3 py-1 text-[11px] font-medium text-[#6b6661]">
+              3 Start Preparing
             </span>
           </div>
         </div>

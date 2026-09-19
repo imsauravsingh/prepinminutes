@@ -56,34 +56,50 @@ export function StartPreparingWorkspace({
           </p>
         </div>
 
-        {/* Right: Stepper (1 Set Up done -> 2 Get Plan done -> 3 Start Preparing active) */}
-        <div className="flex items-center gap-2.5 self-start lg:self-auto">
-          {/* Step 1 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-              <Check className="size-4 stroke-[3]" />
-            </div>
-            <span className="text-xs font-medium text-ink">Set Up</span>
-          </div>
+        {/* Right side: Setup Progress Stepper */}
+        <div className="flex flex-col gap-2 lg:items-end">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
+            Setup Progress · Step 3 of 3
+          </span>
 
-          <div className="mb-4 h-[2px] w-8 sm:w-12 bg-brand" />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Step 1 */}
+            {onEditSetup ? (
+              <button
+                type="button"
+                onClick={onEditSetup}
+                className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                <Check className="size-3 stroke-[3]" />
+                <span>1 Set Up</span>
+              </button>
+            ) : (
+              <Link
+                href="/dashboard?setup=true"
+                className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
+              >
+                <Check className="size-3 stroke-[3]" />
+                <span>1 Set Up</span>
+              </Link>
+            )}
 
-          {/* Step 2 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-              <Check className="size-4 stroke-[3]" />
-            </div>
-            <span className="text-xs font-medium text-ink">Get Plan</span>
-          </div>
+            <span className="text-xs font-medium text-brand">→</span>
 
-          <div className="mb-4 h-[2px] w-8 sm:w-12 bg-brand" />
+            {/* Step 2 */}
+            <Link
+              href="/dashboard/plan-ready"
+              className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
+            >
+              <Check className="size-3 stroke-[3]" />
+              <span>2 Get Plan</span>
+            </Link>
 
-          {/* Step 3 */}
-          <div className="flex flex-col items-center gap-1.5">
-            <div className="flex size-7 items-center justify-center rounded-full bg-brand text-white font-bold text-xs shadow-xs">
-              3
-            </div>
-            <span className="text-xs font-bold text-ink">Start Preparing</span>
+            <span className="text-xs font-medium text-brand">→</span>
+
+            {/* Step 3 */}
+            <span className="inline-flex items-center rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs">
+              3 Start Preparing
+            </span>
           </div>
         </div>
       </div>
