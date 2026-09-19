@@ -89,9 +89,7 @@ export function PlanReadyWorkspace() {
               <Briefcase className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-                Target Role
-              </span>
+              <span className="text-xs text-ink-muted">Target Role</span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 Senior Software Engineer
               </span>
@@ -104,9 +102,7 @@ export function PlanReadyWorkspace() {
               <TrendingUp className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-                Years of Experience
-              </span>
+              <span className="text-xs text-ink-muted">Experience</span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 15+ years
               </span>
@@ -119,8 +115,8 @@ export function PlanReadyWorkspace() {
               <Clock className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-                Prep Timeline
+              <span className="text-xs text-ink-muted">
+                Preparation Timeline
               </span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 2 weeks
@@ -134,9 +130,7 @@ export function PlanReadyWorkspace() {
               <Building2 className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-                Target Company
-              </span>
+              <span className="text-xs text-ink-muted">Target Company</span>
               <div className="flex items-center gap-1.5">
                 {/* Google Colored Logo */}
                 <svg className="size-4 shrink-0" viewBox="0 0 24 24">
