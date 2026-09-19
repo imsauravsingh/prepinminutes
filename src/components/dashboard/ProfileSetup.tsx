@@ -1,4 +1,10 @@
-import { FileBadge2, Briefcase, UploadCloud, FilePlus2, type LucideIcon } from "lucide-react";
+import {
+  FileBadge2,
+  Briefcase,
+  UploadCloud,
+  FilePlus2,
+  type LucideIcon,
+} from "lucide-react";
 
 const uploadCards: {
   icon: LucideIcon;
@@ -43,7 +49,9 @@ const uploadCards: {
 export function ProfileSetup() {
   return (
     <div className="flex w-full flex-col gap-4">
-      <p className="font-display text-lg font-extrabold text-ink">Add Your Profile</p>
+      <p className="font-display text-lg font-extrabold text-ink">
+        Add Your Profile
+      </p>
 
       <div className="flex w-full flex-col gap-5 sm:flex-row sm:items-start">
         {uploadCards.map((card) => (
@@ -56,22 +64,33 @@ export function ProfileSetup() {
                 className="flex size-10 items-center justify-center rounded-[10px]"
                 style={{ backgroundColor: card.iconBg }}
               >
-                <card.icon className="size-5" style={{ color: card.iconColor }} />
+                <card.icon
+                  className="size-5"
+                  style={{ color: card.iconColor }}
+                />
               </div>
               <div className="flex flex-col gap-0.5">
-                <p className="font-display text-base font-bold text-ink">{card.title}</p>
+                <p className="font-display text-base font-bold text-ink">
+                  {card.title}
+                </p>
                 <p className="text-xs text-ink-muted">{card.subtitle}</p>
               </div>
             </div>
 
-            <p className="text-[13px] leading-5 text-ink-muted">{card.description}</p>
+            <p className="text-[13px] leading-5 text-ink-muted">
+              {card.description}
+            </p>
 
             <div
               className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-[#fbf9f4] p-5 ${card.dashed}`}
             >
               <card.uploadIcon className="size-6 text-ink-muted" />
-              <p className="text-sm font-semibold text-ink">{card.uploadLabel}</p>
-              <p className="text-[11px] text-ink-muted">{card.uploadHint}</p>
+              <p className="font-sans text-[13px] font-semibold text-[#1e1c1a] leading-normal">
+                {card.uploadLabel}
+              </p>
+              <p className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
+                {card.uploadHint}
+              </p>
             </div>
           </div>
         ))}

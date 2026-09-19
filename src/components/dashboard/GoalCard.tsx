@@ -22,7 +22,7 @@ export function GoalCard() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex flex-1 flex-col gap-2">
-          <p className="text-xs font-semibold uppercase text-ink">
+          <p className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             Target Role
           </p>
           <div className="flex items-center gap-2 rounded-lg border border-[#ede6db] bg-[#fbf9f4] p-3">
@@ -32,7 +32,7 @@ export function GoalCard() {
         </div>
 
         <div className="flex flex-1 flex-col gap-2">
-          <p className="text-xs font-semibold uppercase text-ink">
+          <p className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             Target Company
           </p>
           <div className="flex items-center justify-between rounded-lg border border-[#ede6db] bg-[#fbf9f4] p-3">
@@ -45,7 +45,7 @@ export function GoalCard() {
         </div>
 
         <div className="flex flex-1 flex-col gap-2">
-          <p className="text-xs font-semibold uppercase text-ink">
+          <p className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             Interview Date
           </p>
           <div className="flex items-center justify-between rounded-lg border border-[#ede6db] bg-[#fbf9f4] p-3">

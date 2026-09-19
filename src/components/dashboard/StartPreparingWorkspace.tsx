@@ -114,7 +114,9 @@ export function StartPreparingWorkspace({
               <Briefcase className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Target Role</span>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+                Target Role
+              </span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 Senior Software Engineer
               </span>
@@ -127,7 +129,9 @@ export function StartPreparingWorkspace({
               <TrendingUp className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Experience</span>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+                Years of Experience
+              </span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 15+ years
               </span>
@@ -140,7 +144,9 @@ export function StartPreparingWorkspace({
               <Clock className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Timeline</span>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+                Prep Timeline
+              </span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
                 2 weeks
               </span>
@@ -153,7 +159,9 @@ export function StartPreparingWorkspace({
               <Building2 className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Target Company</span>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+                Target Company
+              </span>
               <div className="flex items-center gap-1.5">
                 <svg className="size-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -484,9 +492,9 @@ export function StartPreparingWorkspace({
                 <span className="text-ink-muted">Progress</span>
                 <span className="font-bold text-ink">18%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#f4efe8]">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
                 <div
-                  className="h-full rounded-full bg-brand"
+                  className="h-full rounded-full bg-brand transition-all duration-300"
                   style={{ width: "18%" }}
                 />
               </div>
@@ -512,9 +520,9 @@ export function StartPreparingWorkspace({
                 <span className="text-ink-muted">Progress</span>
                 <span className="font-bold text-ink">10%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#f4efe8]">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
                 <div
-                  className="h-full rounded-full bg-blue"
+                  className="h-full rounded-full bg-blue transition-all duration-300"
                   style={{ width: "10%" }}
                 />
               </div>
@@ -540,9 +548,9 @@ export function StartPreparingWorkspace({
                 <span className="text-ink-muted">Progress</span>
                 <span className="font-bold text-ink">5%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#f4efe8]">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
                 <div
-                  className="h-full rounded-full bg-purple"
+                  className="h-full rounded-full bg-purple transition-all duration-300"
                   style={{ width: "5%" }}
                 />
               </div>
@@ -568,9 +576,9 @@ export function StartPreparingWorkspace({
                 <span className="text-ink-muted">Progress</span>
                 <span className="font-bold text-ink">8%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#f4efe8]">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
                 <div
-                  className="h-full rounded-full bg-[#10b981]"
+                  className="h-full rounded-full bg-[#10b981] transition-all duration-300"
                   style={{ width: "8%" }}
                 />
               </div>
@@ -760,7 +768,7 @@ export function StartPreparingWorkspace({
         {/* Right: Continue CTA */}
         <Link
           href="/preparation-plan"
-          className="rounded-full bg-brand px-7 py-3 text-[14px] sm:text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.25)] transition-all hover:bg-[#fa552b] active:scale-[0.99] whitespace-nowrap self-start sm:self-auto"
+          className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99] whitespace-nowrap self-start sm:self-auto"
         >
           Continue to My Preparation Plan →
         </Link>

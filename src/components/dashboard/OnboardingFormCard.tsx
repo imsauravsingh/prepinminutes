@@ -62,7 +62,7 @@ export function OnboardingFormCard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Field 1: Target Role */}
         <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 text-[11px] font-bold text-ink">
+          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             <span>Target Role</span>
             <span className="text-brand">*</span>
           </label>
@@ -76,14 +76,14 @@ export function OnboardingFormCard() {
               className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-[#b0a898]"
             />
           </div>
-          <span className="text-[11px] text-[#b0a898]">
+          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
             e.g. Software Engineer, Senior SDE, Staff Engineer
           </span>
         </div>
 
         {/* Field 2: Years of Experience */}
         <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 text-[11px] font-bold text-ink">
+          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             <span>Years of Experience</span>
             <span className="text-brand">*</span>
           </label>
@@ -104,14 +104,14 @@ export function OnboardingFormCard() {
             </div>
             <ChevronDown className="size-3.5 shrink-0 text-[#6b6661] pointer-events-none" />
           </div>
-          <span className="text-[11px] text-[#b0a898]">
+          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
             Helps us tailor the depth and topics.
           </span>
         </div>
 
         {/* Field 3: Prep Timeline */}
         <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 text-[11px] font-bold text-ink">
+          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             <span>Prep Timeline</span>
             <span className="text-brand">*</span>
           </label>
@@ -131,7 +131,7 @@ export function OnboardingFormCard() {
             </div>
             <ChevronDown className="size-3.5 shrink-0 text-[#6b6661] pointer-events-none" />
           </div>
-          <span className="text-[11px] text-[#b0a898]">
+          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
             How much time do you have to prepare?
           </span>
         </div>
@@ -140,7 +140,7 @@ export function OnboardingFormCard() {
       {/* 3. Target Company (Full Width) */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <label className="text-[11px] font-bold text-ink">
+          <label className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
             Target Company
           </label>
           <span className="rounded-full bg-[#f0f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#0284c7]">
@@ -160,7 +160,7 @@ export function OnboardingFormCard() {
           </div>
           <ChevronDown className="size-3.5 shrink-0 text-[#b0a898] pointer-events-none" />
         </div>
-        <span className="text-[11px] text-[#b0a898]">
+        <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
           Add a target company to get company-specific insights and questions.
           Or select &quot;I don&apos;t have a target company.&quot;
         </span>
@@ -171,7 +171,9 @@ export function OnboardingFormCard() {
         {/* Resume Dropzone */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-ink">Resume</label>
+            <label className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+              Resume
+            </label>
             <span className="rounded-full bg-[#f0f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#0284c7]">
               Optional
             </span>
@@ -209,16 +211,16 @@ export function OnboardingFormCard() {
             ) : (
               <>
                 <UploadCloud className="size-6 text-[#b0a898]" />
-                <span className="text-xs font-semibold text-ink">
+                <span className="font-sans text-[13px] font-semibold text-[#1e1c1a] leading-normal">
                   Upload Resume
                 </span>
-                <span className="text-[11px] text-[#b0a898]">
+                <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
                   PDF, DOCX · Max 10 MB
                 </span>
               </>
             )}
           </div>
-          <span className="text-[11px] text-[#b0a898]">
+          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
             Helps us understand your background and suggest relevant topics.
           </span>
         </div>
@@ -226,7 +228,7 @@ export function OnboardingFormCard() {
         {/* Job Description Dropzone */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-bold text-ink">
+            <label className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
               Job Description
             </label>
             <span className="rounded-full bg-[#f0f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#0284c7]">
@@ -261,12 +263,16 @@ export function OnboardingFormCard() {
             ) : (
               <>
                 <Clipboard className="size-6 text-[#b0a898]" />
-                <span className="text-xs font-semibold text-ink">Paste JD</span>
-                <span className="text-[11px] text-[#b0a898]">Text format</span>
+                <span className="font-sans text-[13px] font-semibold text-[#1e1c1a] leading-normal">
+                  Paste JD
+                </span>
+                <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
+                  Text format
+                </span>
               </>
             )}
           </div>
-          <span className="text-[11px] text-[#b0a898]">
+          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
             Add the JD to focus preparation on the exact skills and
             responsibilities required.
           </span>
@@ -278,7 +284,7 @@ export function OnboardingFormCard() {
         <div className="flex flex-wrap items-center gap-4 sm:gap-5">
           <Link
             href="/dashboard/plan-ready"
-            className="flex items-center justify-center rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-[0_4px_12px_rgba(255,108,71,0.25)] transition-all hover:bg-[#fa552b] active:scale-[0.99]"
+            className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
           >
             Create My Preparation Plan →
           </Link>
@@ -291,7 +297,7 @@ export function OnboardingFormCard() {
         </div>
 
         {/* Security assurance */}
-        <div className="flex items-center gap-1.5 text-[11px] text-[#b0a898]">
+        <div className="flex items-center gap-1.5 font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
           <Lock className="size-3 text-[#b0a898]" />
           <span>
             Your information is secure and only used to personalize your
