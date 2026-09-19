@@ -550,7 +550,12 @@ export function PlanReadyWorkspace() {
         {/* Right: Actions */}
         <div className="flex flex-wrap items-center gap-3 shrink-0 self-start sm:self-auto">
           <Link
-            href="/preparation-plan"
+            href="/dashboard?step=3"
+            onClick={() => {
+              try {
+                localStorage.setItem("prep_onboarding_completed", "true");
+              } catch {}
+            }}
             className="flex items-center justify-center rounded-full bg-brand px-6 py-3 text-[14px] sm:text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.25)] transition-all hover:bg-[#fa552b] active:scale-[0.99] whitespace-nowrap"
           >
             Go to My Preparation Plan →
