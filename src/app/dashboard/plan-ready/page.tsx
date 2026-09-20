@@ -4,8 +4,8 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { PlanReadyWorkspace } from "@/components/dashboard/PlanReadyWorkspace";
 
 export const metadata: Metadata = {
-  title: "Your Preparation Plan is Ready | PrepInMinutes",
-  description: "Review your personalized interview preparation plan roadmap",
+  title: "Great! Let's take the next step | PrepInMinutes",
+  description: "Choose how you would like to continue your preparation journey",
 };
 
 export default function PlanReadyPage() {
