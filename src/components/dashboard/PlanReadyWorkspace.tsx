@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
 import {
-  Check,
   BarChart3,
   Target,
   ListChecks,
@@ -38,42 +38,9 @@ export function PlanReadyWorkspace() {
           </p>
         </div>
 
-        {/* Right side: Stepper (Set Up -> Next Step -> Start Preparing) */}
+        {/* Right side: Stepper */}
         <div className="flex flex-col gap-2 lg:items-end">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Step 1: Set Up */}
-            <Link
-              href="/dashboard?setup=true"
-              className="flex items-center gap-1.5 text-xs font-semibold text-ink hover:text-brand transition-colors"
-            >
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#10754d] text-white">
-                <Check className="size-3.5 stroke-[3]" />
-              </span>
-              <span>Set Up</span>
-            </Link>
-
-            {/* Connecting line 1 */}
-            <div className="h-[2px] w-5 sm:w-7 rounded-full bg-[#ffb5a0]" />
-
-            {/* Step 2: Next Step */}
-            <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-                2
-              </span>
-              <span>Next Step</span>
-            </div>
-
-            {/* Connecting line 2 */}
-            <div className="h-[2px] w-5 sm:w-7 rounded-full bg-[#e5e1d8]" />
-
-            {/* Step 3: Start Preparing */}
-            <div className="flex items-center gap-1.5 text-xs font-medium text-[#9ca3af]">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#f0ede6] text-[#9ca3af]">
-                3
-              </span>
-              <span>Start Preparing</span>
-            </div>
-          </div>
+          <DashboardStepper currentStep={2} />
         </div>
       </div>
 

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
 import {
-  Check,
   Briefcase,
   TrendingUp,
   Clock,
@@ -56,51 +56,9 @@ export function StartPreparingWorkspace({
           </p>
         </div>
 
-        {/* Right side: Setup Progress Stepper */}
+        {/* Right side: Stepper */}
         <div className="flex flex-col gap-2 lg:items-end">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
-            Setup Progress · Step 3 of 3
-          </span>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            {/* Step 1 */}
-            {onEditSetup ? (
-              <button
-                type="button"
-                onClick={onEditSetup}
-                className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <Check className="size-3 stroke-[3]" />
-                <span>1 Set Up</span>
-              </button>
-            ) : (
-              <Link
-                href="/dashboard?setup=true"
-                className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
-              >
-                <Check className="size-3 stroke-[3]" />
-                <span>1 Set Up</span>
-              </Link>
-            )}
-
-            <span className="text-xs font-medium text-brand">→</span>
-
-            {/* Step 2 */}
-            <Link
-              href="/dashboard/plan-ready"
-              className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs hover:opacity-90 transition-opacity"
-            >
-              <Check className="size-3 stroke-[3]" />
-              <span>2 Get Plan</span>
-            </Link>
-
-            <span className="text-xs font-medium text-brand">→</span>
-
-            {/* Step 3 */}
-            <span className="inline-flex items-center rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white shadow-xs">
-              3 Start Preparing
-            </span>
-          </div>
+          <DashboardStepper currentStep={3} onEditSetup={onEditSetup} />
         </div>
       </div>
 
