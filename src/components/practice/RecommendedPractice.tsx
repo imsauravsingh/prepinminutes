@@ -41,6 +41,19 @@ const cards: PracticeCardData[] = [
     href: "/practice/session/system-design",
   },
   {
+    title: "Multi-Region Cloud Infrastructure & Resilience",
+    category: "Cloud",
+    categoryBg: "bg-[#eff6ff]",
+    categoryColor: "text-[#2563eb]",
+    accentColor: "bg-[#2563eb]",
+    duration: "12 min",
+    description:
+      "Architect a resilient multi-region cloud deployment with auto-scaling, disaster recovery and zero-trust VPC",
+    whyText:
+      "Why: Cloud readiness is currently at 67% — master VPC networking, Kubernetes containerization and high-availability patterns.",
+    href: "/practice/session/cloud",
+  },
+  {
     title: "Leadership & Conflict Resolution",
     category: "Behavioral",
     categoryBg: "bg-[#f5f3ff]",
@@ -64,7 +77,7 @@ export function RecommendedPractice() {
           Today&apos;s Recommended Practice
         </h2>
         <p className="text-xs text-ink-muted sm:text-sm">
-          3 areas · ~27 min total · Generated from your Preparation Plan
+          4 areas · ~39 min total · Generated from your Preparation Plan
         </p>
       </div>
 

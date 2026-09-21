@@ -12,6 +12,17 @@ type RecentItem = {
 
 const recentPractices: RecentItem[] = [
   {
+    tag: "Cloud",
+    tagBg: "bg-[#eff6ff]",
+    tagColor: "text-[#2563eb]",
+    name: "Multi-Region VPC & High Availability",
+    duration: "12 min",
+    score: "76%",
+    scoreBg: "bg-[#edf5ec]",
+    scoreColor: "text-[#10b981]",
+    date: "Today",
+  },
+  {
     tag: "System Design",
     tagBg: "bg-[#eff6ff]",
     tagColor: "text-[#3b82f6]",
