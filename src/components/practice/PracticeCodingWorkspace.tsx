@@ -158,9 +158,9 @@ export function PracticeCodingWorkspace() {
     <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4]">
       {/* 1. Top Header Bar */}
       <header className="flex h-14 w-full items-center justify-between border-b border-[#f4efe8] bg-white px-4 sm:px-7">
-        {/* Left: 1 / 3 • Data Structures */}
+        {/* Left: 1 / 4 • Data Structures */}
         <div className="flex items-center gap-2 text-[13px]">
-          <span className="font-bold text-brand">1 / 3</span>
+          <span className="font-bold text-brand">1 / 4</span>
           <span className="text-[#b0a898]">•</span>
           <span className="font-semibold text-ink">Data Structures</span>
         </div>

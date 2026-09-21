@@ -132,9 +132,9 @@ export function BehavioralWorkspace() {
       {/* 1. Header Row matching Figma Node 214:4 */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          {/* Left: 3 / 3 • Behavioral */}
+          {/* Left: 4 / 4 • Behavioral */}
           <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="font-bold text-[#ff6c47]">3 / 3</span>
+            <span className="font-bold text-[#ff6c47]">4 / 4</span>
             <span className="text-[#b0a898]">•</span>
             <span className="font-semibold text-[#1e1c1a]">Behavioral</span>
           </div>

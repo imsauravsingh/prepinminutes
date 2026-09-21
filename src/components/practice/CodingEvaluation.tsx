@@ -8,7 +8,7 @@ export function CodingEvaluation() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="font-bold text-brand">1 / 3</span>
+            <span className="font-bold text-brand">1 / 4</span>
             <span className="text-[#b0a898]">•</span>
             <span className="font-semibold text-ink">Data Structures</span>
           </div>
@@ -17,11 +17,11 @@ export function CodingEvaluation() {
           </span>
         </div>
 
-        {/* Progress bar (1 of 3 filled ~ 36%) */}
+        {/* Progress bar (1 of 4 filled ~ 25%) */}
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
           <div
             className="h-full rounded-full bg-brand transition-all duration-300"
-            style={{ width: "36%" }}
+            style={{ width: "25%" }}
           />
         </div>
       </div>

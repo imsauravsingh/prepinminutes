@@ -12,7 +12,7 @@ export function PracticeHeader() {
       </div>
 
       <div className="shrink-0 text-sm font-medium text-ink-muted">
-        0 / 3 completed · ~27 min
+        0 / 4 completed · ~39 min
       </div>
     </div>
   );

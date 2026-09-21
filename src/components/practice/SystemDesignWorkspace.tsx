@@ -221,18 +221,18 @@ export function SystemDesignWorkspace() {
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-bold text-brand">2 / 3</span>
+              <span className="font-bold text-brand">2 / 4</span>
               <span className="text-[#b0a898]">•</span>
               <span className="font-semibold text-ink">System Design</span>
             </div>
-            <span className="text-sm text-ink-muted">~17 min remaining</span>
+            <span className="text-sm text-ink-muted">~29 min remaining</span>
           </div>
 
-          {/* Progress bar track (Step 2 of 3 ~ 66.7% completed) */}
+          {/* Progress bar track (Step 2 of 4 ~ 50% completed) */}
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4efe8]">
             <div
               className="h-full bg-brand transition-all duration-300"
-              style={{ width: "66.7%" }}
+              style={{ width: "50%" }}
             />
           </div>
         </div>
@@ -489,7 +489,7 @@ export function SystemDesignWorkspace() {
                 Today&apos;s Progress
               </h2>
               <div className="flex items-center gap-4">
-                {/* Circular Progress Ring (2/3 completed ~ 66%) */}
+                {/* Circular Progress Ring (2/4 completed ~ 50%) */}
                 <div className="relative flex size-14 shrink-0 items-center justify-center">
                   <svg className="size-full -rotate-90" viewBox="0 0 56 56">
                     <circle
@@ -507,13 +507,13 @@ export function SystemDesignWorkspace() {
                       stroke="#7c3aed"
                       strokeWidth="4"
                       strokeDasharray={138}
-                      strokeDashoffset={46} // ~66% progress
+                      strokeDashoffset={69} // ~50% progress
                       strokeLinecap="round"
                       fill="none"
                     />
                   </svg>
                   <span className="absolute text-xs font-bold text-ink">
-                    2/3
+                    2/4
                   </span>
                 </div>
 
@@ -523,7 +523,7 @@ export function SystemDesignWorkspace() {
                     System Design
                   </span>
                   <span className="text-xs text-ink-muted">
-                    Question 2 of 3
+                    Question 2 of 4
                   </span>
                 </div>
               </div>

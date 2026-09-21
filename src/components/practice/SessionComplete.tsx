@@ -31,6 +31,15 @@ const sessionResults: ResultItem[] = [
     scoreDelta: "28% → 35%",
   },
   {
+    area: "Cloud",
+    bulletColor: "bg-[#2563eb]",
+    topic: "Multi-Region VPC",
+    badge: "Improved",
+    badgeBg: "bg-[#edf5ec]",
+    badgeColor: "text-[#10b981]",
+    scoreDelta: "67% → 76%",
+  },
+  {
     area: "Behavioral",
     bulletColor: "bg-[#8b5cf6]",
     topic: "Leadership & Conflict",
@@ -50,7 +59,7 @@ export function SessionComplete() {
           Today&apos;s Practice Complete 🎉
         </h1>
         <p className="text-sm font-semibold text-ink-muted sm:text-base">
-          3 / 3 areas completed · 27 min
+          4 / 4 areas completed · 39 min
         </p>
       </div>
 

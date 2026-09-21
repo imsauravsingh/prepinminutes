@@ -8,7 +8,7 @@ export function CloudEvaluation() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="font-bold text-brand">2 / 3</span>
+            <span className="font-bold text-brand">3 / 4</span>
             <span className="text-[#b0a898]">•</span>
             <span className="font-semibold text-ink">Cloud Infrastructure</span>
           </div>
@@ -17,17 +17,22 @@ export function CloudEvaluation() {
           </span>
         </div>
 
-        {/* Progress bar */}
+        {/* Progress bar (3 steps completed out of 4) */}
         <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
           <div
             className="h-full bg-[#10b981] transition-all duration-300"
-            style={{ width: "33.3%" }}
+            style={{ width: "25%" }}
             title="Step 1 Completed"
           />
           <div
             className="h-full bg-[#10b981] transition-all duration-300"
-            style={{ width: "33.3%" }}
+            style={{ width: "25%" }}
             title="Step 2 Evaluated"
+          />
+          <div
+            className="h-full bg-[#10b981] transition-all duration-300"
+            style={{ width: "25%" }}
+            title="Step 3 Evaluated"
           />
         </div>
       </div>
@@ -141,7 +146,7 @@ export function CloudEvaluation() {
           {/* Continue CTA */}
           <div className="flex justify-end">
             <Link
-              href="/practice"
+              href="/practice/session/behavioral"
               className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
             >
               Continue →

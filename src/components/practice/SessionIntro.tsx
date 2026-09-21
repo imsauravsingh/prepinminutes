@@ -21,6 +21,12 @@ const upcomingAreas: AreaItem[] = [
     duration: "10 min",
   },
   {
+    area: "Cloud",
+    bulletColor: "bg-[#2563eb]",
+    topic: "Multi-Region VPC",
+    duration: "12 min",
+  },
+  {
     area: "Behavioral",
     bulletColor: "bg-[#8b5cf6]",
     topic: "Leadership & Conflict",
@@ -49,7 +55,7 @@ export function SessionIntro() {
             Today&apos;s Practice
           </h1>
           <p className="text-base font-semibold text-ink-muted">
-            3 preparation areas · ~27 min
+            4 preparation areas · ~39 min
           </p>
           <p className="text-[15px] leading-relaxed text-ink-muted">
             Your practice is based on today&apos;s personalized preparation

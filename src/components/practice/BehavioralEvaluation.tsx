@@ -8,7 +8,7 @@ export function BehavioralEvaluation() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="font-bold text-brand">3 / 3</span>
+            <span className="font-bold text-brand">4 / 4</span>
             <span className="text-[#b0a898]">•</span>
             <span className="font-semibold text-ink">Behavioral</span>
           </div>
@@ -17,22 +17,27 @@ export function BehavioralEvaluation() {
           </span>
         </div>
 
-        {/* Progress bar (all 3 steps completed/evaluated - 100% full) */}
+        {/* Progress bar (all 4 steps completed/evaluated - 100% full) */}
         <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
           <div
             className="h-full bg-[#10b981] transition-all duration-300"
-            style={{ width: "33.3%" }}
+            style={{ width: "25%" }}
             title="Step 1 Coding Evaluated"
           />
           <div
             className="h-full bg-[#10b981] transition-all duration-300"
-            style={{ width: "33.3%" }}
+            style={{ width: "25%" }}
             title="Step 2 System Design Evaluated"
           />
           <div
             className="h-full bg-[#10b981] transition-all duration-300"
-            style={{ width: "33.4%" }}
-            title="Step 3 Behavioral Evaluated"
+            style={{ width: "25%" }}
+            title="Step 3 Cloud Evaluated"
+          />
+          <div
+            className="h-full bg-[#10b981] transition-all duration-300"
+            style={{ width: "25%" }}
+            title="Step 4 Behavioral Evaluated"
           />
         </div>
       </div>
