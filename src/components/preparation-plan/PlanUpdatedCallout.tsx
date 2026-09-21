@@ -1,31 +1,30 @@
-import { Info, RefreshCw } from "lucide-react";
+import { Lightbulb, ArrowRight } from "lucide-react";
 
 export function PlanUpdatedCallout() {
   return (
-    <div className="flex w-full flex-col gap-5">
-      {/* Dynamic adaptability info note */}
-      <div className="flex items-start gap-2.5 sm:items-center">
-        <Info className="size-4 shrink-0 text-brand mt-0.5 sm:mt-0" />
-        <p className="text-[13px] text-ink-muted">
-          This plan dynamically adapts as you practice and improve. Complete
-          activities to see your readiness score update in real time.
-        </p>
-      </div>
-
-      {/* Plan updated callout card */}
-      <div className="flex flex-col gap-2 rounded-xl border border-[#ede6db] bg-[#faf6f0] p-4 sm:p-5">
-        <div className="flex items-center gap-2">
-          <RefreshCw className="size-3.5 text-ink-muted shrink-0" />
-          <p className="text-[13px] font-bold text-ink">
-            Plan Updated · 2 hours ago
+    <div className="flex w-full flex-col justify-between gap-4 rounded-2xl border border-[#dbeafe] bg-[#f0f7ff] p-4 sm:flex-row sm:items-center sm:p-5 shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+      <div className="flex items-center gap-3.5">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#dbeafe] text-[#2563eb]">
+          <Lightbulb className="size-5" />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <p className="font-display text-sm font-extrabold text-ink sm:text-[15px]">
+            Your plan adapts as you progress
+          </p>
+          <p className="text-xs text-ink-muted sm:text-[13px]">
+            As you complete topics, upcoming topics and timelines will adjust
+            automatically.
           </p>
         </div>
-        <p className="text-[13px] leading-relaxed text-ink-muted">
-          What changed: Based on your latest evaluation (28% on distributed
-          systems), System Design is now your top preparation focus. Scalability
-          Fundamentals added as your recommended starting point.
-        </p>
       </div>
+
+      <button
+        type="button"
+        className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-[#bfdbfe] bg-white px-4 py-2 text-xs font-semibold text-[#2563eb] shadow-xs transition-colors hover:bg-blue-50/50 sm:text-sm"
+      >
+        <span>Learn more about timelines</span>
+        <ArrowRight className="size-3.5" />
+      </button>
     </div>
   );
 }

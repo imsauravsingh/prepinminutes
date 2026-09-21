@@ -132,7 +132,7 @@ function SidebarContent() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {isDashboard && (
+        {isDashboard ? (
           <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-[#faf6f0] p-4 sm:p-5">
             <div className="flex flex-col gap-0.5">
               <p className="font-display text-sm font-bold text-ink">
@@ -194,6 +194,34 @@ function SidebarContent() {
                 />
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="relative overflow-hidden rounded-2xl border border-[#fee2e2]/70 bg-gradient-to-b from-[#fff5f4] via-[#fff1f0] to-[#ffeded] p-4 shadow-xs">
+            <div className="relative z-10 flex flex-col gap-1">
+              <div className="text-lg">🚀</div>
+              <p className="font-display text-sm font-extrabold text-ink">
+                Stay consistent!
+              </p>
+              <p className="text-[11px] text-ink-muted leading-relaxed">
+                Small steps every day lead to big results.
+              </p>
+            </div>
+            {/* Illustrated subtle mountain & flag background */}
+            <svg
+              className="pointer-events-none absolute -bottom-1 -right-2 h-16 w-36 opacity-35"
+              viewBox="0 0 160 80"
+              fill="none"
+              aria-hidden
+            >
+              <path d="M10 80L65 24L105 60L125 40L165 80H10Z" fill="#fca5a5" />
+              <path d="M65 24L95 80H40L65 24Z" fill="#f87171" />
+              <path
+                d="M64 24V14M64 14L74 17L64 20V14"
+                stroke="#ef4444"
+                strokeWidth="1.5"
+                fill="#ef4444"
+              />
+            </svg>
           </div>
         )}
 

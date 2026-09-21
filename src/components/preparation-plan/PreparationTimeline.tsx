@@ -1,93 +1,141 @@
-type PhaseCard = {
+import { Calendar, Clock, ArrowRight } from "lucide-react";
+
+type Phase = {
   days: string;
-  isCurrent?: boolean;
   phase: string;
   description: string;
-  completed: string;
+  status: "In Progress" | "Not Started";
+  icon: typeof Clock;
+  iconBg: string;
+  iconColor: string;
+  textColor: string;
+  isActive?: boolean;
 };
 
-const phases: PhaseCard[] = [
+const phases: Phase[] = [
   {
-    days: "Days 1-4",
-    isCurrent: true,
+    days: "Days 1–4",
     phase: "Foundation Building",
-    description: "System Design basics, Data Structures review",
-    completed: "1/6 completed",
+    description: "Core concepts & basics",
+    status: "In Progress",
+    icon: Clock,
+    iconBg: "bg-[#ffede6]",
+    iconColor: "text-[#ea580c]",
+    textColor: "text-[#ea580c]",
+    isActive: true,
   },
   {
-    days: "Days 5-8",
+    days: "Days 5–8",
     phase: "Skill Deepening",
-    description: "Advanced system design, Behavioral prep, Coding patterns",
-    completed: "0/5 completed",
+    description: "Advanced topics & practice",
+    status: "Not Started",
+    icon: Clock,
+    iconBg: "bg-[#eff6ff]",
+    iconColor: "text-[#3b82f6]",
+    textColor: "text-[#3b82f6]",
   },
   {
-    days: "Days 9-11",
+    days: "Days 9–11",
     phase: "Mock & Polish",
-    description: "Full mock interviews, weakness review",
-    completed: "0/4 completed",
+    description: "Full mocks & weak areas",
+    status: "Not Started",
+    icon: Calendar,
+    iconBg: "bg-[#ecfdf5]",
+    iconColor: "text-[#10b981]",
+    textColor: "text-[#10b981]",
   },
   {
     days: "Day 12",
     phase: "Final Review",
-    description: "Light review, confidence building",
-    completed: "0/2 completed",
+    description: "Quick revision & confidence",
+    status: "Not Started",
+    icon: Calendar,
+    iconBg: "bg-[#f5f3ff]",
+    iconColor: "text-[#8b5cf6]",
+    textColor: "text-[#8b5cf6]",
   },
 ];
 
 export function PreparationTimeline() {
   return (
     <div className="flex w-full flex-col gap-4">
-      <h2 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-        Preparation Timeline
-      </h2>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {phases.map((item) => (
-          <div
-            key={item.days}
-            className={`flex flex-col justify-between gap-3 rounded-2xl p-5 ${
-              item.isCurrent
-                ? "border border-brand bg-[#fff0ec]"
-                : "border border-line bg-white"
-            }`}
-          >
-            {/* Header row */}
-            <div className="flex items-center justify-between">
-              <span
-                className={`font-display text-[13px] font-extrabold ${
-                  item.isCurrent ? "text-brand" : "text-[#b0a898]"
-                }`}
-              >
-                {item.days}
-              </span>
-              {item.isCurrent && (
-                <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                  CURRENT PHASE
-                </span>
-              )}
-            </div>
-
-            {/* Middle details */}
-            <div className="flex flex-col gap-1">
-              <p className="font-display text-base font-extrabold text-ink">
-                {item.phase}
-              </p>
-              <p className="text-xs leading-4 text-ink-muted">
-                {item.description}
-              </p>
-            </div>
-
-            {/* Completed badge */}
-            <div className="w-fit rounded-full border border-line bg-[#fbf9f4] px-2.5 py-1 text-[11px] font-bold text-ink-muted">
-              {item.completed}
-            </div>
+      {/* Header */}
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-start gap-2.5">
+          <Calendar className="mt-0.5 size-5 text-ink shrink-0" />
+          <div className="flex flex-col">
+            <h2 className="font-display text-base font-extrabold text-ink sm:text-lg">
+              Preparation Timeline
+            </h2>
+            <p className="text-xs text-ink-muted">
+              Your preparation plan is divided into focused phases. As you
+              complete topics, your readiness by area will update.
+            </p>
           </div>
-        ))}
+        </div>
+
+        <button
+          type="button"
+          className="flex w-fit items-center gap-1.5 self-start sm:self-auto rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-semibold text-[#2563eb] shadow-xs transition-colors hover:bg-cream"
+        >
+          <span>View full timeline</span>
+          <ArrowRight className="size-3.5" />
+        </button>
       </div>
 
-      <p className="text-[13px] text-ink-muted">
-        Timeline adapts based on your practice and evaluation results
-      </p>
+      {/* Phase Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
+        {phases.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.days}
+              className={`flex h-full flex-col justify-between gap-4 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(30,28,26,0.03)] transition-all ${
+                item.isActive
+                  ? "border border-[#ff8c73] bg-[#fffbf9]"
+                  : "border border-line bg-white"
+              }`}
+            >
+              {/* Top days badge */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`flex size-5 items-center justify-center rounded-full ${item.iconBg} ${item.iconColor}`}
+                >
+                  <Icon className="size-3" />
+                </div>
+                <span className={`text-xs font-bold ${item.textColor}`}>
+                  {item.days}
+                </span>
+              </div>
+
+              {/* Details */}
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display text-sm font-extrabold text-ink">
+                  {item.phase}
+                </span>
+                <span className="text-xs text-ink-muted">
+                  {item.description}
+                </span>
+              </div>
+
+              {/* Status Pill */}
+              <div>
+                {item.status === "In Progress" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff1ec] px-2.5 py-0.5 text-[11px] font-semibold text-[#ea580c]">
+                    <span className="size-1.5 rounded-full bg-[#ea580c]" />
+                    In Progress
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f4f2ee] px-2.5 py-0.5 text-[11px] font-medium text-[#78716c]">
+                    <span className="size-1.5 rounded-full border border-[#78716c] bg-transparent" />
+                    Not Started
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
