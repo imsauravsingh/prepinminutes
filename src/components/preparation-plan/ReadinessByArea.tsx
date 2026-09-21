@@ -6,7 +6,7 @@ import {
   BarChart2,
   Sparkles,
   Database,
-  MessageSquare,
+  Cloud,
   Code2,
   Users,
   ChevronDown,
@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Circle,
 } from "lucide-react";
+import { AreaTopicsModal, type ModalTopicItem } from "./AreaTopicsModal";
 
 type Topic = {
   num: number;
@@ -31,10 +32,12 @@ type AreaData = {
   iconBg: string;
   iconColor: string;
   barColor: string;
+  route: string;
   phaseStats: Record<
     string,
     { readiness: number; remaining: string; topics: Topic[] }
   >;
+  allTopics: ModalTopicItem[];
 };
 
 const phaseNames: Record<string, string> = {
@@ -54,6 +57,7 @@ const areasData: AreaData[] = [
     iconBg: "bg-[#fff1ec]",
     iconColor: "text-[#ea580c]",
     barColor: "bg-[#ea580c]",
+    route: "/practice/session/system-design",
     phaseStats: {
       "phase-1": {
         readiness: 32,
@@ -199,108 +203,278 @@ const areasData: AreaData[] = [
         ],
       },
     },
+    allTopics: [
+      {
+        id: "sd-1",
+        num: 1,
+        name: "Scalability Fundamentals",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "sd-2",
+        num: 2,
+        name: "Load Balancing Strategies",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "sd-3",
+        num: 3,
+        name: "Database Sharding & Partitioning",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "sd-4",
+        num: 4,
+        name: "CAP Theorem & Consistency Models",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "sd-5",
+        num: 5,
+        name: "Microservices vs Monoliths Architecture",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "sd-6",
+        num: 6,
+        name: "Distributed Caching (Redis & Memcached)",
+        type: "Reading",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "sd-7",
+        num: 7,
+        name: "Message Queues & Event-Driven Architecture",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "sd-8",
+        num: 8,
+        name: "Distributed Transactions & Saga Pattern",
+        type: "Practice",
+        estTime: "30 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "sd-9",
+        num: 9,
+        name: "CDN & Edge Computing Strategy",
+        type: "Reading",
+        estTime: "12 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "sd-10",
+        num: 10,
+        name: "API Rate Limiting & Gateway Architecture",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "sd-11",
+        num: 11,
+        name: "Full Design Mock: URL Shortener at Global Scale",
+        type: "Practice",
+        estTime: "35 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "sd-12",
+        num: 12,
+        name: "Full Design Mock: Video Streaming Platform (Netflix/YouTube)",
+        type: "Practice",
+        estTime: "45 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "sd-13",
+        num: 13,
+        name: "Full Design Mock: Real-Time Chat & Notification System",
+        type: "Practice",
+        estTime: "40 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "sd-14",
+        num: 14,
+        name: "Distributed Failover & High Availability Drill",
+        type: "Reading",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "sd-15",
+        num: 15,
+        name: "System Design Latency & Scale Numbers Cheat Sheet",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+      {
+        id: "sd-16",
+        num: 16,
+        name: "Top 10 Architecture Trade-offs Comparison",
+        type: "Reading",
+        estTime: "12 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+      {
+        id: "sd-17",
+        num: 17,
+        name: "Framework Walkthrough: 4-Step System Design Template",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+    ],
   },
   {
-    id: "communication",
-    title: "Communication",
+    id: "cloud",
+    title: "Cloud",
     description:
-      "Technical articulation, stakeholder management and design trade-offs.",
-    icon: MessageSquare,
+      "Cloud architecture, distributed infrastructure, scalability and DevOps patterns.",
+    icon: Cloud,
     iconBg: "bg-[#eff6ff]",
     iconColor: "text-[#3b82f6]",
     barColor: "bg-[#3b82f6]",
+    route: "/practice/session/cloud",
     phaseStats: {
       "phase-1": {
         readiness: 67,
-        remaining: "4 topics remaining",
+        remaining: "5 topics remaining",
         topics: [
           {
             num: 1,
-            name: "Requirements Clarification & Scope Negotiation",
-            type: "Reading",
-            estTime: "8 min",
-            status: "Not Started",
-          },
-          {
-            num: 2,
-            name: "Diagramming While Explaining: Visual Articulation",
-            type: "Practice",
-            estTime: "15 min",
-            status: "Not Started",
-          },
-          {
-            num: 3,
-            name: "Driving the Narrative: Taking Initiative in Interviews",
+            name: "Cloud Computing Core Concepts (IaaS, PaaS, Serverless)",
             type: "Reading",
             estTime: "10 min",
             status: "Not Started",
           },
           {
-            num: 4,
-            name: "Handling Ambiguity & Unknown Constraints",
-            type: "Practice",
-            estTime: "18 min",
-            status: "Not Started",
-          },
-        ],
-      },
-      "phase-2": {
-        readiness: 75,
-        remaining: "4 topics remaining",
-        topics: [
-          {
-            num: 1,
-            name: "Articulating Engineering Trade-offs Under Pushback",
+            num: 2,
+            name: "VPC, Subnets & Network Security Groups",
             type: "Practice",
             estTime: "20 min",
             status: "Not Started",
           },
           {
-            num: 2,
-            name: "Verbalizing Back-of-the-envelope Estimations",
-            type: "Practice",
-            estTime: "15 min",
+            num: 3,
+            name: "Object Storage vs Block Storage vs File Systems",
+            type: "Reading",
+            estTime: "8 min",
             status: "Not Started",
           },
           {
-            num: 3,
-            name: "Explaining Technical Bottlenecks to Non-Technical Interviewers",
+            num: 4,
+            name: "IAM Policies & Principle of Least Privilege",
             type: "Reading",
             estTime: "12 min",
             status: "Not Started",
           },
           {
-            num: 4,
-            name: "Active Listening: Catching & Using Interviewer Hints",
+            num: 5,
+            name: "Compute Scaling: Auto Scaling Groups & Elastic Load Balancers",
             type: "Practice",
-            estTime: "15 min",
+            estTime: "20 min",
             status: "Not Started",
           },
         ],
       },
-      "phase-3": {
-        readiness: 85,
-        remaining: "3 topics remaining",
+      "phase-2": {
+        readiness: 76,
+        remaining: "5 topics remaining",
         topics: [
           {
             num: 1,
-            name: "Full Mock Interview: 45-min Continuous Communication Run",
+            name: "Container Orchestration with Kubernetes (EKS / GKE)",
             type: "Practice",
-            estTime: "45 min",
+            estTime: "25 min",
             status: "Not Started",
           },
           {
             num: 2,
-            name: "Defending Architectural Trade-offs in Front of Senior Panel",
+            name: "Managed Databases: Aurora, DynamoDB & Bigtable",
             type: "Practice",
             estTime: "30 min",
             status: "Not Started",
           },
           {
             num: 3,
-            name: "Concise Summarization: The 60-Second Architecture Pitch",
+            name: "Serverless Event-Driven Patterns with Lambda / Cloud Functions",
+            type: "Practice",
+            estTime: "25 min",
+            status: "Not Started",
+          },
+          {
+            num: 4,
+            name: "Infrastructure as Code: Terraform & CloudFormation",
             type: "Reading",
-            estTime: "10 min",
+            estTime: "15 min",
+            status: "Not Started",
+          },
+          {
+            num: 5,
+            name: "Multi-Region Deployment & Disaster Recovery Models",
+            type: "Reading",
+            estTime: "18 min",
+            status: "Not Started",
+          },
+        ],
+      },
+      "phase-3": {
+        readiness: 86,
+        remaining: "3 topics remaining",
+        topics: [
+          {
+            num: 1,
+            name: "Cloud System Mock: Highly Available Multi-Region Web Service",
+            type: "Practice",
+            estTime: "40 min",
+            status: "Not Started",
+          },
+          {
+            num: 2,
+            name: "Designing Secure Cloud VPC Architecture with Zero-Trust",
+            type: "Practice",
+            estTime: "35 min",
+            status: "Not Started",
+          },
+          {
+            num: 3,
+            name: "Cloud Cost Optimization & FinOps Best Practices",
+            type: "Reading",
+            estTime: "15 min",
             status: "Not Started",
           },
         ],
@@ -311,21 +485,158 @@ const areasData: AreaData[] = [
         topics: [
           {
             num: 1,
-            name: "Golden Rules for Clear Verbal Communication",
+            name: "Cloud Architecture Review Checklist (Well-Architected Framework)",
             type: "Reading",
-            estTime: "7 min",
+            estTime: "10 min",
             status: "Not Started",
           },
           {
             num: 2,
-            name: "Confidence & Executive Presence Quick Checklist",
+            name: "Key Cloud Services Comparison (AWS vs GCP vs Azure)",
             type: "Reading",
-            estTime: "5 min",
+            estTime: "8 min",
             status: "Not Started",
           },
         ],
       },
     },
+    allTopics: [
+      {
+        id: "cl-1",
+        num: 1,
+        name: "Cloud Computing Core Concepts (IaaS, PaaS, Serverless)",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cl-2",
+        num: 2,
+        name: "VPC, Subnets & Network Security Groups",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cl-3",
+        num: 3,
+        name: "Object Storage vs Block Storage vs File Systems",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cl-4",
+        num: 4,
+        name: "IAM Policies & Principle of Least Privilege",
+        type: "Reading",
+        estTime: "12 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cl-5",
+        num: 5,
+        name: "Compute Scaling: Auto Scaling Groups & Elastic Load Balancers",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cl-6",
+        num: 6,
+        name: "Container Orchestration with Kubernetes (EKS / GKE)",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cl-7",
+        num: 7,
+        name: "Managed Databases: Aurora, DynamoDB & Bigtable",
+        type: "Practice",
+        estTime: "30 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cl-8",
+        num: 8,
+        name: "Serverless Event-Driven Patterns with Lambda / Cloud Functions",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cl-9",
+        num: 9,
+        name: "Infrastructure as Code: Terraform & CloudFormation",
+        type: "Reading",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cl-10",
+        num: 10,
+        name: "Multi-Region Deployment & Disaster Recovery Models",
+        type: "Reading",
+        estTime: "18 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cl-11",
+        num: 11,
+        name: "Cloud System Mock: Highly Available Multi-Region Web Service",
+        type: "Practice",
+        estTime: "40 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cl-12",
+        num: 12,
+        name: "Designing Secure Cloud VPC Architecture with Zero-Trust",
+        type: "Practice",
+        estTime: "35 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cl-13",
+        num: 13,
+        name: "Cloud Cost Optimization & FinOps Best Practices",
+        type: "Reading",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cl-14",
+        num: 14,
+        name: "Cloud Architecture Review Checklist (Well-Architected Framework)",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+      {
+        id: "cl-15",
+        num: 15,
+        name: "Key Cloud Services Comparison (AWS vs GCP vs Azure)",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+    ],
   },
   {
     id: "coding-patterns",
@@ -336,6 +647,7 @@ const areasData: AreaData[] = [
     iconBg: "bg-[#ecfdf5]",
     iconColor: "text-[#10b981]",
     barColor: "bg-[#10b981]",
+    route: "/practice/session/coding",
     phaseStats: {
       "phase-1": {
         readiness: 78,
@@ -460,6 +772,134 @@ const areasData: AreaData[] = [
         ],
       },
     },
+    allTopics: [
+      {
+        id: "cp-1",
+        num: 1,
+        name: "Two Pointers & Sliding Window Fundamentals",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cp-2",
+        num: 2,
+        name: "Fast & Slow Pointers (Cycle Detection)",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cp-3",
+        num: 3,
+        name: "Binary Search on Unknown Search Spaces",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cp-4",
+        num: 4,
+        name: "Prefix Sums & Frequency Hashing Patterns",
+        type: "Reading",
+        estTime: "12 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "cp-5",
+        num: 5,
+        name: "Tree & Graph Traversals: BFS / DFS in Matrix",
+        type: "Practice",
+        estTime: "30 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cp-6",
+        num: 6,
+        name: "Top 'K' Elements Using Heaps & Priority Queues",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cp-7",
+        num: 7,
+        name: "Dynamic Programming: Knapsack & Partition Subsets",
+        type: "Practice",
+        estTime: "35 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cp-8",
+        num: 8,
+        name: "Monotonic Stack & Next Greater Element",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cp-9",
+        num: 9,
+        name: "Trie & Prefix Tree Implementation",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "cp-10",
+        num: 10,
+        name: "Hard Graph Pattern: Course Schedule & Topological Sort",
+        type: "Practice",
+        estTime: "35 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cp-11",
+        num: 11,
+        name: "Advanced 2D Dynamic Programming: Subsequence Problems",
+        type: "Practice",
+        estTime: "30 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cp-12",
+        num: 12,
+        name: "Timed Mock Coding Interview (LeetCode Hard)",
+        type: "Practice",
+        estTime: "45 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "cp-13",
+        num: 13,
+        name: "Big-O Time & Space Complexity Reference Card",
+        type: "Reading",
+        estTime: "6 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+      {
+        id: "cp-14",
+        num: 14,
+        name: "Edge Cases Checklist (Empty, Duplicates, Integer Overflow)",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+    ],
   },
   {
     id: "behavioral",
@@ -470,6 +910,7 @@ const areasData: AreaData[] = [
     iconBg: "bg-[#f5f3ff]",
     iconColor: "text-[#8b5cf6]",
     barColor: "bg-[#8b5cf6]",
+    route: "/practice/session/behavioral",
     phaseStats: {
       "phase-1": {
         readiness: 91,
@@ -587,6 +1028,125 @@ const areasData: AreaData[] = [
         ],
       },
     },
+    allTopics: [
+      {
+        id: "bh-1",
+        num: 1,
+        name: "STAR Method Mastery: Situation, Task, Action, Result",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "bh-2",
+        num: 2,
+        name: "Crafting Your 'Tell Me About Yourself' 2-Minute Narrative",
+        type: "Practice",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "bh-3",
+        num: 3,
+        name: "Brainstorming Your 5 Core Impact & Complexity Stories",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "bh-4",
+        num: 4,
+        name: "Discussing Mistakes, Failures, and Retrospectives",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Foundation Building",
+      },
+      {
+        id: "bh-5",
+        num: 5,
+        name: "Handling Disagreements with Staff Engineers & Tech Leads",
+        type: "Practice",
+        estTime: "18 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "bh-6",
+        num: 6,
+        name: "Demonstrating Ownership & Execution Under Pressure",
+        type: "Practice",
+        estTime: "20 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "bh-7",
+        num: 7,
+        name: "Balancing Tech Debt vs Business Deadlines",
+        type: "Reading",
+        estTime: "12 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "bh-8",
+        num: 8,
+        name: "Mentoring Junior Engineers & Improving Team Culture",
+        type: "Practice",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Skill Deepening",
+      },
+      {
+        id: "bh-9",
+        num: 9,
+        name: "Senior SWE Leadership & Influence Mock Interview",
+        type: "Practice",
+        estTime: "30 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "bh-10",
+        num: 10,
+        name: "Deep Dive: 'Tell Me About a High-Stakes Production Outage'",
+        type: "Practice",
+        estTime: "25 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "bh-11",
+        num: 11,
+        name: "Navigating Organizational Politics & Conflicting Priorities",
+        type: "Reading",
+        estTime: "15 min",
+        status: "Not Started",
+        phase: "Mock & Polish",
+      },
+      {
+        id: "bh-12",
+        num: 12,
+        name: "Quick Reference: 10 Story Prompts & Metrics to Remember",
+        type: "Reading",
+        estTime: "8 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+      {
+        id: "bh-13",
+        num: 13,
+        name: "High-Signal Questions to Ask Your Google Interviewers",
+        type: "Reading",
+        estTime: "10 min",
+        status: "Not Started",
+        phase: "Final Review",
+      },
+    ],
   },
 ];
 
@@ -601,11 +1161,26 @@ export function ReadinessByArea({
     "system-design",
   );
 
+  // Track which area modal is open
+  const [modalAreaId, setModalAreaId] = useState<string | null>(null);
+
+  // State holding custom user prioritization sequence per area
+  const [areaTopicsMap, setAreaTopicsMap] = useState<
+    Record<string, ModalTopicItem[]>
+  >(() => {
+    const initialMap: Record<string, ModalTopicItem[]> = {};
+    areasData.forEach((a) => {
+      initialMap[a.id] = a.allTopics;
+    });
+    return initialMap;
+  });
+
   const toggleArea = (id: string) => {
     setExpandedArea(expandedArea === id ? null : id);
   };
 
   const currentPhaseName = phaseNames[selectedPhase] || "Foundation Building";
+  const activeModalArea = areasData.find((a) => a.id === modalAreaId);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -640,6 +1215,7 @@ export function ReadinessByArea({
           const phaseData =
             area.phaseStats[selectedPhase] || area.phaseStats["phase-1"];
           const topics = phaseData.topics;
+          const areaAllTopics = areaTopicsMap[area.id] || area.allTopics;
 
           return (
             <div
@@ -740,8 +1316,8 @@ export function ReadinessByArea({
                               key={topic.num}
                               className="group hover:bg-cream/40 transition-colors"
                             >
-                              <td className="py-3 font-semibold text-ink-muted">
-                                {topic.num}
+                              <td className="py-3 font-semibold text-ink-muted font-mono">
+                                {String(topic.num).padStart(2, "0")}
                               </td>
                               <td className="py-3 font-semibold text-ink">
                                 {topic.name}
@@ -768,7 +1344,7 @@ export function ReadinessByArea({
                               </td>
                               <td className="py-3 text-right">
                                 <Link
-                                  href="/practice"
+                                  href={`${area.route}?topic=${encodeURIComponent(topic.name)}`}
                                   className="inline-flex items-center gap-1 rounded-lg border border-line bg-white px-3 py-1 text-xs font-semibold text-ink shadow-xs transition-colors hover:border-line-strong hover:bg-cream"
                                 >
                                   <span>Start</span>
@@ -781,13 +1357,16 @@ export function ReadinessByArea({
                       </table>
                     </div>
 
-                    {/* Footer link */}
+                    {/* Footer link opening Modal */}
                     <div className="pt-3 text-center">
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563eb] hover:underline"
+                        onClick={() => setModalAreaId(area.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563eb] hover:underline cursor-pointer transition-colors"
                       >
-                        <span>View all {topics.length} topics</span>
+                        <span>
+                          View all {areaAllTopics.length} topics in {area.title}
+                        </span>
                         <ArrowRight className="size-3" />
                       </button>
                     </div>
@@ -798,6 +1377,28 @@ export function ReadinessByArea({
           );
         })}
       </div>
+
+      {/* Area Topics Modal Popup with Pagination & Prioritization */}
+      {activeModalArea && (
+        <AreaTopicsModal
+          isOpen={!!modalAreaId}
+          onClose={() => setModalAreaId(null)}
+          areaTitle={activeModalArea.title}
+          areaIcon={activeModalArea.icon}
+          areaIconBg={activeModalArea.iconBg}
+          areaIconColor={activeModalArea.iconColor}
+          areaRoute={activeModalArea.route}
+          initialTopics={
+            areaTopicsMap[activeModalArea.id] || activeModalArea.allTopics
+          }
+          onSaveTopicsOrder={(newOrder) => {
+            setAreaTopicsMap((prev) => ({
+              ...prev,
+              [activeModalArea.id]: newOrder,
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }
