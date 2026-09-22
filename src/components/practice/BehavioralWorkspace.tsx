@@ -20,6 +20,7 @@ import {
   Check,
   ChevronRight,
   X,
+  Settings,
 } from "lucide-react";
 
 // Static Waveform Heights matching Figma Node 214:4
@@ -129,49 +130,60 @@ export function BehavioralWorkspace() {
 
   return (
     <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4] p-4 sm:p-6 lg:p-7 gap-7">
-      {/* 1. Header Row matching Figma Node 214:4 */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          {/* Left: 4 / 4 • Behavioral */}
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <span className="font-bold text-[#ff6c47]">4 / 4</span>
-            <span className="text-[#b0a898]">•</span>
-            <span className="font-semibold text-[#1e1c1a]">Behavioral</span>
+      {/* 1. Header Row matching system-design / Figma node 190:4 */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Practice Header & Progress Track */}
+        <div className="flex flex-1 flex-col gap-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-bold text-brand">4 / 4</span>
+              <span className="text-[#b0a898]">•</span>
+              <span className="font-semibold text-ink">Behavioral</span>
+            </div>
+            <span className="text-sm text-ink-muted">~7 min remaining</span>
           </div>
 
-          {/* Right: ~7 min remaining + End Session button */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-[#6b6661]">~7 min remaining</span>
-            <button
-              type="button"
-              onClick={() => setShowEndModal(true)}
-              className="rounded-full border border-[#ef4444] bg-white px-5 py-2 text-sm font-semibold text-[#ef4444] shadow-sm transition-colors hover:bg-red-50"
-            >
-              End Session
-            </button>
+          {/* Progress bar track (Step 4 of 4 ~ 100% completed) */}
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4efe8]">
+            <div className="h-full w-full bg-brand transition-all duration-300" />
           </div>
         </div>
 
-        {/* Progress bar track (full width, 100% brand fill for Step 3 of 3) */}
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-          <div className="h-full w-full bg-[#ff6c47] rounded-full transition-all duration-300" />
+        {/* Top Header Action Buttons: Settings & End Session */}
+        <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowEndModal(true)}
+            className="flex size-9 sm:size-10 items-center justify-center rounded-full border border-[#ede6db] bg-white text-ink-muted shadow-sm transition-colors hover:bg-[#faf6f0]"
+            aria-label="Settings"
+          >
+            <Settings className="size-4 text-ink-muted" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowEndModal(true)}
+            className="flex h-9 sm:h-10 items-center justify-center rounded-full border border-red-500 bg-white px-5 text-sm font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50"
+          >
+            End Session
+          </button>
         </div>
       </div>
 
       {/* 2. Question Header Row */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2.5">
-          <span className="rounded bg-[#fff0ec] px-2 py-0.5 text-xs font-bold text-[#ff6c47]">
+          <span className="rounded bg-[#fff0ec] px-2 py-0.5 text-xs font-bold text-brand">
             Behavioral
           </span>
-          <span className="text-sm font-semibold text-[#6b6661]">
+          <span className="text-sm font-semibold text-ink-muted">
             Leadership &amp; Conflict
           </span>
         </div>
-        <h1 className="font-display text-2xl font-extrabold text-[#1e1c1a] tracking-tight sm:text-[28px]">
+        <h1 className="font-display text-xl font-extrabold text-ink tracking-tight sm:text-2xl lg:text-[28px]">
           Tell me about a time you disagreed with a team member.
         </h1>
-        <p className="text-[15px] leading-relaxed text-[#6b6661]">
+        <p className="text-sm leading-relaxed text-ink-muted sm:text-[15px]">
           This is a common behavioral interview question at Google. Use the STAR
           method (Situation, Task, Action, Result) to structure your answer.
         </p>
@@ -180,35 +192,35 @@ export function BehavioralWorkspace() {
       {/* 3. Two-Column Workspace Layout */}
       <div className="flex flex-1 flex-col lg:flex-row items-start gap-6">
         {/* Left Column: Conversation & Audio Dock */}
-        <div className="flex-1 min-w-0 w-full flex flex-col rounded-3xl border border-[#ede6db] bg-white p-6 shadow-sm gap-5">
+        <div className="flex-1 min-w-0 w-full flex flex-col rounded-[24px] border border-[#f4efe8] bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)] gap-5">
           {/* Card Header: AI Interviewer + LIVE PRACTICE + Timer */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#f4efe8]">
+          <div className="flex flex-col gap-3 pb-4 border-b border-[#f4efe8] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[#f5f3ff] text-[#7c3aed]">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-[#f5f3ff] border border-[#ede9fe] text-[#7c3aed]">
                 <Cpu className="size-5" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-bold text-[#1e1c1a]">
+                  <span className="font-display font-bold text-ink text-base">
                     AI Interviewer
                   </span>
-                  <span className="rounded-full bg-[#ff6c47] px-2 py-0.5 text-[10px] font-bold text-white tracking-wider">
+                  <span className="rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white tracking-wider">
                     LIVE PRACTICE
                   </span>
                 </div>
-                <span className="text-xs text-[#6b6661]">
+                <span className="text-xs text-ink-muted">
                   Behavioral Interview
                 </span>
               </div>
             </div>
 
             {/* Timer Bubble */}
-            <div className="flex items-center gap-2 rounded-full border border-[#f4efe8] bg-white px-4 py-1.5 shadow-sm text-xs font-mono">
-              <div className="size-2 rounded-full bg-[#ff6c47] animate-pulse" />
-              <span className="font-bold text-[#1e1c1a]">
+            <div className="flex items-center gap-2 self-start rounded-full border border-[#f4efe8] bg-white px-3.5 py-1.5 text-xs font-mono shadow-sm sm:self-center">
+              <div className="size-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="font-bold text-ink">
                 {formatTimer(elapsedSeconds)}
               </span>
-              <span className="text-[#6b6661]">/ 07:00</span>
+              <span className="text-ink-muted">/ 07:00</span>
             </div>
           </div>
 
@@ -466,9 +478,9 @@ export function BehavioralWorkspace() {
 
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                {/* 3/3 Circle Gauge */}
+                {/* 4/4 Circle Gauge */}
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[#7c3aed] text-xs font-bold text-[#7c3aed]">
-                  3/3
+                  4/4
                 </div>
 
                 <div className="flex flex-col">
@@ -476,7 +488,7 @@ export function BehavioralWorkspace() {
                     Behavioral
                   </span>
                   <span className="text-xs text-[#6b6661]">
-                    Question 3 of 3
+                    Question 4 of 4
                   </span>
                 </div>
               </div>
