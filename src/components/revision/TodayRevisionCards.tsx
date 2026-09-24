@@ -15,8 +15,6 @@ export function TodayRevisionCards() {
   const topics = [
     {
       id: "scalability-fundamentals",
-      badgeNumber: "1",
-      badgeBg: "bg-[#ef4444]",
       icon: Database,
       iconBg: "bg-[#fff0ec] text-brand border border-[#ffd8cc]",
       title: "Scalability Fundamentals",
@@ -35,8 +33,6 @@ export function TodayRevisionCards() {
     },
     {
       id: "database-sharding",
-      badgeNumber: "2",
-      badgeBg: "bg-[#f97316]",
       icon: CodeXml,
       iconBg: "bg-[#edf5ec] text-[#10b981] border border-[#d1fae5]",
       title: "Database Sharding",
@@ -55,8 +51,6 @@ export function TodayRevisionCards() {
     },
     {
       id: "ecs-architecture",
-      badgeNumber: "3",
-      badgeBg: "bg-[#eab308]",
       icon: Cloud,
       iconBg: "bg-[#eff6ff] text-[#2563eb] border border-[#dbeafe]",
       title: "ECS Architecture",
@@ -74,8 +68,6 @@ export function TodayRevisionCards() {
     },
     {
       id: "leadership-stories",
-      badgeNumber: "4",
-      badgeBg: "bg-[#eab308]",
       icon: Users,
       iconBg: "bg-[#f5f3ff] text-[#7c3aed] border border-[#ede9fe]",
       title: "Leadership Stories",
@@ -129,15 +121,8 @@ export function TodayRevisionCards() {
           return (
             <div
               key={t.id}
-              className="relative flex flex-col justify-between rounded-xl border border-line bg-[#fdfbf7]/60 p-4 sm:p-4.5 hover:border-line-strong hover:bg-cream/40 transition-all"
+              className="flex flex-col justify-between rounded-xl border border-line bg-[#fdfbf7]/60 p-4 sm:p-4.5 hover:border-line-strong hover:bg-cream/40 transition-all"
             >
-              {/* Badge Number (Overhanging top-left) */}
-              <div
-                className={`absolute -top-2 -left-2 size-5 rounded-full ${t.badgeBg} text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white shadow-xs`}
-              >
-                {t.badgeNumber}
-              </div>
-
               <div className="flex flex-col gap-3">
                 {/* Header: Icon + Title */}
                 <div className="flex items-center gap-3">
