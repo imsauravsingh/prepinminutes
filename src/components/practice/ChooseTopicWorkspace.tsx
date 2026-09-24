@@ -707,7 +707,8 @@ export function ChooseTopicWorkspace() {
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1400px] mx-auto pb-12">
       {/* 1. Top Header Row matching design */}
-      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+      {/* 1. Top Header Row matching design */}
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         {/* Left: Eyebrow + Title + Subtitle + Meta Info Bar */}
         <div className="flex flex-col gap-2">
           <span className="text-xs font-extrabold uppercase tracking-wider text-brand">
@@ -724,7 +725,7 @@ export function ChooseTopicWorkspace() {
           {/* Candidate Meta Bar */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 text-xs text-ink-muted">
             <div className="flex items-center gap-1.5 font-medium text-ink">
-              <User className="size-3.5 text-ink-muted" />
+              <User className="size-3.5 text-ink-muted shrink-0" />
               <span>Senior Software Engineer</span>
             </div>
             <span className="text-line">•</span>
@@ -734,14 +735,14 @@ export function ChooseTopicWorkspace() {
             </div>
             <span className="text-line">•</span>
             <div className="flex items-center gap-1.5 font-medium text-ink-muted">
-              <Calendar className="size-3.5 text-ink-muted" />
+              <Calendar className="size-3.5 text-ink-muted shrink-0" />
               <span>Interview in 12 days</span>
             </div>
           </div>
         </div>
 
         {/* Right: Overall Readiness Widget */}
-        <div className="flex items-center gap-3.5 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-xs shrink-0 self-start sm:self-auto">
+        <div className="flex items-center gap-3.5 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-xs shrink-0 w-full sm:w-auto">
           {/* Circular SVG Gauge 68% */}
           <div className="relative flex size-12 sm:size-14 shrink-0 items-center justify-center">
             <svg className="size-full -rotate-90" viewBox="0 0 52 52">
@@ -799,7 +800,7 @@ export function ChooseTopicWorkspace() {
             </div>
 
             {/* 4 Clean Area Selection Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
               {AREAS_CONFIG.map((area) => {
                 const isSelected = selectedArea === area.id;
                 const IconComponent = area.icon;
@@ -814,25 +815,25 @@ export function ChooseTopicWorkspace() {
                       setSelectedTime("all");
                       setSelectedPriority("all");
                     }}
-                    className={`group flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-200 cursor-pointer ${
+                    className={`group flex flex-col justify-between rounded-2xl border p-3 sm:p-4 text-left transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? "border-brand bg-white shadow-xs ring-1 ring-brand"
                         : "border-line bg-white hover:border-line-strong hover:bg-cream/40"
                     }`}
                   >
                     {/* Top Row: Icon + Topics Count Badge */}
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2">
                       <div
-                        className={`flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                        className={`flex size-8.5 sm:size-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
                           isSelected
                             ? "bg-brand text-white shadow-xs"
                             : `${area.iconBg} ${area.iconColor}`
                         }`}
                       >
-                        <IconComponent className="size-4.5 sm:size-5" />
+                        <IconComponent className="size-4 sm:size-5" />
                       </div>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition-colors ${
+                        className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition-colors shrink-0 ${
                           isSelected
                             ? "bg-brand/10 text-brand font-bold"
                             : "bg-line text-ink-muted"
@@ -843,13 +844,13 @@ export function ChooseTopicWorkspace() {
                     </div>
 
                     {/* Middle: Area Name */}
-                    <div className="mt-3">
-                      <span className="font-display text-xs sm:text-sm font-bold text-ink block group-hover:text-brand transition-colors">
+                    <div className="mt-2.5 sm:mt-3">
+                      <span className="font-display text-xs sm:text-sm font-bold text-ink block group-hover:text-brand transition-colors truncate">
                         {area.name}
                       </span>
 
                       {/* Bottom: Readiness Percentage & Progress Bar */}
-                      <div className="mt-2.5 flex items-center justify-between text-[11px] text-ink-muted">
+                      <div className="mt-2 flex items-center justify-between text-[10px] sm:text-[11px] text-ink-muted">
                         <span>Readiness</span>
                         <span className="font-mono font-bold text-ink">
                           {area.readiness}%
@@ -928,10 +929,10 @@ export function ChooseTopicWorkspace() {
             </div>
 
             {/* Filter Section: Directly below Search & above Topic List */}
-            <div className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-3.5 sm:p-4 shadow-2xs">
+            <div className="flex flex-col gap-2.5 sm:gap-3 rounded-2xl border border-line bg-white p-3 sm:p-4 shadow-2xs">
               {/* Row 1: Status Filter Chips + Clear All CTA */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5">
-                <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
                   {[
                     { id: "all", label: "All", count: areaTopics.length },
                     {
@@ -961,7 +962,7 @@ export function ChooseTopicWorkspace() {
                         key={chip.id}
                         type="button"
                         onClick={() => setSelectedStatus(chip.id)}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                           isChipActive
                             ? "bg-brand text-white shadow-2xs"
                             : "border border-line bg-white text-ink-muted hover:border-line-strong hover:bg-cream hover:text-ink"
@@ -995,7 +996,7 @@ export function ChooseTopicWorkspace() {
                       setSelectedPriority("all");
                       setSearchQuery("");
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline transition-colors ml-auto sm:ml-0 cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline transition-colors shrink-0 self-end sm:self-auto cursor-pointer"
                   >
                     <X className="size-3" />
                     <span>Clear filters</span>
@@ -1004,20 +1005,20 @@ export function ChooseTopicWorkspace() {
               </div>
 
               {/* Row 2: Secondary Dropdown Filters (Time & Priority) + Results Counter */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-line/60 text-xs">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 sm:pt-2.5 border-t border-line/60 text-xs">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1 shrink-0">
                     <Filter className="size-3 text-ink-muted" />
-                    <span>Filter:</span>
+                    <span className="hidden xs:inline">Filter:</span>
                   </span>
 
                   {/* Time Required Pill Select */}
-                  <div className="relative">
+                  <div className="relative flex-1 sm:flex-initial">
                     <select
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
                       aria-label="Filter by time"
-                      className={`appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                      className={`w-full appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
                         selectedTime !== "all"
                           ? "border-brand bg-[#fff0ec] text-brand"
                           : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
@@ -1032,12 +1033,12 @@ export function ChooseTopicWorkspace() {
                   </div>
 
                   {/* Priority Pill Select */}
-                  <div className="relative">
+                  <div className="relative flex-1 sm:flex-initial">
                     <select
                       value={selectedPriority}
                       onChange={(e) => setSelectedPriority(e.target.value)}
                       aria-label="Filter by priority"
-                      className={`appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                      className={`w-full appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
                         selectedPriority !== "all"
                           ? "border-brand bg-[#fff0ec] text-brand"
                           : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
@@ -1053,8 +1054,10 @@ export function ChooseTopicWorkspace() {
                 </div>
 
                 {/* Results Count Indicator */}
-                <div className="text-[11px] text-ink-muted">
-                  Showing <span className="font-bold text-ink">{filteredTopics.length}</span> of {areaTopics.length} topics
+                <div className="text-[11px] text-ink-muted flex items-center justify-between sm:justify-start">
+                  <span>
+                    Showing <span className="font-bold text-ink">{filteredTopics.length}</span> of {areaTopics.length} topics
+                  </span>
                 </div>
               </div>
             </div>
@@ -1087,91 +1090,107 @@ export function ChooseTopicWorkspace() {
                 paginatedTopics.map((topic) => {
                   const TopicIcon = topic.icon;
 
+                  const statusBadge = (
+                    <>
+                      {topic.status === "Needs Practice" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#ef4444] border border-[#fecaca] whitespace-nowrap">
+                          <span className="size-1.5 rounded-full bg-[#ef4444]" />
+                          <span>Needs Practice</span>
+                        </span>
+                      )}
+                      {topic.status === "Not Practiced" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#eff6ff] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#3b82f6] border border-[#dbeafe] whitespace-nowrap">
+                          <span className="size-1.5 rounded-full bg-[#3b82f6]" />
+                          <span>Not Practiced</span>
+                        </span>
+                      )}
+                      {topic.status === "Practiced" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#10b981] border border-[#d1fae5] whitespace-nowrap">
+                          <Check className="size-2.5 sm:size-3 text-[#10b981] stroke-[2.5]" />
+                          <span>Practiced</span>
+                        </span>
+                      )}
+                      {topic.status === "In Progress" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#d97706] border border-[#fde68a] whitespace-nowrap">
+                          <span className="size-1.5 rounded-full bg-[#d97706] animate-pulse" />
+                          <span>In Progress</span>
+                        </span>
+                      )}
+                    </>
+                  );
+
                   return (
                     <div
                       key={topic.id}
                       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs hover:border-[#b0a898]/40 hover:shadow-xs transition-all"
                     >
-                      {/* Left: Icon + Title & Description */}
+                      {/* Left: Icon + Title & Description + Mobile Status Badge */}
                       <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
-                          <TopicIcon className="size-5" />
+                        <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
+                          <TopicIcon className="size-4.5 sm:size-5" />
                         </div>
 
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-display font-bold text-xs sm:text-sm text-ink truncate">
-                              {topic.title}
-                            </span>
-                            {topic.isStarred && (
-                              <Star className="size-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                            )}
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center justify-between sm:justify-start gap-1.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-display font-bold text-xs sm:text-sm text-ink truncate">
+                                {topic.title}
+                              </span>
+                              {topic.isStarred && (
+                                <Star className="size-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                              )}
+                            </div>
+
+                            {/* Mobile-only Top Status Badge */}
+                            <div className="sm:hidden shrink-0">
+                              {statusBadge}
+                            </div>
                           </div>
-                          <span className="text-xs text-ink-muted line-clamp-1">
+
+                          <span className="text-xs text-ink-muted line-clamp-1 mt-0.5 sm:mt-0">
                             {topic.description}
                           </span>
                         </div>
                       </div>
 
-                      {/* Right Meta Stack: Readiness + Duration + Status Badge + Action CTA */}
-                      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 border-t border-line/50 sm:border-t-0 pt-2 sm:pt-0">
-                        {/* Readiness & Mini Progress Bar */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-ink w-8 text-right">
-                            {topic.readiness}%
-                          </span>
-                          <div className="h-1.5 w-14 overflow-hidden rounded-full bg-line">
-                            <div
-                              className={`h-full rounded-full ${
-                                topic.readiness >= 70
-                                  ? "bg-[#10b981]"
-                                  : topic.readiness >= 45
-                                    ? "bg-[#f59e0b]"
-                                    : "bg-brand"
-                              }`}
-                              style={{ width: `${topic.readiness}%` }}
-                            />
+                      {/* Right Meta Stack: Readiness + Duration + Desktop Status Badge + Action CTA */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 border-t border-line/60 sm:border-t-0 pt-2.5 sm:pt-0">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          {/* Readiness & Mini Progress Bar */}
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="text-xs font-bold text-ink w-7 sm:w-8 text-right font-mono">
+                              {topic.readiness}%
+                            </span>
+                            <div className="h-1.5 w-10 sm:w-14 overflow-hidden rounded-full bg-line">
+                              <div
+                                className={`h-full rounded-full ${
+                                  topic.readiness >= 70
+                                    ? "bg-[#10b981]"
+                                    : topic.readiness >= 45
+                                      ? "bg-[#f59e0b]"
+                                      : "bg-brand"
+                                }`}
+                                style={{ width: `${topic.readiness}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Duration */}
-                        <div className="flex items-center gap-1 text-xs text-ink-muted w-14">
-                          <Clock className="size-3.5 text-ink-muted shrink-0" />
-                          <span>{topic.duration} min</span>
-                        </div>
+                          {/* Duration */}
+                          <div className="flex items-center gap-1 text-xs text-ink-muted">
+                            <Clock className="size-3.5 text-ink-muted shrink-0" />
+                            <span>{topic.duration} min</span>
+                          </div>
 
-                        {/* Status Badge */}
-                        <div className="w-24 flex justify-start sm:justify-center">
-                          {topic.status === "Needs Practice" && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2.5 py-0.5 text-[11px] font-semibold text-[#ef4444] border border-[#fecaca]">
-                              <span className="size-1.5 rounded-full bg-[#ef4444]" />
-                              <span>Needs Practice</span>
-                            </span>
-                          )}
-                          {topic.status === "Not Practiced" && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#3b82f6] border border-[#dbeafe]">
-                              <span className="size-1.5 rounded-full bg-[#3b82f6]" />
-                              <span>Not Practiced</span>
-                            </span>
-                          )}
-                          {topic.status === "Practiced" && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 text-[11px] font-semibold text-[#10b981] border border-[#d1fae5]">
-                              <Check className="size-3 text-[#10b981] stroke-[2.5]" />
-                              <span>Practiced</span>
-                            </span>
-                          )}
-                          {topic.status === "In Progress" && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[11px] font-semibold text-[#d97706] border border-[#fde68a]">
-                              <span className="size-1.5 rounded-full bg-[#d97706] animate-pulse" />
-                              <span>In Progress</span>
-                            </span>
-                          )}
+                          {/* Status Badge (Desktop only in right stack) */}
+                          <div className="hidden sm:flex sm:w-24 sm:justify-center">
+                            {statusBadge}
+                          </div>
                         </div>
 
                         {/* Practice Button */}
                         <Link
                           href={topic.practiceHref}
-                          className="flex items-center justify-center gap-1 rounded-full border border-line bg-white px-4 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:border-brand hover:text-brand hover:bg-[#fff9f7] transition-all whitespace-nowrap ml-auto sm:ml-0"
+                          className="flex items-center justify-center gap-1 rounded-full border border-line bg-white px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:border-brand hover:text-brand hover:bg-[#fff9f7] transition-all whitespace-nowrap ml-auto sm:ml-0"
                         >
                           <span>Practice</span>
                           <ArrowRight className="size-3" />
@@ -1185,9 +1204,9 @@ export function ChooseTopicWorkspace() {
 
             {/* Pagination Controls (shown when more than 10 records) */}
             {filteredTopics.length > pageSize && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs mt-1">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs mt-1">
                 {/* Topic Count Text */}
-                <div className="text-xs text-ink-muted">
+                <div className="text-xs text-ink-muted text-center sm:text-left">
                   Showing{" "}
                   <span className="font-bold text-ink">
                     {(currentPage - 1) * pageSize + 1}
@@ -1204,13 +1223,13 @@ export function ChooseTopicWorkspace() {
                 </div>
 
                 {/* Pagination Buttons */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   {/* Previous Button */}
                   <button
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="size-3.5" />
@@ -1226,7 +1245,7 @@ export function ChooseTopicWorkspace() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`flex size-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
+                          className={`flex size-7.5 sm:size-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
                             isCurrent
                               ? "bg-brand text-white shadow-xs"
                               : "border border-line bg-white text-ink hover:bg-cream"
@@ -1245,7 +1264,7 @@ export function ChooseTopicWorkspace() {
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                     aria-label="Next page"
                   >
                     <span className="hidden sm:inline">Next</span>
@@ -1258,9 +1277,9 @@ export function ChooseTopicWorkspace() {
         </div>
 
         {/* RIGHT COLUMN: Current Phase + Practice Filters + Practice Adapts (Sticky) */}
-        <div className="w-full lg:w-[320px] shrink-0 flex flex-col gap-5">
+        <div className="w-full lg:w-[320px] shrink-0 flex flex-col gap-4 sm:gap-5">
           {/* Card 1: Current Phase */}
-          <div className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-5 sm:p-6 shadow-xs">
+          <div className="flex flex-col gap-4 rounded-2xl sm:rounded-3xl border border-line bg-white p-4 sm:p-6 shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
                 Current Phase
@@ -1275,7 +1294,7 @@ export function ChooseTopicWorkspace() {
                   <span>Why this topic?</span>
                 </button>
                 {whyTooltipOpen && (
-                  <div className="absolute right-0 top-6 z-20 w-64 rounded-xl border border-line bg-white p-3 text-xs text-ink-muted shadow-lg animate-in fade-in">
+                  <div className="absolute right-0 top-6 z-20 w-64 max-w-[calc(100vw-3rem)] rounded-xl border border-line bg-white p-3 text-xs text-ink-muted shadow-lg animate-in fade-in">
                     <p className="font-semibold text-ink mb-1">
                       Adaptive Phase Sequencing
                     </p>
@@ -1310,7 +1329,7 @@ export function ChooseTopicWorkspace() {
                 <span>6 / 10 topics completed</span>
                 <span className="font-bold text-brand">60%</span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
                 <div
                   className="h-full bg-brand rounded-full transition-all duration-300"
                   style={{ width: "60%" }}
