@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   User,
   Calendar,
   TrendingUp,
-  Sparkles,
   Clock,
   Database,
   Cloud,
@@ -620,81 +618,8 @@ export function ChooseTopicWorkspace() {
 
       {/* 2. Main Two-Column Layout (Main Content + Right Sidebar) */}
       <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-7 w-full">
-        {/* LEFT COLUMN: Hero Recommendation + Choose by Area + Topics Table */}
+        {/* LEFT COLUMN: Choose by Area + Topics Table */}
         <div className="flex flex-1 flex-col gap-6 sm:gap-7 w-full min-w-0">
-          {/* Hero Card: "Recommended for you" */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 rounded-3xl border border-[#ffd8cc] bg-gradient-to-r from-[#fff7f4] via-[#fffbf9] to-white p-5 sm:p-6 shadow-[0_4px_20px_rgba(255,108,71,0.06)] relative overflow-hidden">
-            {/* Mascot Visual */}
-            <div className="relative size-24 sm:size-28 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-[#fff5f0] to-[#ffe8de] flex items-center justify-center border border-[#fed7aa]/50 shadow-inner">
-              <Image
-                src="/images/dashboard/assessment-hero-card.png"
-                alt="AI Practice Coach"
-                width={280}
-                height={140}
-                className="max-w-none absolute -left-2 sm:-left-3 top-1/2 -translate-y-1/2 h-[135%] w-auto object-cover select-none pointer-events-none"
-              />
-            </div>
-
-            {/* Middle Info */}
-            <div className="flex flex-1 flex-col gap-2 min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[11px] font-bold text-[#b45309] w-fit">
-                <Sparkles className="size-3 text-[#d97706]" />
-                <span>Recommended for you</span>
-              </div>
-
-              <h2 className="font-display text-lg sm:text-xl font-extrabold text-ink">
-                Scalability Fundamentals
-              </h2>
-
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-md bg-[#fff0ec] px-2 py-0.5 font-bold text-brand">
-                  System Design
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-[#fef2f2] px-2 py-0.5 font-bold text-[#ef4444]">
-                  <span className="text-[10px]">❖</span>
-                  <span>High Priority</span>
-                </span>
-                <span className="inline-flex items-center gap-1 font-medium text-ink-muted">
-                  <Clock className="size-3 text-ink-muted" />
-                  <span>15 min</span>
-                </span>
-              </div>
-
-              <p className="text-xs text-ink-muted leading-relaxed">
-                Your readiness is 42%. This is a high-impact topic in your
-                current phase (Foundation Building). Practicing now will
-                strengthen multiple related topics.
-              </p>
-            </div>
-
-            {/* Right Metric & CTA */}
-            <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 w-full sm:w-auto shrink-0 border-t border-[#f4efe8] sm:border-t-0 pt-3 sm:pt-0">
-              <div className="flex flex-col items-start sm:items-end gap-1">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-display text-2xl font-extrabold text-ink">
-                    42%
-                  </span>
-                  <span className="text-xs text-ink-muted font-medium">
-                    Your readiness
-                  </span>
-                </div>
-                <div className="h-1.5 w-28 overflow-hidden rounded-full bg-[#ede6db]">
-                  <div
-                    className="h-full bg-brand rounded-full transition-all duration-300"
-                    style={{ width: "42%" }}
-                  />
-                </div>
-              </div>
-
-              <Link
-                href="/practice/session/system-design"
-                className="inline-flex items-center justify-center rounded-full bg-brand px-6 py-2.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,108,71,0.25)] transition-all hover:opacity-95 active:scale-95 whitespace-nowrap"
-              >
-                Start Practice →
-              </Link>
-            </div>
-          </div>
-
           {/* Section: Choose by Area */}
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-0.5">
