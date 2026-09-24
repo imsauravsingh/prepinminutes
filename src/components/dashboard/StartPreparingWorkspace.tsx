@@ -42,7 +42,7 @@ export function StartPreparingWorkspace({
       {/* 1. Header & Stepper (Step 3 of 3) */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left: Step kicker & Title */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 max-w-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
             Step 3 of 3
           </span>
@@ -57,7 +57,7 @@ export function StartPreparingWorkspace({
         </div>
 
         {/* Right side: Stepper */}
-        <div className="flex flex-col gap-2 lg:items-end">
+        <div className="shrink-0 self-start lg:self-center">
           <DashboardStepper currentStep={3} onEditSetup={onEditSetup} />
         </div>
       </div>

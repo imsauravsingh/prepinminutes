@@ -24,7 +24,7 @@ export function OnboardingHeader() {
       </div>
 
       {/* Right side: Stepper */}
-      <div className="flex flex-col gap-2 lg:items-end">
+      <div className="shrink-0 self-start lg:self-center">
         <DashboardStepper currentStep={1} />
       </div>
     </div>
