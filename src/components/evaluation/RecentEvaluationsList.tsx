@@ -70,10 +70,10 @@ export function RecentEvaluationsList() {
   ];
 
   return (
-    <div className="flex w-full lg:w-[420px] shrink-0 flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
+    <div className="w-full h-full flex flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
       {/* Header: Title + View all */}
       <div className="flex items-center justify-between pb-3 border-b border-line/60">
-        <h2 className="font-display text-base font-bold text-ink">
+        <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
           Recent Evaluations
         </h2>
         <Link
@@ -94,18 +94,18 @@ export function RecentEvaluationsList() {
             <Link
               key={item.id}
               href={item.href}
-              className="group flex items-center justify-between gap-3 py-3 hover:bg-cream/40 px-1 rounded-xl transition-colors"
+              className="group flex items-center justify-between gap-2.5 py-3 hover:bg-cream/40 px-1 rounded-xl transition-colors"
             >
               {/* Left: Icon + Title & Subtitle */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div
                   className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${item.iconBg}`}
                 >
                   <Icon className="size-4" />
                 </div>
 
-                <div className="flex flex-col min-w-0">
-                  <span className="font-display text-xs font-bold text-ink truncate group-hover:text-brand transition-colors">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-display font-bold text-xs sm:text-sm text-ink truncate group-hover:text-brand transition-colors">
                     {item.title}
                   </span>
                   <span className="text-[11px] text-ink-muted truncate">
@@ -115,9 +115,9 @@ export function RecentEvaluationsList() {
               </div>
 
               {/* Right: Score Badge + Date + Chevron */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-bold font-mono ${
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold font-mono ${
                     item.scoreType === "high"
                       ? "bg-[#edf5ec] text-[#10b981]"
                       : "bg-[#fffbeb] text-[#d97706]"
@@ -126,7 +126,7 @@ export function RecentEvaluationsList() {
                   {item.score}
                 </span>
 
-                <span className="text-[11px] text-ink-muted hidden sm:inline whitespace-nowrap">
+                <span className="text-[11px] text-ink-muted hidden xs:inline whitespace-nowrap">
                   {item.date}
                 </span>
 

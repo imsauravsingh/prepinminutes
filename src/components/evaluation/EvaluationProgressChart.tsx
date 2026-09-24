@@ -44,13 +44,13 @@ export function EvaluationProgressChart() {
         ? MONTH_DATA
         : ALL_TIME_DATA;
 
-  // Chart dimensions & scaling
+  // Chart coordinates
   const chartWidth = 680;
-  const chartHeight = 180;
+  const chartHeight = 210;
   const paddingLeft = 45;
   const paddingRight = 35;
-  const paddingTop = 25;
-  const paddingBottom = 20;
+  const paddingTop = 30;
+  const paddingBottom = 45;
 
   const innerWidth = chartWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
@@ -72,11 +72,12 @@ export function EvaluationProgressChart() {
     return paddingLeft + (index / (activeData.length - 1)) * innerWidth;
   };
 
-  // Build SVG path
   const points = activeData.map((d, i) => ({
     x: getXCoord(i),
     y: getYCoord(d.value),
     value: d.value,
+    label: d.label,
+    subLabel: d.subLabel,
   }));
 
   const linePathD = points.reduce((acc, pt, i) => {
@@ -91,11 +92,11 @@ export function EvaluationProgressChart() {
   const areaPathD = `${linePathD} L ${lastPt.x},${baselineY} L ${firstPt.x},${baselineY} Z`;
 
   return (
-    <div className="flex flex-1 flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
+    <div className="w-full h-full flex flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
       {/* Card Header: Title + Subtitle and Time Range Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-display text-base sm:text-lg font-bold text-ink">
+          <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
             Evaluation Progress
           </h2>
           <p className="text-xs text-ink-muted">
@@ -131,7 +132,7 @@ export function EvaluationProgressChart() {
         </div>
       </div>
 
-      {/* SVG Line & Area Chart Container */}
+      {/* Responsive SVG Line & Area Chart */}
       <div className="relative w-full overflow-hidden mt-2">
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
@@ -139,8 +140,8 @@ export function EvaluationProgressChart() {
         >
           <defs>
             <linearGradient id="evalAreaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ff6c47" stopOpacity="0.22" />
-              <stop offset="60%" stopColor="#ff6c47" stopOpacity="0.08" />
+              <stop offset="0%" stopColor="#ff6c47" stopOpacity="0.25" />
+              <stop offset="65%" stopColor="#ff6c47" stopOpacity="0.08" />
               <stop offset="100%" stopColor="#ff6c47" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -154,7 +155,9 @@ export function EvaluationProgressChart() {
                   x={paddingLeft - 10}
                   y={y + 3.5}
                   textAnchor="end"
-                  className="fill-[#9ca3af] font-mono text-[10px]"
+                  fill="#6b6661"
+                  fontSize="10"
+                  fontFamily="var(--font-geist-mono), monospace"
                 >
                   {lvl.label}
                 </text>
@@ -170,6 +173,16 @@ export function EvaluationProgressChart() {
             );
           })}
 
+          {/* Baseline X-axis stroke line */}
+          <line
+            x1={paddingLeft}
+            y1={baselineY}
+            x2={chartWidth - paddingRight}
+            y2={baselineY}
+            stroke="#ede6db"
+            strokeWidth="1"
+          />
+
           {/* Vertical dashed line under latest data point */}
           <line
             x1={lastPt.x}
@@ -179,7 +192,7 @@ export function EvaluationProgressChart() {
             stroke="#ff6c47"
             strokeWidth="1.5"
             strokeDasharray="4 3"
-            opacity="0.8"
+            opacity="0.85"
           />
 
           {/* Area Fill */}
@@ -195,13 +208,13 @@ export function EvaluationProgressChart() {
             strokeLinejoin="round"
           />
 
-          {/* Data Points and Labels */}
+          {/* Data Points and Precise Aligned Labels */}
           {points.map((pt, idx) => {
             const isLast = idx === points.length - 1;
 
             return (
               <g key={idx}>
-                {/* Outer shadow / glow on dot */}
+                {/* Outer white ring + solid orange point */}
                 <circle
                   cx={pt.x}
                   cy={pt.y}
@@ -211,24 +224,26 @@ export function EvaluationProgressChart() {
                   strokeWidth="2.5"
                 />
 
-                {/* Number Badge or Text above point */}
+                {/* Number Badge or Value above dot */}
                 {isLast ? (
-                  <g transform={`translate(${pt.x}, ${pt.y - 18})`}>
+                  <g transform={`translate(${pt.x}, ${pt.y - 20})`}>
                     <rect
                       x="-18"
-                      y="-12"
+                      y="-11"
                       width="36"
                       height="20"
-                      rx="5"
+                      rx="4"
                       fill="#ff6c47"
                       className="drop-shadow-2xs"
                     />
                     <text
                       x="0"
-                      y="2"
+                      y="3.5"
                       textAnchor="middle"
                       fill="#ffffff"
-                      className="font-bold text-[11px]"
+                      fontSize="11"
+                      fontWeight="700"
+                      fontFamily="var(--font-geist-mono), monospace"
                     >
                       {pt.value}%
                     </text>
@@ -238,41 +253,43 @@ export function EvaluationProgressChart() {
                     x={pt.x}
                     y={pt.y - 10}
                     textAnchor="middle"
-                    className="fill-ink font-bold text-[11px]"
+                    fill="#1e1c1a"
+                    fontSize="11"
+                    fontWeight="700"
+                    fontFamily="var(--font-geist-mono), monospace"
                   >
                     {pt.value}%
                   </text>
                 )}
+
+                {/* X-Axis Column Title directly centered under each point */}
+                <text
+                  x={pt.x}
+                  y={baselineY + 18}
+                  textAnchor="middle"
+                  fill="#1e1c1a"
+                  fontSize="12"
+                  fontWeight="700"
+                  fontFamily="var(--font-outfit), sans-serif"
+                >
+                  {pt.label}
+                </text>
+
+                {/* X-Axis Sub-label directly centered under column title */}
+                <text
+                  x={pt.x}
+                  y={baselineY + 32}
+                  textAnchor="middle"
+                  fill="#6b6661"
+                  fontSize="10"
+                  fontFamily="var(--font-geist-sans), sans-serif"
+                >
+                  {pt.subLabel}
+                </text>
               </g>
             );
           })}
         </svg>
-
-        {/* X-Axis Labels Row */}
-        <div className="flex items-start justify-between pt-3 border-t border-line/60">
-          {activeData.map((d, idx) => {
-            const isLast = idx === activeData.length - 1;
-            return (
-              <div
-                key={idx}
-                className={`flex flex-col text-center ${
-                  idx === 0
-                    ? "items-start text-left pl-2 sm:pl-8"
-                    : isLast
-                      ? "items-end text-right pr-2 sm:pr-6"
-                      : "items-center"
-                }`}
-              >
-                <span className="font-display text-xs font-bold text-ink">
-                  {d.label}
-                </span>
-                <span className="text-[10px] sm:text-[11px] text-ink-muted">
-                  {d.subLabel}
-                </span>
-              </div>
-            );
-          })}
-        </div>
       </div>
     </div>
   );

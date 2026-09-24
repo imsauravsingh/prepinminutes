@@ -16,10 +16,10 @@ export function InterviewReadinessCard({
   const offset = circumference * (1 - percentage / 100);
 
   return (
-    <div className="flex w-full lg:w-[320px] shrink-0 flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
+    <div className="w-full h-full flex flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
       {/* Title */}
       <div>
-        <h2 className="font-display text-base font-bold text-ink">
+        <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
           Interview Readiness
         </h2>
       </div>
@@ -94,7 +94,7 @@ export function InterviewReadinessCard({
             <Calendar className="size-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-ink">
+            <span className="font-display text-xs sm:text-sm font-bold text-ink">
               Interview in 12 days
             </span>
             <span className="text-[11px] text-ink-muted">

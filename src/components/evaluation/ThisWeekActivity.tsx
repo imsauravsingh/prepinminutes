@@ -52,7 +52,7 @@ export function ThisWeekActivity() {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <h2 className="font-display text-base sm:text-lg font-bold text-ink">
+      <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
         This Week&apos;s Activity
       </h2>
 
@@ -73,7 +73,7 @@ export function ThisWeekActivity() {
 
               <div className="flex flex-col min-w-0">
                 <span
-                  className={`font-display text-2xl font-extrabold leading-none ${
+                  className={`font-display text-2xl sm:text-3xl font-extrabold leading-none ${
                     item.valueColor || "text-ink"
                   }`}
                 >

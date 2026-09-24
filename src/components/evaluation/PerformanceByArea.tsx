@@ -91,7 +91,7 @@ export function PerformanceByArea() {
     <div className="flex flex-col gap-3.5">
       {/* Section Title & Subtitle */}
       <div className="flex flex-col gap-0.5">
-        <h2 className="font-display text-base sm:text-lg font-bold text-ink">
+        <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
           Performance by Area
         </h2>
         <p className="text-xs text-ink-muted">
@@ -119,14 +119,16 @@ export function PerformanceByArea() {
                     <Icon className="size-5" />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-display font-bold text-sm text-ink truncate">
+                    <span className="font-display font-bold text-xs sm:text-sm text-ink truncate">
                       {area.name}
                     </span>
                     <span
-                      className={`text-xs font-bold ${area.readinessColor}`}
+                      className={`font-mono text-xs font-bold ${area.readinessColor}`}
                     >
                       {area.readiness}%{" "}
-                      <span className="font-normal text-ink-muted">Ready</span>
+                      <span className="font-sans font-normal text-ink-muted">
+                        Ready
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -147,7 +149,9 @@ export function PerformanceByArea() {
                       className="flex items-center justify-between text-ink-muted"
                     >
                       <span>{s.label}</span>
-                      <span className="font-bold text-ink">{s.value}</span>
+                      <span className="font-mono font-bold text-ink">
+                        {s.value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -156,13 +160,13 @@ export function PerformanceByArea() {
               {/* Card Footer: Status Pill + Navigation Link */}
               <div className="mt-5 flex items-center justify-between pt-3 border-t border-line/60">
                 {area.statusType === "needs-practice" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff0ec] px-2.5 py-1 text-xs font-semibold text-[#ef4444] border border-[#fecaca]">
-                    <AlertCircle className="size-3.5 fill-[#ef4444] text-white" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#ef4444] border border-[#fecaca]">
+                    <AlertCircle className="size-3 fill-[#ef4444] text-white" />
                     <span>{area.statusLabel}</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#edf5ec] px-2.5 py-1 text-xs font-semibold text-[#10b981] border border-[#d1fae5]">
-                    <Check className="size-3.5 stroke-[2.5]" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#10b981] border border-[#d1fae5]">
+                    <Check className="size-3 stroke-[2.5]" />
                     <span>{area.statusLabel}</span>
                   </span>
                 )}

@@ -98,7 +98,7 @@ export function EvaluationInsights() {
     <div className="flex flex-col gap-3.5">
       {/* Section Title & Subtitle */}
       <div className="flex flex-col gap-0.5">
-        <h2 className="font-display text-base sm:text-lg font-bold text-ink">
+        <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
           Your Evaluation Insights
         </h2>
         <p className="text-xs text-ink-muted">
@@ -117,7 +117,7 @@ export function EvaluationInsights() {
                 <Award className="size-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-base text-ink">
+                <span className="font-display font-extrabold text-base text-ink">
                   Your Strengths
                 </span>
                 <span className="text-xs text-ink-muted mt-0.5">
@@ -135,11 +135,11 @@ export function EvaluationInsights() {
                     <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#f5f3ff] text-[#7c3aed]">
                       <Users className="size-3.5" />
                     </div>
-                    <span className="font-display font-bold text-sm text-ink">
+                    <span className="font-display font-bold text-xs sm:text-sm text-ink">
                       Behavioral
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-ink">
+                  <span className="font-mono font-bold text-xs sm:text-sm text-ink">
                     91%
                   </span>
                 </div>
@@ -155,11 +155,11 @@ export function EvaluationInsights() {
                     <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff] text-[#2563eb]">
                       <Cloud className="size-3.5" />
                     </div>
-                    <span className="font-display font-bold text-sm text-ink">
+                    <span className="font-display font-bold text-xs sm:text-sm text-ink">
                       AWS &amp; Cloud
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-sm text-ink">
+                  <span className="font-mono font-bold text-xs sm:text-sm text-ink">
                     84%
                   </span>
                 </div>
@@ -173,7 +173,7 @@ export function EvaluationInsights() {
           {/* Bottom Action Button */}
           <Link
             href="/practice/topics?area=behavioral"
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-semibold text-ink hover:border-[#2563eb] hover:text-[#2563eb] hover:bg-[#eff6ff]/30 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-line bg-white py-2 text-xs font-semibold text-ink shadow-2xs hover:border-[#2563eb] hover:text-[#2563eb] hover:bg-[#eff6ff]/30 transition-all cursor-pointer"
           >
             <span>View all strengths</span>
             <ArrowRight className="size-3.5" />
@@ -189,7 +189,7 @@ export function EvaluationInsights() {
                 <BarChart3 className="size-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-base text-ink">
+                <span className="font-display font-extrabold text-base text-ink">
                   Interview Performance
                 </span>
                 <span className="text-xs text-ink-muted mt-0.5">
@@ -210,21 +210,21 @@ export function EvaluationInsights() {
                   </span>
 
                   {item.type === "positive" && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2 py-0.5 text-[11px] font-semibold text-[#10b981] border border-[#d1fae5]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#10b981] border border-[#d1fae5]">
                       <Check className="size-2.5 stroke-[2.5]" />
                       <span>{item.status}</span>
                     </span>
                   )}
 
                   {item.type === "warning" && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#fffbeb] px-2 py-0.5 text-[11px] font-semibold text-[#d97706] border border-[#fef3c7]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#fffbeb] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#d97706] border border-[#fef3c7]">
                       <AlertCircle className="size-2.5" />
                       <span>{item.status}</span>
                     </span>
                   )}
 
                   {item.type === "danger" && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2 py-0.5 text-[11px] font-semibold text-[#ef4444] border border-[#fee2e2]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#ef4444] border border-[#fee2e2]">
                       <AlertCircle className="size-2.5" />
                       <span>{item.status}</span>
                     </span>
@@ -237,7 +237,7 @@ export function EvaluationInsights() {
           {/* Bottom Action Button */}
           <Link
             href="/practice/session/behavioral"
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-semibold text-ink hover:border-[#2563eb] hover:text-[#2563eb] hover:bg-[#eff6ff]/30 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-line bg-white py-2 text-xs font-semibold text-ink shadow-2xs hover:border-[#2563eb] hover:text-[#2563eb] hover:bg-[#eff6ff]/30 transition-all cursor-pointer"
           >
             <span>View detailed feedback</span>
             <ArrowRight className="size-3.5" />
@@ -253,7 +253,7 @@ export function EvaluationInsights() {
                 <Target className="size-5" />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-base text-ink">
+                <span className="font-display font-extrabold text-base text-ink">
                   Your Focus
                 </span>
                 <span className="text-xs text-ink-muted mt-0.5">
@@ -281,7 +281,7 @@ export function EvaluationInsights() {
                       </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-display font-bold text-xs text-ink truncate group-hover:text-brand transition-colors">
+                          <span className="font-display font-bold text-xs sm:text-sm text-ink truncate group-hover:text-brand transition-colors">
                             {fa.area}
                           </span>
                           <span
@@ -304,7 +304,7 @@ export function EvaluationInsights() {
             {/* Recommended Topics for You sub-block */}
             <div className="flex flex-col gap-2 pt-2 border-t border-line/60">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-display font-bold text-ink">
+                <span className="font-display font-bold text-xs sm:text-sm text-ink">
                   Recommended topics for you
                 </span>
                 <Link
@@ -330,7 +330,7 @@ export function EvaluationInsights() {
                         <TopicIcon
                           className={`size-3.5 ${topic.iconColor} shrink-0`}
                         />
-                        <span className="font-medium text-ink truncate group-hover:text-brand">
+                        <span className="font-medium text-xs sm:text-sm text-ink truncate group-hover:text-brand transition-colors">
                           {topic.title}
                         </span>
                       </div>
@@ -338,7 +338,7 @@ export function EvaluationInsights() {
                       <div className="flex items-center gap-2 shrink-0 text-ink-muted text-[11px]">
                         <span className="flex items-center gap-1">
                           <Clock className="size-3" />
-                          <span>{topic.duration}</span>
+                          <span className="font-mono">{topic.duration}</span>
                         </span>
                         <ChevronRight className="size-3" />
                       </div>
@@ -352,7 +352,7 @@ export function EvaluationInsights() {
           {/* Bottom Primary CTA Button */}
           <Link
             href="/practice/topics"
-            className="flex items-center justify-center gap-2 rounded-xl bg-brand py-3 text-xs font-bold text-white hover:opacity-90 shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+            className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-xs font-bold text-white hover:opacity-90 shadow-2xs transition-all active:scale-[0.99] cursor-pointer"
           >
             <span>Start Practicing Focus Areas</span>
             <ArrowRight className="size-3.5" />

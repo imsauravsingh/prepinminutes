@@ -55,10 +55,10 @@ export function WeeklyProgressTable() {
   ];
 
   return (
-    <div className="flex flex-1 flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
+    <div className="w-full h-full flex flex-col justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
       {/* Title & Subtitle */}
       <div className="flex flex-col gap-0.5 pb-3">
-        <h2 className="font-display text-base font-bold text-ink">
+        <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
           Weekly Progress by Area
         </h2>
         <p className="text-xs text-ink-muted">
@@ -67,38 +67,38 @@ export function WeeklyProgressTable() {
       </div>
 
       {/* Responsive Table Container */}
-      <div className="w-full overflow-x-auto no-scrollbar">
-        <table className="w-full min-w-[540px] text-left text-xs">
+      <div className="w-full overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
+        <table className="w-full min-w-[520px] text-left text-xs">
           <thead>
             <tr className="border-b border-line text-ink-muted">
               <th className="pb-3 pt-1 font-semibold">Area</th>
               <th className="pb-3 pt-1 text-center font-semibold">
                 <div>Week 1</div>
-                <div className="text-[10px] font-normal text-[#9ca3af]">
+                <div className="text-[10px] font-normal text-ink-muted">
                   Aug 25 – Aug 31
                 </div>
               </th>
               <th className="pb-3 pt-1 text-center font-semibold">
                 <div>Week 2</div>
-                <div className="text-[10px] font-normal text-[#9ca3af]">
+                <div className="text-[10px] font-normal text-ink-muted">
                   Sep 1 – Sep 7
                 </div>
               </th>
               <th className="pb-3 pt-1 text-center font-semibold">
                 <div>Week 3</div>
-                <div className="text-[10px] font-normal text-[#9ca3af]">
+                <div className="text-[10px] font-normal text-ink-muted">
                   Sep 8 – Sep 14
                 </div>
               </th>
               <th className="pb-3 pt-1 text-center font-semibold">
                 <div>Week 4</div>
-                <div className="text-[10px] font-normal text-[#9ca3af]">
+                <div className="text-[10px] font-normal text-ink-muted">
                   Sep 15 – Sep 21
                 </div>
               </th>
               <th className="pb-3 pt-1 text-center font-semibold">
                 <div>This Week</div>
-                <div className="text-[10px] font-normal text-[#9ca3af]">
+                <div className="text-[10px] font-normal text-ink-muted">
                   Sep 22 – Today
                 </div>
               </th>
@@ -122,39 +122,39 @@ export function WeeklyProgressTable() {
                       >
                         <Icon className="size-4" />
                       </div>
-                      <span className="font-semibold text-ink whitespace-nowrap">
+                      <span className="font-display font-bold text-xs sm:text-sm text-ink whitespace-nowrap">
                         {row.name}
                       </span>
                     </div>
                   </td>
 
                   {/* Week 1 */}
-                  <td className="py-3.5 text-center font-mono text-ink-muted">
+                  <td className="py-3.5 text-center font-mono text-xs text-ink-muted">
                     {row.w1}
                   </td>
 
                   {/* Week 2 */}
-                  <td className="py-3.5 text-center font-mono text-ink-muted">
+                  <td className="py-3.5 text-center font-mono text-xs text-ink-muted">
                     {row.w2}
                   </td>
 
                   {/* Week 3 */}
-                  <td className="py-3.5 text-center font-mono text-ink-muted">
+                  <td className="py-3.5 text-center font-mono text-xs text-ink-muted">
                     {row.w3}
                   </td>
 
                   {/* Week 4 */}
-                  <td className="py-3.5 text-center font-mono text-ink-muted">
+                  <td className="py-3.5 text-center font-mono text-xs text-ink-muted">
                     {row.w4}
                   </td>
 
                   {/* This Week */}
-                  <td className="py-3.5 text-center font-mono font-bold text-ink">
+                  <td className="py-3.5 text-center font-mono font-bold text-xs text-ink">
                     {row.thisWeek}
                   </td>
 
                   {/* Change */}
-                  <td className="py-3.5 text-right font-bold text-[#10b981] whitespace-nowrap">
+                  <td className="py-3.5 text-right font-mono font-bold text-xs text-[#10b981] whitespace-nowrap">
                     <span className="inline-flex items-center gap-0.5">
                       <ArrowUpRight className="size-3.5 stroke-[2.5]" />
                       <span>{row.change}</span>
