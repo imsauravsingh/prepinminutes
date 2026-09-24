@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   Sparkles,
+  CheckSquare,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,7 +39,7 @@ const navLinks: {
   },
   { icon: CodeXml, label: "Practice", href: "/practice" },
   { icon: ClipboardCheck, label: "Evaluation", href: "/evaluation" },
-  { icon: BookOpen, label: "Revision", href: "#", locked: true },
+  { icon: CheckSquare, label: "Revision", href: "/revision" },
   { icon: Users, label: "Mock Interview", href: "#", locked: true },
 ];
 
@@ -61,6 +62,7 @@ function SidebarContent() {
     pathname === "/" ||
     pathname.startsWith("/dashboard/");
   const isEvaluation = pathname.startsWith("/evaluation");
+  const isRevision = pathname.startsWith("/revision");
   const completedRequired = requiredChecklist.filter(
     (item) => item.done,
   ).length;
@@ -102,7 +104,9 @@ function SidebarContent() {
                     ? pathname.startsWith("/practice")
                     : link.href === "/evaluation"
                       ? pathname.startsWith("/evaluation")
-                      : false;
+                      : link.href === "/revision"
+                        ? pathname.startsWith("/revision")
+                        : false;
 
             if (link.locked) {
               return (
@@ -198,6 +202,78 @@ function SidebarContent() {
                 />
               </div>
             </div>
+          </div>
+        ) : isRevision ? (
+          <div className="relative overflow-hidden rounded-2xl border border-[#fee2e2]/80 bg-gradient-to-b from-[#fff7f5] via-[#fff3f0] to-[#feedeb] p-4 shadow-xs">
+            <div className="relative z-10 flex flex-col gap-1.5">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-[#fff0ec] text-brand border border-[#ffd8cc]">
+                <Sparkles className="size-4 text-brand" />
+              </div>
+              <p className="font-display text-sm font-extrabold text-ink mt-0.5">
+                Keep your knowledge fresh
+              </p>
+              <p className="text-[11px] text-ink-muted leading-relaxed">
+                Spaced revision helps you retain and perform better in your
+                interview.
+              </p>
+            </div>
+            {/* Illustrated subtle bar chart & rising arrow background */}
+            <svg
+              className="pointer-events-none absolute -bottom-1 -right-1 h-16 w-32"
+              viewBox="0 0 120 60"
+              fill="none"
+              aria-hidden
+            >
+              <rect
+                x="10"
+                y="36"
+                width="12"
+                height="24"
+                rx="3"
+                fill="#e0e7ff"
+                opacity="0.9"
+              />
+              <rect
+                x="28"
+                y="28"
+                width="12"
+                height="32"
+                rx="3"
+                fill="#c7d2fe"
+                opacity="0.9"
+              />
+              <rect
+                x="46"
+                y="20"
+                width="12"
+                height="40"
+                rx="3"
+                fill="#a5b4fc"
+                opacity="0.9"
+              />
+              <rect
+                x="64"
+                y="10"
+                width="12"
+                height="50"
+                rx="3"
+                fill="#818cf8"
+                opacity="0.9"
+              />
+              <path
+                d="M6 46C20 44 32 36 50 26C65 18 80 12 95 6"
+                stroke="#ff6c47"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M87 5L96 5L95 14"
+                stroke="#ff6c47"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         ) : isEvaluation ? (
           <div className="relative overflow-hidden rounded-2xl border border-[#fee2e2]/80 bg-gradient-to-b from-[#fff7f5] via-[#fff3f0] to-[#feedeb] p-4 shadow-xs">
