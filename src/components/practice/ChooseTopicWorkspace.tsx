@@ -378,9 +378,6 @@ const AREAS_CONFIG: {
   icon: LucideIcon;
   iconBg: string;
   iconColor: string;
-  arrowColor: string;
-  activeBorder: string;
-  activeBg: string;
 }[] = [
   {
     id: "system-design",
@@ -389,10 +386,7 @@ const AREAS_CONFIG: {
     topicCount: 8,
     icon: Database,
     iconBg: "bg-[#fff0ec]",
-    iconColor: "text-[#ff6c47]",
-    arrowColor: "text-[#ff6c47]",
-    activeBorder: "border-[#ff6c47]",
-    activeBg: "bg-[#fffaf8]",
+    iconColor: "text-brand",
   },
   {
     id: "cloud",
@@ -402,9 +396,6 @@ const AREAS_CONFIG: {
     icon: Cloud,
     iconBg: "bg-[#eff6ff]",
     iconColor: "text-[#2563eb]",
-    arrowColor: "text-[#2563eb]",
-    activeBorder: "border-[#2563eb]",
-    activeBg: "bg-[#f8faff]",
   },
   {
     id: "coding",
@@ -414,9 +405,6 @@ const AREAS_CONFIG: {
     icon: CodeXml,
     iconBg: "bg-[#edf7f4]",
     iconColor: "text-[#0b8a8f]",
-    arrowColor: "text-[#0b8a8f]",
-    activeBorder: "border-[#0b8a8f]",
-    activeBg: "bg-[#f7fbf9]",
   },
   {
     id: "behavioral",
@@ -426,9 +414,6 @@ const AREAS_CONFIG: {
     icon: Users,
     iconBg: "bg-[#f5f3ff]",
     iconColor: "text-[#8b5cf6]",
-    arrowColor: "text-[#8b5cf6]",
-    activeBorder: "border-[#8b5cf6]",
-    activeBg: "bg-[#faf8ff]",
   },
 ];
 
@@ -627,13 +612,13 @@ export function ChooseTopicWorkspace() {
                 Choose by Area
               </h2>
               <p className="text-xs text-ink-muted">
-                Select an area to see relevant topics based on your preparation
-                plan.
+                Select an area to explore and practice specific interview
+                topics.
               </p>
             </div>
 
-            {/* 4 Area Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* 4 Clean Area Selection Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
               {AREAS_CONFIG.map((area) => {
                 const isSelected = selectedArea === area.id;
                 const IconComponent = area.icon;
@@ -648,41 +633,60 @@ export function ChooseTopicWorkspace() {
                       setSelectedTime("all");
                       setSelectedPriority("all");
                     }}
-                    className={`flex items-center justify-between p-4 rounded-2xl border text-left transition-all relative overflow-hidden ${
+                    className={`group flex flex-col justify-between rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? `border-2 ${area.activeBorder} ${area.activeBg} shadow-sm ring-2 ring-brand/10`
-                        : "border-line bg-white hover:border-[#b0a898]/40 hover:bg-[#faf6f0]"
+                        ? "border-brand bg-white shadow-xs ring-1 ring-brand"
+                        : "border-line bg-white hover:border-line-strong hover:bg-cream/40"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    {/* Top Row: Icon + Topics Count Badge */}
+                    <div className="flex items-center justify-between gap-2">
                       <div
-                        className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${area.iconBg} ${area.iconColor}`}
+                        className={`flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                          isSelected
+                            ? "bg-brand text-white shadow-xs"
+                            : `${area.iconBg} ${area.iconColor}`
+                        }`}
                       >
-                        <IconComponent className="size-5" />
+                        <IconComponent className="size-4.5 sm:size-5" />
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-display text-xs sm:text-[13px] font-bold text-ink">
-                          {area.name}
-                        </span>
-                        <div className="flex items-center gap-1 text-[11px] text-ink-muted">
-                          <span className="font-bold text-ink">
-                            {area.readiness}%
-                          </span>
-                          <span>Ready</span>
-                        </div>
-                        <span className="text-[11px] text-ink-muted mt-0.5">
-                          {area.topicCount} topics
-                        </span>
-                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition-colors ${
+                          isSelected
+                            ? "bg-brand/10 text-brand font-bold"
+                            : "bg-line text-ink-muted"
+                        }`}
+                      >
+                        {area.topicCount} topics
+                      </span>
                     </div>
 
-                    <ArrowRight
-                      className={`size-4 shrink-0 transition-transform ${
-                        isSelected
-                          ? `${area.arrowColor} translate-x-0.5`
-                          : "text-ink-muted"
-                      }`}
-                    />
+                    {/* Middle: Area Name */}
+                    <div className="mt-3">
+                      <span className="font-display text-xs sm:text-sm font-bold text-ink block group-hover:text-brand transition-colors">
+                        {area.name}
+                      </span>
+
+                      {/* Bottom: Readiness Percentage & Progress Bar */}
+                      <div className="mt-2.5 flex items-center justify-between text-[11px] text-ink-muted">
+                        <span>Readiness</span>
+                        <span className="font-mono font-bold text-ink">
+                          {area.readiness}%
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-line">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            area.readiness >= 75
+                              ? "bg-[#10b981]"
+                              : area.readiness >= 50
+                                ? "bg-[#3b82f6]"
+                                : "bg-brand"
+                          }`}
+                          style={{ width: `${area.readiness}%` }}
+                        />
+                      </div>
+                    </div>
                   </button>
                 );
               })}
