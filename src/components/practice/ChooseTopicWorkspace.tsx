@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   User,
@@ -13,6 +13,8 @@ import {
   Users,
   Search,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Star,
   BarChart3,
   Network,
@@ -150,6 +152,162 @@ const ALL_TOPICS: Topic[] = [
     priority: "Low",
     practiceHref: "/practice/session/system-design",
     icon: Code,
+  },
+  {
+    id: "sd-9",
+    area: "system-design",
+    title: "Message Queues & Event Streaming",
+    description: "Kafka vs RabbitMQ, partitioned logs, pub/sub and consumer lag.",
+    readiness: 45,
+    duration: 15,
+    status: "Needs Practice",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Layers,
+  },
+  {
+    id: "sd-10",
+    area: "system-design",
+    title: "Consistent Hashing & DHT",
+    description: "Dynamo style ring hashing, virtual nodes and hash rebalancing.",
+    readiness: 70,
+    duration: 12,
+    status: "Practiced",
+    priority: "Medium",
+    practiceHref: "/practice/session/system-design",
+    icon: Database,
+  },
+  {
+    id: "sd-11",
+    area: "system-design",
+    title: "Rate Limiting & Throttling",
+    description: "Token bucket, leaky bucket, sliding window log algorithms.",
+    readiness: 55,
+    duration: 12,
+    status: "In Progress",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Network,
+  },
+  {
+    id: "sd-12",
+    area: "system-design",
+    title: "Distributed Consensus & Raft",
+    description: "Leader election, log replication, safety guarantees and Paxos.",
+    readiness: 30,
+    duration: 25,
+    status: "Not Practiced",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Boxes,
+  },
+  {
+    id: "sd-13",
+    area: "system-design",
+    title: "Content Delivery Networks (CDN)",
+    description: "Edge caching, POP architecture, cache invalidation and anycast.",
+    readiness: 82,
+    duration: 10,
+    status: "Practiced",
+    priority: "Low",
+    practiceHref: "/practice/session/system-design",
+    icon: HardDrive,
+  },
+  {
+    id: "sd-14",
+    area: "system-design",
+    title: "Search Indexing & Elasticsearch",
+    description: "Inverted indexes, document scoring, Lucene segments and sharding.",
+    readiness: 38,
+    duration: 20,
+    status: "Needs Practice",
+    priority: "Medium",
+    practiceHref: "/practice/session/system-design",
+    icon: Database,
+  },
+  {
+    id: "sd-15",
+    area: "system-design",
+    title: "SQL vs NoSQL Trade-offs",
+    description: "ACID vs BASE, column families, document stores, key-value models.",
+    readiness: 65,
+    duration: 15,
+    status: "Practiced",
+    priority: "Medium",
+    practiceHref: "/practice/session/system-design",
+    icon: Database,
+  },
+  {
+    id: "sd-16",
+    area: "system-design",
+    title: "Resiliency & Circuit Breakers",
+    description: "Fault isolation, bulkheads, fallback policies, exponential jitter.",
+    readiness: 52,
+    duration: 15,
+    status: "Not Practiced",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Network,
+  },
+  {
+    id: "sd-17",
+    area: "system-design",
+    title: "Distributed Transactions & Sagas",
+    description: "Two-phase commits, saga orchestrators, compensating actions.",
+    readiness: 25,
+    duration: 25,
+    status: "Needs Practice",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Boxes,
+  },
+  {
+    id: "sd-18",
+    area: "system-design",
+    title: "Real-Time WebSockets & SSE",
+    description: "Stateful connections, presence detection, socket gateway clusters.",
+    readiness: 60,
+    duration: 12,
+    status: "In Progress",
+    priority: "Medium",
+    practiceHref: "/practice/session/system-design",
+    icon: Network,
+  },
+  {
+    id: "sd-19",
+    area: "system-design",
+    title: "Unique ID Generation at Scale",
+    description: "Twitter Snowflake, UUIDv7, timestamp ordering and high throughput.",
+    readiness: 75,
+    duration: 10,
+    status: "Practiced",
+    priority: "Low",
+    practiceHref: "/practice/session/system-design",
+    icon: Code,
+  },
+  {
+    id: "sd-20",
+    area: "system-design",
+    title: "Data Lake & Batch Processing",
+    description: "MapReduce paradigms, Parquet columnar storage, streaming ETL.",
+    readiness: 34,
+    duration: 20,
+    status: "Not Practiced",
+    priority: "Medium",
+    practiceHref: "/practice/session/system-design",
+    icon: HardDrive,
+  },
+  {
+    id: "sd-21",
+    area: "system-design",
+    title: "Disaster Recovery & Geo-Replication",
+    description: "Multi-region active-active, RPO/RTO tradeoffs, split-brain mitigation.",
+    readiness: 40,
+    duration: 18,
+    status: "Needs Practice",
+    priority: "High",
+    practiceHref: "/practice/session/system-design",
+    icon: Layers,
   },
 
   // 2. AWS & Cloud Topics (5 items)
@@ -383,7 +541,7 @@ const AREAS_CONFIG: {
     id: "system-design",
     name: "System Design",
     readiness: 32,
-    topicCount: 8,
+    topicCount: 21,
     icon: Database,
     iconBg: "bg-[#fff0ec]",
     iconColor: "text-brand",
@@ -424,7 +582,6 @@ export function ChooseTopicWorkspace() {
   const [selectedTime, setSelectedTime] = useState<string>("all");
   const [selectedPriority, setSelectedPriority] = useState<string>("all");
   const [sortFilter, setSortFilter] = useState<string>("all");
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [whyTooltipOpen, setWhyTooltipOpen] = useState(false);
 
   // Selected area info
@@ -522,6 +679,30 @@ export function ChooseTopicWorkspace() {
     selectedPriority,
     sortFilter,
   ]);
+
+  // Pagination State (10 records per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  // Reset page when any filter, search, sort, or area changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    selectedArea,
+    searchQuery,
+    selectedStatus,
+    selectedTime,
+    selectedPriority,
+    sortFilter,
+  ]);
+
+  const totalPages = Math.ceil(filteredTopics.length / pageSize);
+
+  // Paginated topics slice
+  const paginatedTopics = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredTopics.slice(startIndex, startIndex + pageSize);
+  }, [filteredTopics, currentPage]);
 
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1400px] mx-auto pb-12">
@@ -705,7 +886,7 @@ export function ChooseTopicWorkspace() {
               </p>
             </div>
 
-            {/* Search Bar & Dropdown Controls */}
+            {/* Search Bar & Sort Controls */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {/* Search input */}
               <div className="relative flex-1">
@@ -714,122 +895,169 @@ export function ChooseTopicWorkspace() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search topics..."
-                  className="w-full rounded-xl border border-line bg-white pl-10 pr-4 py-2.5 text-xs text-ink outline-none transition-colors focus:border-brand"
+                  placeholder="Search topics by title or keywords..."
+                  className="w-full rounded-xl border border-line bg-white pl-10 pr-9 py-2.5 text-xs text-ink outline-none transition-colors focus:border-brand"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink cursor-pointer"
+                    title="Clear search"
                   >
                     <X className="size-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Sort/Filter Dropdown & Mobile Filter Button */}
-              <div className="flex items-center gap-2">
-                {/* Mobile Filter Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-                  className="lg:hidden flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-semibold text-ink shadow-2xs hover:bg-[#faf6f0]"
+              {/* Sort Selector */}
+              <div className="relative shrink-0">
+                <select
+                  value={sortFilter}
+                  onChange={(e) => setSortFilter(e.target.value)}
+                  aria-label="Sort topics list"
+                  className="w-full sm:w-auto appearance-none rounded-xl border border-line bg-white pl-3.5 pr-8 py-2.5 text-xs font-semibold text-ink outline-none cursor-pointer hover:bg-cream transition-colors"
                 >
-                  <SlidersHorizontal className="size-3.5 text-brand" />
-                  <span>Filters</span>
-                </button>
-
-                {/* Dropdown Selector */}
-                <div className="relative">
-                  <select
-                    value={sortFilter}
-                    onChange={(e) => setSortFilter(e.target.value)}
-                    aria-label="Filter topics list"
-                    className="appearance-none rounded-xl border border-line bg-white pl-3.5 pr-8 py-2.5 text-xs font-semibold text-ink outline-none cursor-pointer hover:bg-[#faf6f0] transition-colors"
-                  >
-                    <option value="all">All Topics</option>
-                    <option value="high">High Priority First</option>
-                    <option value="readiness-asc">
-                      Lowest Readiness First
-                    </option>
-                    <option value="readiness-desc">
-                      Highest Readiness First
-                    </option>
-                  </select>
-                  <ChevronDown className="size-3.5 text-ink-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
+                  <option value="all">Sort: Recommended</option>
+                  <option value="high">Sort: High Priority First</option>
+                  <option value="readiness-asc">Sort: Lowest Readiness First</option>
+                  <option value="readiness-desc">Sort: Highest Readiness First</option>
+                </select>
+                <ChevronDown className="size-3.5 text-ink-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            {/* Mobile Expanded Filters Panel */}
-            {mobileFilterOpen && (
-              <div className="lg:hidden flex flex-col gap-4 rounded-2xl border border-line bg-white p-4 shadow-sm animate-in fade-in">
-                <div className="flex items-center justify-between pb-2 border-b border-line">
-                  <span className="font-display font-bold text-xs text-ink uppercase tracking-wider">
-                    Quick Filters
-                  </span>
+            {/* Filter Section: Directly below Search & above Topic List */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-3.5 sm:p-4 shadow-2xs">
+              {/* Row 1: Status Filter Chips + Clear All CTA */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
+                  {[
+                    { id: "all", label: "All", count: areaTopics.length },
+                    {
+                      id: "Needs Practice",
+                      label: "Needs Practice",
+                      count: filterCounts.status.needsPractice,
+                    },
+                    {
+                      id: "Not Practiced",
+                      label: "Not Practiced",
+                      count: filterCounts.status.notPracticed,
+                    },
+                    {
+                      id: "In Progress",
+                      label: "In Progress",
+                      count: filterCounts.status.inProgress,
+                    },
+                    {
+                      id: "Practiced",
+                      label: "Practiced",
+                      count: filterCounts.status.practiced,
+                    },
+                  ].map((chip) => {
+                    const isChipActive = selectedStatus === chip.id;
+                    return (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        onClick={() => setSelectedStatus(chip.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                          isChipActive
+                            ? "bg-brand text-white shadow-2xs"
+                            : "border border-line bg-white text-ink-muted hover:border-line-strong hover:bg-cream hover:text-ink"
+                        }`}
+                      >
+                        <span>{chip.label}</span>
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
+                            isChipActive
+                              ? "bg-white/25 text-white font-bold"
+                              : "bg-line text-ink-muted"
+                          }`}
+                        >
+                          {chip.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Clear all filters shortcut */}
+                {(selectedStatus !== "all" ||
+                  selectedTime !== "all" ||
+                  selectedPriority !== "all" ||
+                  searchQuery.trim() !== "") && (
                   <button
                     type="button"
-                    onClick={() => setMobileFilterOpen(false)}
-                    className="text-ink-muted hover:text-ink text-xs font-semibold"
+                    onClick={() => {
+                      setSelectedStatus("all");
+                      setSelectedTime("all");
+                      setSelectedPriority("all");
+                      setSearchQuery("");
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline transition-colors ml-auto sm:ml-0 cursor-pointer"
                   >
-                    Close
+                    <X className="size-3" />
+                    <span>Clear filters</span>
                   </button>
-                </div>
+                )}
+              </div>
 
-                {/* Status Chips */}
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-bold text-ink-muted uppercase">
-                    Status
+              {/* Row 2: Secondary Dropdown Filters (Time & Priority) + Results Counter */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-line/60 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1">
+                    <Filter className="size-3 text-ink-muted" />
+                    <span>Filter:</span>
                   </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      "all",
-                      "Needs Practice",
-                      "Not Practiced",
-                      "Practiced",
-                    ].map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={() => setSelectedStatus(status)}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                          selectedStatus === status
-                            ? "bg-brand text-white"
-                            : "bg-[#f4efe8] text-ink hover:bg-[#eae3d8]"
-                        }`}
-                      >
-                        {status === "all" ? "All" : status}
-                      </button>
-                    ))}
+
+                  {/* Time Required Pill Select */}
+                  <div className="relative">
+                    <select
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                      aria-label="Filter by time"
+                      className={`appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                        selectedTime !== "all"
+                          ? "border-brand bg-[#fff0ec] text-brand"
+                          : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
+                      }`}
+                    >
+                      <option value="all">Time: All</option>
+                      <option value="<=10">≤ 10 min ({filterCounts.time.under10})</option>
+                      <option value="10-20">10–20 min ({filterCounts.time.between10And20})</option>
+                      <option value=">=20">≥ 20 min ({filterCounts.time.over20})</option>
+                    </select>
+                    <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+
+                  {/* Priority Pill Select */}
+                  <div className="relative">
+                    <select
+                      value={selectedPriority}
+                      onChange={(e) => setSelectedPriority(e.target.value)}
+                      aria-label="Filter by priority"
+                      className={`appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                        selectedPriority !== "all"
+                          ? "border-brand bg-[#fff0ec] text-brand"
+                          : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
+                      }`}
+                    >
+                      <option value="all">Priority: All</option>
+                      <option value="High">High ({filterCounts.priority.high})</option>
+                      <option value="Medium">Medium ({filterCounts.priority.medium})</option>
+                      <option value="Low">Low ({filterCounts.priority.low})</option>
+                    </select>
+                    <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 
-                {/* Priority Chips */}
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-bold text-ink-muted uppercase">
-                    Priority
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["all", "High", "Medium", "Low"].map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setSelectedPriority(p)}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                          selectedPriority === p
-                            ? "bg-brand text-white"
-                            : "bg-[#f4efe8] text-ink hover:bg-[#eae3d8]"
-                        }`}
-                      >
-                        {p === "all" ? "All" : p}
-                      </button>
-                    ))}
-                  </div>
+                {/* Results Count Indicator */}
+                <div className="text-[11px] text-ink-muted">
+                  Showing <span className="font-bold text-ink">{filteredTopics.length}</span> of {areaTopics.length} topics
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Topic Cards Rows Stack */}
             <div className="flex flex-col gap-2.5">
@@ -856,7 +1084,7 @@ export function ChooseTopicWorkspace() {
                   </button>
                 </div>
               ) : (
-                filteredTopics.map((topic) => {
+                paginatedTopics.map((topic) => {
                   const TopicIcon = topic.icon;
 
                   return (
@@ -892,14 +1120,14 @@ export function ChooseTopicWorkspace() {
                           <span className="text-xs font-bold text-ink w-8 text-right">
                             {topic.readiness}%
                           </span>
-                          <div className="h-1.5 w-14 overflow-hidden rounded-full bg-[#ede6db]">
+                          <div className="h-1.5 w-14 overflow-hidden rounded-full bg-line">
                             <div
                               className={`h-full rounded-full ${
                                 topic.readiness >= 70
                                   ? "bg-[#10b981]"
                                   : topic.readiness >= 45
                                     ? "bg-[#f59e0b]"
-                                    : "bg-[#ff6c47]"
+                                    : "bg-brand"
                               }`}
                               style={{ width: `${topic.readiness}%` }}
                             />
@@ -954,6 +1182,78 @@ export function ChooseTopicWorkspace() {
                 })
               )}
             </div>
+
+            {/* Pagination Controls (shown when more than 10 records) */}
+            {filteredTopics.length > pageSize && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs mt-1">
+                {/* Topic Count Text */}
+                <div className="text-xs text-ink-muted">
+                  Showing{" "}
+                  <span className="font-bold text-ink">
+                    {(currentPage - 1) * pageSize + 1}
+                  </span>
+                  –
+                  <span className="font-bold text-ink">
+                    {Math.min(currentPage * pageSize, filteredTopics.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold text-ink">
+                    {filteredTopics.length}
+                  </span>{" "}
+                  topics
+                </div>
+
+                {/* Pagination Buttons */}
+                <div className="flex items-center gap-1.5">
+                  {/* Previous Button */}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="size-3.5" />
+                    <span className="hidden sm:inline">Previous</span>
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                      const isCurrent = pageNum === currentPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`flex size-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
+                            isCurrent
+                              ? "bg-brand text-white shadow-xs"
+                              : "border border-line bg-white text-ink hover:bg-cream"
+                          }`}
+                          aria-label={`Page ${pageNum}`}
+                          aria-current={isCurrent ? "page" : undefined}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                    aria-label="Next page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1027,260 +1327,7 @@ export function ChooseTopicWorkspace() {
             </Link>
           </div>
 
-          {/* Card 2: Practice Filters (Desktop) */}
-          <div className="hidden lg:flex flex-col gap-4 rounded-3xl border border-line bg-white p-5 sm:p-6 shadow-xs">
-            <div className="flex items-center gap-2 pb-1 border-b border-line">
-              <Filter className="size-4 text-brand" />
-              <h3 className="font-display font-bold text-sm text-ink">
-                Practice Filters
-              </h3>
-            </div>
-
-            {/* Filter Group: Status */}
-            <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-bold text-ink">Status</span>
-              <div className="flex flex-col gap-2 text-xs">
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="statusFilter"
-                      checked={selectedStatus === "all"}
-                      onChange={() => setSelectedStatus("all")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink group-hover:text-brand font-medium">
-                      All Topics
-                    </span>
-                  </div>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="statusFilter"
-                      checked={selectedStatus === "Not Practiced"}
-                      onChange={() => setSelectedStatus("Not Practiced")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      Not Practiced
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.status.notPracticed}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="statusFilter"
-                      checked={selectedStatus === "Needs Practice"}
-                      onChange={() => setSelectedStatus("Needs Practice")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      Needs Practice
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.status.needsPractice}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="statusFilter"
-                      checked={selectedStatus === "In Progress"}
-                      onChange={() => setSelectedStatus("In Progress")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      In Progress
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.status.inProgress}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="statusFilter"
-                      checked={selectedStatus === "Practiced"}
-                      onChange={() => setSelectedStatus("Practiced")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      Practiced
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.status.practiced}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Filter Group: Time Required */}
-            <div className="flex flex-col gap-2.5 pt-2 border-t border-line">
-              <span className="text-xs font-bold text-ink">Time Required</span>
-              <div className="flex flex-col gap-2 text-xs">
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="timeFilter"
-                      checked={selectedTime === "all"}
-                      onChange={() => setSelectedTime("all")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink group-hover:text-brand font-medium">
-                      All
-                    </span>
-                  </div>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="timeFilter"
-                      checked={selectedTime === "<=10"}
-                      onChange={() => setSelectedTime("<=10")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      ≤ 10 min
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.time.under10}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="timeFilter"
-                      checked={selectedTime === "10-20"}
-                      onChange={() => setSelectedTime("10-20")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      10 – 20 min
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.time.between10And20}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="timeFilter"
-                      checked={selectedTime === ">=20"}
-                      onChange={() => setSelectedTime(">=20")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      ≥ 20 min
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.time.over20}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Filter Group: Priority */}
-            <div className="flex flex-col gap-2.5 pt-2 border-t border-line">
-              <span className="text-xs font-bold text-ink">Priority</span>
-              <div className="flex flex-col gap-2 text-xs">
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="priorityFilter"
-                      checked={selectedPriority === "all"}
-                      onChange={() => setSelectedPriority("all")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink group-hover:text-brand font-medium">
-                      All
-                    </span>
-                  </div>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="priorityFilter"
-                      checked={selectedPriority === "High"}
-                      onChange={() => setSelectedPriority("High")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      High
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.priority.high}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="priorityFilter"
-                      checked={selectedPriority === "Medium"}
-                      onChange={() => setSelectedPriority("Medium")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      Medium
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.priority.medium}
-                  </span>
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer group">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="priorityFilter"
-                      checked={selectedPriority === "Low"}
-                      onChange={() => setSelectedPriority("Low")}
-                      className="size-3.5 accent-[#ff6c47]"
-                    />
-                    <span className="text-ink-muted group-hover:text-ink">
-                      Low
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-ink-muted">
-                    {filterCounts.priority.low}
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: "Your practice adapts" */}
+          {/* Card: "Your practice adapts" */}
           <div className="flex items-start gap-3 rounded-2xl border border-[#dbeafe] bg-[#eff6ff] p-4 text-xs">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#2563eb] text-white">
               <Lightbulb className="size-4" />
