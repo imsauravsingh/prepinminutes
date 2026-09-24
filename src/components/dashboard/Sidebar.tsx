@@ -7,11 +7,10 @@ import { BrandMark } from "@/components/BrandMark";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
+  Home,
   CalendarRange,
-  CodeXml,
+  Target,
   ClipboardCheck,
-  BookOpen,
   Users,
   Lock,
   Check,
@@ -31,13 +30,13 @@ const navLinks: {
   href: string;
   locked?: boolean;
 }[] = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: Home, label: "Dashboard", href: "/dashboard" },
   {
     icon: CalendarRange,
     label: "My Preparation Plan",
     href: "/preparation-plan",
   },
-  { icon: CodeXml, label: "Practice", href: "/practice" },
+  { icon: Target, label: "Practice", href: "/practice" },
   { icon: ClipboardCheck, label: "Evaluation", href: "/evaluation" },
   { icon: CheckSquare, label: "Revision", href: "/revision" },
   { icon: Users, label: "Mock Interview", href: "#", locked: true },
@@ -57,12 +56,25 @@ const optionalChecklist: { label: string; done: boolean }[] = [
 
 function SidebarContent() {
   const pathname = usePathname();
-  const isDashboard =
-    pathname === "/dashboard" ||
+  const isDashboardRoute =
     pathname === "/" ||
+    pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/");
-  const isEvaluation = pathname.startsWith("/evaluation");
-  const isRevision = pathname.startsWith("/revision");
+  const isPlanRoute =
+    pathname === "/preparation-plan" ||
+    pathname.startsWith("/preparation-plan/");
+  const isEvaluationRoute =
+    pathname === "/evaluation" ||
+    pathname.startsWith("/evaluation/") ||
+    pathname.includes("/evaluation");
+  const isRevisionRoute =
+    pathname === "/revision" || pathname.startsWith("/revision/");
+  const isPracticeRoute =
+    !isEvaluationRoute &&
+    (pathname === "/practice" ||
+      pathname.startsWith("/practice/") ||
+      pathname.startsWith("/session/"));
+
   const completedRequired = requiredChecklist.filter(
     (item) => item.done,
   ).length;
@@ -97,26 +109,26 @@ function SidebarContent() {
           {navLinks.map((link) => {
             const active =
               link.href === "/dashboard"
-                ? pathname === "/dashboard" || pathname === "/"
+                ? isDashboardRoute
                 : link.href === "/preparation-plan"
-                  ? pathname.startsWith("/preparation-plan")
+                  ? isPlanRoute
                   : link.href === "/practice"
-                    ? pathname.startsWith("/practice")
+                    ? isPracticeRoute
                     : link.href === "/evaluation"
-                      ? pathname.startsWith("/evaluation")
+                      ? isEvaluationRoute
                       : link.href === "/revision"
-                        ? pathname.startsWith("/revision")
+                        ? isRevisionRoute
                         : false;
 
             if (link.locked) {
               return (
                 <div
                   key={link.label}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[#b0a898] opacity-70 cursor-not-allowed select-none"
+                  className="flex items-center gap-3 rounded-xl border border-transparent px-3.5 py-2.5 text-sm font-medium text-[#94a3b8] opacity-75 cursor-not-allowed select-none"
                 >
-                  <link.icon className="size-[18px]" />
+                  <link.icon className="size-[18px] shrink-0 text-[#94a3b8]" />
                   <span className="flex-1">{link.label}</span>
-                  <Lock className="size-3" />
+                  <Lock className="size-3 text-[#94a3b8]" />
                 </div>
               );
             }
@@ -125,13 +137,19 @@ function SidebarContent() {
               <Link
                 key={link.label}
                 href={link.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                className={`group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-all duration-150 ${
                   active
-                    ? "bg-brand-soft font-semibold text-brand"
-                    : "font-medium text-[#b0a898] hover:bg-cream hover:text-ink"
+                    ? "bg-[#fff0ec] border border-[#ffd8cc] font-bold text-brand shadow-2xs"
+                    : "border border-transparent font-medium text-[#374151] hover:bg-cream hover:text-ink"
                 }`}
               >
-                <link.icon className="size-[18px]" />
+                <link.icon
+                  className={`size-[18px] shrink-0 transition-colors ${
+                    active
+                      ? "text-brand"
+                      : "text-[#64748b] group-hover:text-ink"
+                  }`}
+                />
                 <span className="flex-1">{link.label}</span>
               </Link>
             );
@@ -140,7 +158,7 @@ function SidebarContent() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {isDashboard ? (
+        {isDashboardRoute ? (
           <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-[#faf6f0] p-4 sm:p-5">
             <div className="flex flex-col gap-0.5">
               <p className="font-display text-sm font-bold text-ink">
@@ -203,7 +221,7 @@ function SidebarContent() {
               </div>
             </div>
           </div>
-        ) : isRevision ? null : isEvaluation ? (
+        ) : isRevisionRoute ? null : isEvaluationRoute ? (
           <div className="relative overflow-hidden rounded-2xl border border-[#fee2e2]/80 bg-gradient-to-b from-[#fff7f5] via-[#fff3f0] to-[#feedeb] p-4 shadow-xs">
             <div className="relative z-10 flex flex-col gap-1.5">
               <div className="flex size-7 items-center justify-center rounded-lg bg-[#fff0ec] text-brand border border-[#ffd8cc]">
