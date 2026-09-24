@@ -23,14 +23,14 @@ export function RevisionWorkspace() {
 
       {/* 4. Lower Two-Column Grid: Left (Queue Table + Area Cards) & Right (Why + Upcoming + Recently) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 w-full items-start">
-        {/* Left Column (8 cols): Queue Table + Revision By Area */}
-        <div className="lg:col-span-8 flex flex-col gap-6 w-full">
+        {/* Left Column (7 cols): Queue Table + Revision By Area */}
+        <div className="lg:col-span-7 flex flex-col gap-6 w-full">
           <RevisionQueueTable />
           <RevisionByArea />
         </div>
 
-        {/* Right Column (4 cols): Why These Topics + Upcoming Schedule + Recently Reinforced */}
-        <div className="lg:col-span-4 flex flex-col gap-6 w-full">
+        {/* Right Column (5 cols): Why These Topics + Upcoming Schedule + Recently Reinforced */}
+        <div className="lg:col-span-5 flex flex-col gap-6 w-full">
           <WhyTheseTopicsCard />
           <UpcomingScheduleCard />
           <RecentlyReinforcedCard />

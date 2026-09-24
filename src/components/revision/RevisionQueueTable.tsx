@@ -200,7 +200,7 @@ export function RevisionQueueTable() {
     <div className="w-full rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs flex flex-col gap-4 sm:gap-5">
       {/* Top Tabs Bar + Filter Dropdown */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-3">
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar -mx-2 px-2 sm:mx-0 sm:px-0">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
 
@@ -219,7 +219,7 @@ export function RevisionQueueTable() {
                 <span
                   className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
                     isActive
-                      ? "bg-[#2563eb] text-white"
+                      ? "bg-[#ea580c] text-white"
                       : "bg-line text-ink-muted"
                   }`}
                 >
@@ -262,8 +262,8 @@ export function RevisionQueueTable() {
       </div>
 
       {/* Responsive Table */}
-      <div className="w-full overflow-x-auto no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
-        <table className="w-full min-w-[620px] text-left text-xs">
+      <div className="w-full overflow-x-auto no-scrollbar -mx-2 px-2 sm:mx-0 sm:px-0">
+        <table className="w-full min-w-[540px] text-left text-xs">
           <thead>
             <tr className="border-b border-line text-ink-muted">
               <th className="pb-3 pt-1 font-semibold">Topic</th>

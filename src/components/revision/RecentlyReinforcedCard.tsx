@@ -87,20 +87,20 @@ export function RecentlyReinforcedCard() {
               className="group flex items-center justify-between gap-3 py-3 hover:bg-cream/30 px-1 rounded-xl transition-colors"
             >
               {/* Left: Icon + Title + Area + Reviewed Time */}
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div
                   className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${item.iconBg}`}
                 >
                   <Icon className="size-4" />
                 </div>
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="font-display font-bold text-xs sm:text-sm text-ink truncate group-hover:text-brand transition-colors">
                     {item.title}
                   </span>
-                  <div className="flex items-center gap-2 text-[11px] text-ink-muted">
-                    <span>{item.area}</span>
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] text-ink-muted">
+                    <span className="whitespace-nowrap">{item.area}</span>
                     <span>•</span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 whitespace-nowrap">
                       <Clock className="size-3" />
                       <span>{item.reviewedTime}</span>
                     </span>
