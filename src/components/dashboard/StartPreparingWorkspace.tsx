@@ -560,7 +560,7 @@ export function StartPreparingWorkspace({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {/* 1. Practice by Topic */}
             <Link
-              href="/practice"
+              href="/practice/topics"
               className="flex items-center justify-between rounded-xl border border-line bg-[#fbf9f4] p-3.5 hover:bg-cream hover:border-brand/30 transition-all group"
             >
               <div className="flex items-center gap-3">

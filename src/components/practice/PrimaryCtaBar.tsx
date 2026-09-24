@@ -10,12 +10,12 @@ export function PrimaryCtaBar() {
         Start Today&apos;s Practice →
       </Link>
 
-      <button
-        type="button"
+      <Link
+        href="/practice/topics"
         className="text-sm font-semibold text-brand transition-colors hover:underline w-fit"
       >
         Choose a Topic →
-      </button>
+      </Link>
     </div>
   );
 }
