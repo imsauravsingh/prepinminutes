@@ -2,6 +2,8 @@ import type {
   RecommendedMock,
   InterviewTypeOption,
   MockInterviewHistoryItem,
+  InterviewConfiguration,
+  DifficultyLevel,
 } from "@/types/mock-interview";
 
 export const defaultRecommendedMock: RecommendedMock = {
@@ -18,7 +20,7 @@ export const defaultRecommendedMock: RecommendedMock = {
   focusAreas: ["Trade-offs", "Scalability", "Failure Handling"],
   recommendationLabel: "Recommended for you",
   startUrl: "/practice/session/system-design",
-  customizeUrl: "/practice/choose-topic",
+  customizeUrl: "/mock-interview/configure",
 };
 
 export const defaultInterviewTypes: InterviewTypeOption[] = [
@@ -105,3 +107,43 @@ export const defaultMockInterviewHistory: MockInterviewHistoryItem[] = [
     reportUrl: "/behavioral/evaluation",
   },
 ];
+
+export const targetRoleOptions = [
+  "Senior Software Engineer",
+  "Staff Software Engineer",
+  "Backend Engineer",
+  "Full Stack Engineer",
+  "Frontend Engineer",
+  "Engineering Manager",
+];
+
+export const difficultyOptions: {
+  id: DifficultyLevel;
+  label: string;
+}[] = [
+  { id: "standard", label: "Standard" },
+  { id: "challenging", label: "Challenging" },
+  { id: "expert", label: "Expert" },
+];
+
+export const durationOptions = [20, 30, 45, 60];
+
+export const focusAreaOptions = [
+  "Scalability",
+  "Trade-offs",
+  "Failure Handling",
+  "Technical Depth",
+  "Problem Solving",
+  "Communication",
+  "Leadership",
+  "Behavioral",
+  "Resume",
+];
+
+export const defaultConfiguration: InterviewConfiguration = {
+  interviewType: "system-design",
+  targetRole: "Senior Software Engineer",
+  difficulty: "standard",
+  durationMinutes: 45,
+  focusAreas: ["Scalability", "Trade-offs", "Failure Handling"],
+};

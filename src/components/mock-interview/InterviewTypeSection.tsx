@@ -1,13 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  CodeXml,
-  GitFork,
-  Users,
-  FileText,
-  LayoutGrid,
-} from "lucide-react";
+import { CodeXml, GitFork, Users, FileText, LayoutGrid } from "lucide-react";
 import { InterviewTypeCard } from "@/components/mock-interview/InterviewTypeCard";
 import type { InterviewTypeOption } from "@/types/mock-interview";
 
@@ -18,35 +12,49 @@ interface InterviewTypeSectionProps {
 export function InterviewTypeSection({ types }: InterviewTypeSectionProps) {
   const router = useRouter();
 
-  const getIcon = (type: InterviewTypeOption["type"], iconBg: string, iconColor: string) => {
+  const getIcon = (
+    type: InterviewTypeOption["type"],
+    iconBg: string,
+    iconColor: string,
+  ) => {
     switch (type) {
       case "technical":
         return (
-          <div className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+          <div
+            className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          >
             <CodeXml className="size-5" />
           </div>
         );
       case "system-design":
         return (
-          <div className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+          <div
+            className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          >
             <GitFork className="size-5" />
           </div>
         );
       case "behavioral":
         return (
-          <div className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+          <div
+            className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          >
             <Users className="size-5" />
           </div>
         );
       case "resume-based":
         return (
-          <div className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+          <div
+            className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          >
             <FileText className="size-5" />
           </div>
         );
       case "mixed":
         return (
-          <div className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
+          <div
+            className={`flex size-10 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          >
             <LayoutGrid className="size-5" />
           </div>
         );
@@ -61,7 +69,8 @@ export function InterviewTypeSection({ types }: InterviewTypeSectionProps) {
           Choose Another Interview
         </h2>
         <p className="text-xs sm:text-sm text-ink-muted">
-          Select a different type of interview or customize one based on your goals.
+          Select a different type of interview or customize one based on your
+          goals.
         </p>
       </div>
 

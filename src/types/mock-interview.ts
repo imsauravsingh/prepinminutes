@@ -5,6 +5,8 @@ export type InterviewType =
   | "resume-based"
   | "mixed";
 
+export type DifficultyLevel = "standard" | "challenging" | "expert";
+
 export interface RecommendedMock {
   id: string;
   role: string;
@@ -41,4 +43,12 @@ export interface MockInterviewHistoryItem {
   duration: string;
   score: number;
   reportUrl: string;
+}
+
+export interface InterviewConfiguration {
+  interviewType: InterviewType;
+  targetRole: string;
+  difficulty: DifficultyLevel;
+  durationMinutes: number;
+  focusAreas: string[];
 }

@@ -16,7 +16,8 @@ export function MockInterviewHeader() {
           Mock Interview
         </h1>
         <p className="text-sm text-ink-muted leading-relaxed">
-          Simulate a real interview with AI and see how you perform under interview conditions.
+          Simulate a real interview with AI and see how you perform under
+          interview conditions.
         </p>
       </div>
     </div>

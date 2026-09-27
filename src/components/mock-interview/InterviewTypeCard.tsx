@@ -38,9 +38,7 @@ export function InterviewTypeCard({
       {/* Top Details */}
       <div className="flex flex-col items-start">
         {/* Icon Pill */}
-        <div className="mb-3.5 flex items-center justify-center">
-          {icon}
-        </div>
+        <div className="mb-3.5 flex items-center justify-center">{icon}</div>
 
         {/* Title & Description */}
         <h3 className="font-display text-base font-bold text-ink group-hover:text-brand transition-colors">
