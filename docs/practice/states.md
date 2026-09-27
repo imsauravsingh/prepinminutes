@@ -31,7 +31,29 @@ stateDiagram-v2
 
 ---
 
-## 2. Timer Management & Session Resume
+## 2. Coding Practice Submission State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> CODING_ACTIVE: Problem Loaded
+    CODING_ACTIVE --> RUNNING_TESTS: User clicks "Run Code"
+    RUNNING_TESTS --> CODING_ACTIVE: Test result displayed
+
+    CODING_ACTIVE --> CONFIRM_SUBMIT: User clicks "Submit Answer"
+    CONFIRM_SUBMIT --> CODING_ACTIVE: User clicks "Continue Session" or ESC
+    CONFIRM_SUBMIT --> SUBMITTING_EVALUATION: User clicks "Confirm & Submit"
+
+    SUBMITTING_EVALUATION --> EVALUATION_DISPLAYED: Redirects to /practice/session/coding/evaluation
+```
+
+- **Confirmation Modal Prompt**:
+  - **Title**: `Submit Coding Solution?`
+  - **Body**: `Are you ready to submit your code for evaluation? Your implementation will be analyzed across test correctness, algorithmic complexity, and code quality.`
+  - **Actions**: `Continue Session` or `Confirm & Submit`
+
+---
+
+## 3. Timer Management & Session Resume
 
 - **Elapsed Timer**: Runs every 1000ms using `setInterval` while `!isPaused`.
 - **Display**: Formatted via `formatTimer(secondsElapsed) / 45:00` with pulsing red dot when active.

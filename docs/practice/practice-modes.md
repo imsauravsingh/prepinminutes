@@ -23,7 +23,10 @@ This document defines the 4 specialized practice modes implemented in `src/compo
   - Problem description panel with constraints and sample inputs/outputs.
   - In-browser code editor with syntax highlighting and language picker (Python, TypeScript, Java, Go).
   - "Run Code" execution sandbox testing sample cases.
-  - "Submit Solution" running full test suite against hidden edge cases.
+  - "Submit Solution" triggers a confirmation modal:
+    - **Title**: `Submit Coding Solution?`
+    - **Description**: `Are you ready to submit your code for evaluation? Your implementation will be analyzed across test correctness, algorithmic complexity, and code quality.`
+    - **Actions**: `Continue Session` (dismisses modal) or `Confirm & Submit` (redirects to `/practice/session/coding/evaluation`).
 
 ---
 

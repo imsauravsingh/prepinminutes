@@ -2,6 +2,9 @@
 
 Welcome to the **PrepInMinutes** Developer Documentation. This documentation suite is written specifically for **AI Coding Agents** and software engineers who build, extend, and maintain the PrepInMinutes platform while preserving its established UI design system, UX patterns, and deterministic business logic.
 
+> [!NOTE] Current Implementation Phase
+> The frontend user interface, interactive workspaces, and navigation shell are **100% complete** across all 43 Next.js routes. The backend API layer (`src/app/api/`), database models (Prisma), and background workers are currently **not implemented (0%)** and are fully blueprint-specified in [`docs/TASKS.md`](./TASKS.md) and [`docs/architecture/layers/`](./architecture/layers/) for immediate implementation.
+
 ---
 
 ## 🏛️ Core Architectural Principle
@@ -22,12 +25,22 @@ When building or modifying features:
 ```
 docs/
 ├── README.md                                  ← (You are here) Master documentation index
+├── TASKS.md                                   ← Master Task & Implementation Index (with file references)
 │
 ├── architecture/
 │   ├── frontend-architecture.md               ← Next.js 16 App Router, client/server split, layouts
 │   ├── ui-design-system.md                    ← Colors, typography, components, spacing, mobile rules
 │   ├── navigation.md                          ← Sidebar active states, auth guards, mobile drawer
-│   └── agent-development-guidelines.md        ← Boundaries, deterministic rules, checklist for agents
+│   ├── agent-development-guidelines.md        ← Boundaries, deterministic rules, checklist for agents
+│   └── layers/                                ← Layer-by-Layer Architectural Specifications
+│       ├── README.md                          ← Master architectural map & layers index
+│       ├── 01-client-presentation-layer.md    ← Next.js 16, React 19, Canvas Whiteboard, Audio dock
+│       ├── 02-edge-security-layer.md          ← Edge Auth, Upstash rate limiting, Idempotency
+│       ├── 03-realtime-voice-media-layer.md   ← WebSockets, Deepgram STT, Silero VAD, TTS stream
+│       ├── 04-ai-orchestration-guardrails-layer.md ← Multi-agent graph, Zod schemas, RAG vectors
+│       ├── 05-deterministic-domain-core-layer.md   ← Scoring math, Bayesian readiness, SM-2 decay
+│       ├── 06-persistence-storage-layer.md    ← PostgreSQL + pgvector, Redis, S3/R2 storage
+│       └── 07-event-driven-analytics-jobs-layer.md ← BullMQ async workers, crons, OpenTelemetry
 │
 ├── dashboard/
 │   ├── overview.md                            ← Dashboard mission, core metrics, user journey

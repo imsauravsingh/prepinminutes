@@ -62,7 +62,12 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
     - Full-screen interactive **Whiteboard Modal** with drawing tools (pen, highlighter, eraser), architecture shapes (load balancers, CDNs, DBs, caches), sticky notes, and PNG export.
     - Audio waveform dock and dual-mode voice/text input.
     - Architecture diagram launcher, code snippet scratchpad, and session notes drawer.
-  - **Coding Drills (`/practice/session/coding`)**: Algorithmic problem solving (e.g. Sliding Window) with immediate solution evaluation.
+  - **Coding Drills (`/practice/session/coding`)**:
+    - Algorithmic problem solving (e.g. Sliding Window) with in-browser editor and sample test runner.
+    - Submit confirmation modal before evaluation submission:
+      - Title: `Submit Coding Solution?`
+      - Description: `Are you ready to submit your code for evaluation? Your implementation will be analyzed across test correctness, algorithmic complexity, and code quality.`
+      - Action buttons: `Continue Session` and `Confirm & Submit`.
   - **Behavioral Practice (`/practice/session/behavioral`)**: STAR methodology coaching with structure scoring.
   - **Cloud Architecture (`/practice/session/cloud`)**: High-availability infrastructure scenarios.
 - **Practice Evaluation Reports (`/practice/session/*/evaluation`)**: Instant feedback on strengths, improvement areas, and readiness score updates.
@@ -128,11 +133,16 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 
 ---
 
-### 6. Evaluation Hub (`/evaluation`)
+### 6. Evaluation Hub & Session Reports (`/evaluation`, `/*/evaluation`)
 
 - Overall readiness progress chart over time.
 - Breakdown by performance area (Algorithms, System Design, Behavioral, Code Quality).
 - Activity logs and weekly score improvements.
+- Modern evaluation reports across all domains (`SystemDesignEvaluation`, `CodingEvaluation`, `CloudEvaluation`, `BehavioralEvaluation`, `MockSystemDesignEvaluationWorkspace`):
+  - 6-dimension rubric breakdown, gauge score ring, baseline/target readiness impact.
+  - Strengths, improvement areas, stage progression timeline, and action recommendations.
+  - Sidebar cleanup: "Stay consistent!" card explicitly removed on `/evaluation` and all session evaluation routes.
+  - Mobile touch-optimized 2-column quick actions and stacked bottom navigation.
 
 ---
 
@@ -174,14 +184,18 @@ Every page and component has been audited and built to adhere to responsive desi
 
 ## 🏷️ Change Log Summary (Tag: `prepinminutes`)
 
-| Date       | Scope                     | Description                                                                                                                  |
-| ---------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 2026-09-27 | Mock Interview Evaluation | Created `/mock-interview/system-design/evaluation` with complete rubric scoring, readiness impact, and strengths/weaknesses. |
-| 2026-09-27 | Sidebar Navigation        | Fixed `isEvaluationRoute` to exclude mock interview routes so only "Mock Interview" stays highlighted.                       |
-| 2026-09-27 | Sidebar Cleanup           | Removed "Stay consistent!" widget from mock interview routes for an uncluttered layout.                                      |
-| 2026-09-27 | Live Mock Session         | Cloned and tailored `/mock-interview/interview-session` with full audio dock, whiteboard, and tools.                         |
-| 2026-09-27 | Mobile Responsiveness     | Upgraded all mock interview pages with mobile touch padding, fluid headers, and responsive modals.                           |
-| 2026-09-27 | Mock Briefing & Config    | Built `/mock-interview/configure` and `/mock-interview/briefing` multi-step interview launcher.                              |
-| 2026-09-27 | Mock Interview Main       | Built desktop and mobile `/mock-interview` hub with recommendations and past history table/cards.                            |
+| Date       | Scope                     | Description                                                                                                                        |
+| ---------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-28 | Coding Session Modal      | Updated confirmation modal in `/practice/session/coding` (`Submit Coding Solution?` with `Continue Session` / `Confirm & Submit`). |
+| 2026-09-28 | Evaluation Modernization  | Modernized all evaluation pages (`SystemDesignEvaluation`, `CodingEvaluation`, `CloudEvaluation`, `BehavioralEvaluation`).         |
+| 2026-09-28 | Sidebar Polish            | Removed "Stay consistent!" card across all evaluation routes (`isAnyEvaluationRoute`).                                             |
+| 2026-09-28 | Mobile Evaluation UX      | Optimized quick actions as 2-column mobile touch grid and responsive full-width bottom navigation.                                 |
+| 2026-09-27 | Mock Interview Evaluation | Created `/mock-interview/system-design/evaluation` with complete rubric scoring, readiness impact, and strengths/weaknesses.       |
+| 2026-09-27 | Sidebar Navigation        | Fixed `isEvaluationRoute` to exclude mock interview routes so only "Mock Interview" stays highlighted.                             |
+| 2026-09-27 | Sidebar Cleanup           | Removed "Stay consistent!" widget from mock interview routes for an uncluttered layout.                                            |
+| 2026-09-27 | Live Mock Session         | Cloned and tailored `/mock-interview/interview-session` with full audio dock, whiteboard, and tools.                               |
+| 2026-09-27 | Mobile Responsiveness     | Upgraded all mock interview pages with mobile touch padding, fluid headers, and responsive modals.                                 |
+| 2026-09-27 | Mock Briefing & Config    | Built `/mock-interview/configure` and `/mock-interview/briefing` multi-step interview launcher.                                    |
+| 2026-09-27 | Mock Interview Main       | Built desktop and mobile `/mock-interview` hub with recommendations and past history table/cards.                                  |
 
 </prepinminutes>

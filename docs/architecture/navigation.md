@@ -62,17 +62,22 @@ const isPracticeRoute =
 The bottom section of the sidebar dynamically renders contextual support widgets depending on the active route:
 
 ```tsx
+// src/components/dashboard/Sidebar.tsx
+const isAnyEvaluationRoute =
+  pathname === "/evaluation" ||
+  pathname.startsWith("/evaluation/") ||
+  pathname.includes("/evaluation");
+
 {
   isDashboardRoute ? (
-    // 1. Dashboard: "Your Prep Plan" checklist progress widget
+    // 1. Dashboard: "Your Prep Plan" onboarding checklist progress widget
     <YourPrepPlanWidget completed={completedRequired} total={4} />
   ) : isRevisionRoute ||
-    isMockInterviewRoute ? // 2. Revision & Mock Interview: Clean empty spacing (NO promotional widgets)
-  null : isEvaluationRoute ? (
-    // 3. Evaluation: "Track your progress" gradient banner with bar chart illustration
-    <TrackYourProgressWidget />
-  ) : (
-    // 4. Default / Practice: "Stay consistent!" widget
+    isMockInterviewRoute ||
+    isAnyEvaluationRoute ? // 2. Revision, Mock Interview & All Evaluation Routes:
+  // Clean empty spacing — "Stay consistent!" card is explicitly removed
+  null : (
+    // 3. Default / Preparation Plan / Practice: "Stay consistent!" motivational widget
     <StayConsistentWidget />
   );
 }
