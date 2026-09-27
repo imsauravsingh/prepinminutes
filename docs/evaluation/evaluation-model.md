@@ -6,14 +6,14 @@ This document defines the 6 core evaluation dimensions and scoring rubrics used 
 
 ## 1. The 6 Evaluation Dimensions
 
-| Dimension | Description | Typical Weight (Senior SWE) |
-|-----------|-------------|----------------------------|
-| **1. Technical Depth** | Mastery of underlying computer science concepts, protocols, storage engines, and internal mechanics. | 20% |
-| **2. Reasoning & Trade-offs** | Ability to weigh alternatives (e.g. SQL vs NoSQL, CP vs AP), articulate why a solution was chosen, and justify compromises. | 20% |
-| **3. Data Modeling & Architecture** | Sound relational/NoSQL schemas, caching strategies, stateless tier separation, and partitioning keys. | 20% |
-| **4. Communication & Structure** | Structured presentation, active listening, asking clarifying questions, and explaining ideas clearly. | 15% |
-| **5. Problem Solving & Estimation** | Back-of-the-envelope calculations (QPS, storage, bandwidth), identifying edge cases, and deriving requirements. | 15% |
-| **6. Follow-up & Scalability** | Handling unexpected failures, multi-region replication, bottleneck identification, and stress points. | 10% |
+| Dimension                           | Description                                                                                                                 | Typical Weight (Senior SWE) |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **1. Technical Depth**              | Mastery of underlying computer science concepts, protocols, storage engines, and internal mechanics.                        | 20%                         |
+| **2. Reasoning & Trade-offs**       | Ability to weigh alternatives (e.g. SQL vs NoSQL, CP vs AP), articulate why a solution was chosen, and justify compromises. | 20%                         |
+| **3. Data Modeling & Architecture** | Sound relational/NoSQL schemas, caching strategies, stateless tier separation, and partitioning keys.                       | 20%                         |
+| **4. Communication & Structure**    | Structured presentation, active listening, asking clarifying questions, and explaining ideas clearly.                       | 15%                         |
+| **5. Problem Solving & Estimation** | Back-of-the-envelope calculations (QPS, storage, bandwidth), identifying edge cases, and deriving requirements.             | 15%                         |
+| **6. Follow-up & Scalability**      | Handling unexpected failures, multi-region replication, bottleneck identification, and stress points.                       | 10%                         |
 
 ---
 

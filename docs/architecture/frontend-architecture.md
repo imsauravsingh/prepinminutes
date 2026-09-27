@@ -119,6 +119,7 @@ export default function ModulePage() {
 ```
 
 > **Rules for AI Agents**:
+>
 > - Never remove `<AuthGate>` or `<Sidebar />`.
 > - Always include `min-w-0` on `<main>` to prevent child flex items from causing horizontal screen overflow.
 > - Background color must remain `#fbf9f4` (warm paper cream).

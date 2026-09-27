@@ -10,7 +10,7 @@ This document specifies the lifecycle states, timer ticks, and submission flow f
 stateDiagram-v2
     [*] --> TOPIC_SELECTED: User clicks topic
     TOPIC_SELECTED --> SESSION_ACTIVE: Workspace loads
-    
+
     state SESSION_ACTIVE {
         [*] --> RECORDING_LISTENING
         RECORDING_LISTENING --> RECORDING_PAUSED: User clicks Pause
@@ -18,14 +18,14 @@ stateDiagram-v2
         RECORDING_LISTENING --> TEXT_MODE: User switches to text
         TEXT_MODE --> RECORDING_LISTENING: User switches to voice
     }
-    
+
     SESSION_ACTIVE --> WHITEBOARD_OPEN: User launches Whiteboard
     WHITEBOARD_OPEN --> SESSION_ACTIVE: User closes Whiteboard
-    
+
     SESSION_ACTIVE --> CONFIRM_END: User clicks "End Session" / Stop
     CONFIRM_END --> SESSION_ACTIVE: User clicks "Continue Session"
     CONFIRM_END --> SUBMITTING_EVAL: User clicks "End Now & View Report"
-    
+
     SUBMITTING_EVAL --> EVALUATION_DISPLAYED: Report loaded
 ```
 

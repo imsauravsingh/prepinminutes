@@ -66,19 +66,19 @@ function SidebarContent() {
     pathname.startsWith("/preparation-plan/");
   const isMockInterviewRoute =
     pathname === "/mock-interview" || pathname.startsWith("/mock-interview/");
-  const isEvaluationRoute =
-    !isMockInterviewRoute &&
-    (pathname === "/evaluation" ||
-      pathname.startsWith("/evaluation/") ||
-      pathname.includes("/evaluation"));
-  const isRevisionRoute =
-    pathname === "/revision" || pathname.startsWith("/revision/");
   const isPracticeRoute =
-    !isEvaluationRoute &&
     !isMockInterviewRoute &&
     (pathname === "/practice" ||
       pathname.startsWith("/practice/") ||
-      pathname.startsWith("/session/"));
+      pathname.startsWith("/session/") ||
+      pathname.startsWith("/behavioral/") ||
+      pathname.startsWith("/behavioural/"));
+  const isEvaluationRoute =
+    !isMockInterviewRoute &&
+    !isPracticeRoute &&
+    (pathname === "/evaluation" || pathname.startsWith("/evaluation/"));
+  const isRevisionRoute =
+    pathname === "/revision" || pathname.startsWith("/revision/");
 
   const completedRequired = requiredChecklist.filter(
     (item) => item.done,

@@ -9,6 +9,7 @@ Welcome to the **PrepInMinutes** Developer Documentation. This documentation sui
 > **"LLM generates and interprets; deterministic application and domain services own scoring, prioritization, state transitions, readiness calculation, and analytics."**
 
 When building or modifying features:
+
 1. **Never let an LLM directly compute or mutate readiness scores.** All readiness points, progress percentages, and mastery numbers are owned by deterministic mathematical domain services.
 2. **Never allow non-deterministic state machine transitions.** State machines (onboarding, practice sessions, mock interviews, spaced repetition) must validate transitions through deterministic guards.
 3. **Preserve the established design system.** PrepInMinutes has an established design system (`#fbf9f4` canvas, `#ff5520` brand orange, `#1e1c1a` ink, `#7c3aed` purple, `#10b981` emerald, rounded card corners, fluid typography). Do not redesign or invent alternative shells.

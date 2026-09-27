@@ -38,6 +38,7 @@ DashboardView
 ## 2. Component Contracts & Interfaces
 
 ### `DashboardStepper`
+
 ```tsx
 interface DashboardStepperProps {
   currentStep: 1 | 2 | 3;
@@ -45,10 +46,12 @@ interface DashboardStepperProps {
   allowNavigation?: boolean;
 }
 ```
+
 - Renders horizontal connected pills: `1. Set Up` → `2. Next Step` → `3. Start Preparing`.
 - On mobile `< 640px`, labels scale down to `text-[10px]` with reduced horizontal margins.
 
 ### `OnboardingFormCard`
+
 ```tsx
 interface OnboardingFormData {
   targetRole: string;
@@ -66,15 +69,18 @@ interface OnboardingFormCardProps {
 ```
 
 ### `StartPreparingWorkspace`
+
 ```tsx
 interface StartPreparingWorkspaceProps {
   onEditSetup: () => void; // Triggered when candidate clicks "Edit Setup / Role"
 }
 ```
+
 - Renders the active candidate dashboard.
 - Contains the edit trigger which switches `DashboardView` back to manual setup mode.
 
 ### `GoalCard`
+
 ```tsx
 interface GoalCardProps {
   weeklyGoalHours: number;

@@ -13,11 +13,11 @@ stateDiagram-v2
     SUBMITTING_PROFILE --> GENERATING_PLAN: Profile validated
     SUBMITTING_PROFILE --> STEP_1_ERROR: Validation failed (missing role/resume)
     STEP_1_ERROR --> STEP_1_INCOMPLETE: User corrects fields
-    
+
     GENERATING_PLAN --> STEP_2_PLAN_READY: Plan generated via async worker
     GENERATING_PLAN --> PLAN_GENERATION_FAILED: LLM / service timeout
     PLAN_GENERATION_FAILED --> STEP_1_INCOMPLETE: Retry submission
-    
+
     STEP_2_PLAN_READY --> STEP_3_ACTIVE_PREPARING: User clicks "Start Preparing"
     STEP_3_ACTIVE_PREPARING --> STEP_1_INCOMPLETE: User clicks "Edit Setup / Role"
 ```
@@ -37,10 +37,10 @@ In `src/components/dashboard/DashboardView.tsx`, the onboarding state uses `useS
 
 ## 3. Loading, Empty & Error States
 
-| State | Visual Treatment | Trigger |
-|-------|------------------|---------|
-| **Initial Loading** | Suspense fallback renders `<div className="h-24 w-full animate-pulse rounded-2xl bg-cream" />` | Page initial mount |
-| **Resume Uploading** | Progress spinner inside dropzone with filename and cancel button | File selected |
-| **Plan Generating** | Stepper shows pulsing orange dot on Step 2 with message *"Analyzing resume and tailoring questions..."* | Form submitted |
-| **Empty Questions** | If resume extraction returns no questions, display *"Practice general system design while your resume finishes parsing"* with fallback drill cards | Extraction worker pending |
-| **Validation Error** | Red border on required inputs with error label below the input | User submits without selecting role |
+| State                | Visual Treatment                                                                                                                                   | Trigger                             |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| **Initial Loading**  | Suspense fallback renders `<div className="h-24 w-full animate-pulse rounded-2xl bg-cream" />`                                                     | Page initial mount                  |
+| **Resume Uploading** | Progress spinner inside dropzone with filename and cancel button                                                                                   | File selected                       |
+| **Plan Generating**  | Stepper shows pulsing orange dot on Step 2 with message _"Analyzing resume and tailoring questions..."_                                            | Form submitted                      |
+| **Empty Questions**  | If resume extraction returns no questions, display _"Practice general system design while your resume finishes parsing"_ with fallback drill cards | Extraction worker pending           |
+| **Validation Error** | Red border on required inputs with error label below the input                                                                                     | User submits without selecting role |

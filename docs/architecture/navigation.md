@@ -6,14 +6,14 @@ This document specifies the routing, navigation shell, sidebar active-state dete
 
 ## 1. Top-Level Route Map
 
-| Label | Target Route | Route Match Pattern |
-|-------|--------------|---------------------|
-| **Dashboard** | `/dashboard` | `pathname === "/" \|\| pathname === "/dashboard" \|\| pathname.startsWith("/dashboard/")` |
-| **My Preparation Plan** | `/preparation-plan` | `pathname === "/preparation-plan" \|\| pathname.startsWith("/preparation-plan/")` |
-| **Practice** | `/practice` | `!isEvaluationRoute && !isMockInterviewRoute && (pathname === "/practice" \|\| pathname.startsWith("/practice/") \|\| pathname.startsWith("/session/"))` |
-| **Mock Interview** | `/mock-interview` | `pathname === "/mock-interview" \|\| pathname.startsWith("/mock-interview/")` |
-| **Evaluation** | `/evaluation` | `!isMockInterviewRoute && (pathname === "/evaluation" \|\| pathname.startsWith("/evaluation/") \|\| pathname.includes("/evaluation"))` |
-| **Revision** | `/revision` | `pathname === "/revision" \|\| pathname.startsWith("/revision/")` |
+| Label                   | Target Route        | Route Match Pattern                                                                                                                                      |
+| ----------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard**           | `/dashboard`        | `pathname === "/" \|\| pathname === "/dashboard" \|\| pathname.startsWith("/dashboard/")`                                                                |
+| **My Preparation Plan** | `/preparation-plan` | `pathname === "/preparation-plan" \|\| pathname.startsWith("/preparation-plan/")`                                                                        |
+| **Practice**            | `/practice`         | `!isEvaluationRoute && !isMockInterviewRoute && (pathname === "/practice" \|\| pathname.startsWith("/practice/") \|\| pathname.startsWith("/session/"))` |
+| **Mock Interview**      | `/mock-interview`   | `pathname === "/mock-interview" \|\| pathname.startsWith("/mock-interview/")`                                                                            |
+| **Evaluation**          | `/evaluation`       | `!isMockInterviewRoute && (pathname === "/evaluation" \|\| pathname.startsWith("/evaluation/") \|\| pathname.includes("/evaluation"))`                   |
+| **Revision**            | `/revision`         | `pathname === "/revision" \|\| pathname.startsWith("/revision/")`                                                                                        |
 
 ---
 
@@ -29,8 +29,7 @@ const isDashboardRoute =
   pathname.startsWith("/dashboard/");
 
 const isPlanRoute =
-  pathname === "/preparation-plan" ||
-  pathname.startsWith("/preparation-plan/");
+  pathname === "/preparation-plan" || pathname.startsWith("/preparation-plan/");
 
 const isMockInterviewRoute =
   pathname === "/mock-interview" || pathname.startsWith("/mock-interview/");
@@ -63,19 +62,20 @@ const isPracticeRoute =
 The bottom section of the sidebar dynamically renders contextual support widgets depending on the active route:
 
 ```tsx
-{isDashboardRoute ? (
-  // 1. Dashboard: "Your Prep Plan" checklist progress widget
-  <YourPrepPlanWidget completed={completedRequired} total={4} />
-) : isRevisionRoute || isMockInterviewRoute ? (
-  // 2. Revision & Mock Interview: Clean empty spacing (NO promotional widgets)
-  null
-) : isEvaluationRoute ? (
-  // 3. Evaluation: "Track your progress" gradient banner with bar chart illustration
-  <TrackYourProgressWidget />
-) : (
-  // 4. Default / Practice: "Stay consistent!" widget
-  <StayConsistentWidget />
-)}
+{
+  isDashboardRoute ? (
+    // 1. Dashboard: "Your Prep Plan" checklist progress widget
+    <YourPrepPlanWidget completed={completedRequired} total={4} />
+  ) : isRevisionRoute ||
+    isMockInterviewRoute ? // 2. Revision & Mock Interview: Clean empty spacing (NO promotional widgets)
+  null : isEvaluationRoute ? (
+    // 3. Evaluation: "Track your progress" gradient banner with bar chart illustration
+    <TrackYourProgressWidget />
+  ) : (
+    // 4. Default / Practice: "Stay consistent!" widget
+    <StayConsistentWidget />
+  );
+}
 ```
 
 ---
@@ -83,6 +83,7 @@ The bottom section of the sidebar dynamically renders contextual support widgets
 ## 4. Mobile Drawer Behavior
 
 On viewports `< 1024px` (`lg` breakpoint):
+
 - The desktop sidebar is hidden (`hidden lg:flex`).
 - A top navigation bar is rendered (`lg:hidden`) containing the brand logo and a hamburger menu button (`<Menu />`).
 - Clicking the hamburger button triggers `setMobileOpen(true)`.

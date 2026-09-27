@@ -9,12 +9,14 @@ This document establishes the boundaries, verification standards, and operationa
 $$\textbf{LLM Boundary} \neq \textbf{Deterministic Service Boundary}$$
 
 ### What the LLM Owns
+
 - Generating realistic, role-specific interview questions and hints.
 - Interpreting candidate transcripts and freehand whiteboard diagrams.
 - Drafting qualitative evaluation feedback and personalized improvement advice.
 - Generating contextual flashcard questions and explanation prose.
 
 ### What Deterministic Services MUST Own
+
 - **Scoring & Rubrics**: Weighting, point sums, and percentage calculations.
 - **Readiness Calculations**: Moving averages, historical trendlines, and readiness deltas.
 - **State Machine Transitions**: Timer progression, stage advancement, and lifecycle validation.

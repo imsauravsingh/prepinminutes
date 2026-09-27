@@ -13,6 +13,7 @@ $$I_2 = 3 \text{ days}$$
 $$I_n = I_{n-1} \times E \quad (\text{for } n > 2)$$
 
 Where:
+
 - $E$ is adjusted based on candidate score $q \in [0, 5]$:
   $$E' = E + (0.1 - (5 - q) \cdot (0.08 + (5 - q) \cdot 0.02))$$
 - If candidate score $q < 3$ ($< 60\%$), $I_n$ resets to $I_1 = 1$, moving the item to the immediate revision queue.

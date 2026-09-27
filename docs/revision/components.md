@@ -7,9 +7,11 @@ This document specifies the primary component contracts in `src/components/revis
 ## 1. Components & Props
 
 ### `RevisionWorkspace`
+
 - Master layout rendering `TodayRevisionCards`, `KnowledgeHealthCard`, `RevisionQueueTable`, `UpcomingScheduleCard`, and `WhyTheseTopicsCard`.
 
 ### `TodayRevisionCards`
+
 ```tsx
 interface RevisionCardItem {
   id: string;
@@ -20,9 +22,11 @@ interface RevisionCardItem {
   estMinutes: number;
 }
 ```
+
 - Carousel or responsive grid of cards scheduled for today's review session.
 
 ### `KnowledgeHealthCard`
+
 ```tsx
 interface KnowledgeHealthCardProps {
   healthPercentage: number; // e.g. 76
@@ -30,9 +34,11 @@ interface KnowledgeHealthCardProps {
   atRiskTopicsCount: number;
 }
 ```
+
 - Displays overall retention gauge and decay alert banner.
 
 ### `RevisionQueueTable`
+
 ```tsx
 interface RevisionQueueItem {
   id: string;
@@ -45,4 +51,5 @@ interface RevisionQueueItem {
   reviewUrl: string;
 }
 ```
+
 - Sortable table of all tracked revision items with direct "Start Drill" buttons.

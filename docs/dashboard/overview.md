@@ -6,7 +6,7 @@ The **Dashboard** (`/dashboard`) is the central mission control and entry point 
 
 ## 1. Core Purpose & User Journey
 
-1. **Orientation**: Greet the candidate with their target role (e.g., *Senior Software Engineer*) and target companies (e.g., *Google, Meta, Tier-1 Tech*).
+1. **Orientation**: Greet the candidate with their target role (e.g., _Senior Software Engineer_) and target companies (e.g., _Google, Meta, Tier-1 Tech_).
 2. **Three-Stage Progression Flow**:
    - **Step 1: Set Up (`/dashboard?step=1` or default)**: Collect target role, experience level, preparation timeline, target companies, resume, and job description.
    - **Step 2: Next Step / Plan Ready (`/dashboard/plan-ready` or `/dashboard?step=2`)**: Present the synthesized AI preparation plan with domain focus areas and time commitments.

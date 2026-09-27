@@ -20,6 +20,7 @@ This document details the visual hierarchy, screen layouts, responsive behavior,
 ## 2. Layouts by Step
 
 ### Step 1: Onboarding / Set Up Layout
+
 - **Header (`OnboardingHeader.tsx`)**:
   - Eyebrow: `Welcome, Candidate! 👋`
   - Title: `Set up your preparation plan`
@@ -37,14 +38,16 @@ This document details the visual hierarchy, screen layouts, responsive behavior,
   - 3 guidance bullets on how the AI tailors questions to the resume.
 
 ### Step 2: Plan Ready Layout (`PlanReadyWorkspace.tsx`)
+
 - Celebration banner: "Your Personalized Plan is Ready!" with green check badge.
 - Summary grid (3 metric cards: Target Role, Estimated Hours, Overall Readiness Baseline).
 - Domain emphasis cards (System Design, Coding, Behavioral).
 - CTAs: "Review Full Plan" (`/preparation-plan`) and "Continue to Dashboard" (`/dashboard?step=3`).
 
 ### Step 3: Preparation Launchpad (`StartPreparingWorkspace.tsx`)
+
 - **Readiness Hero**: Circular progress gauge (`68% Readiness`) paired with days-remaining countdown.
-- **Next Best Action Card**: Highlighted primary drill (e.g. *System Design: URL Shortener*).
+- **Next Best Action Card**: Highlighted primary drill (e.g. _System Design: URL Shortener_).
 - **Resume-Tailored Questions Carousel**: Cards highlighting questions extracted from candidate's uploaded experience.
 - **Domain Quick Drill Launchers**: Quick 15-minute practice cards for Coding, Behavioral, and System Design.
 
@@ -52,8 +55,8 @@ This document details the visual hierarchy, screen layouts, responsive behavior,
 
 ## 3. Responsive Breakpoints
 
-| Viewport | Behavior |
-|----------|----------|
-| **Mobile (< 640px)** | Stepper labels become compact or icons; form inputs stack as single-column; primary CTAs stretch to full-width (`w-full`). |
-| **Tablet (640px – 1023px)** | Two-column form fields; stepper shows full labels; resume dropzone is horizontal. |
-| **Desktop (1024px+)** | Two-column layout with sidebar; main content capped with `max-w-[1400px]`. |
+| Viewport                    | Behavior                                                                                                                   |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Mobile (< 640px)**        | Stepper labels become compact or icons; form inputs stack as single-column; primary CTAs stretch to full-width (`w-full`). |
+| **Tablet (640px – 1023px)** | Two-column form fields; stepper shows full labels; resume dropzone is horizontal.                                          |
+| **Desktop (1024px+)**       | Two-column layout with sidebar; main content capped with `max-w-[1400px]`.                                                 |

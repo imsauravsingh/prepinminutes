@@ -9,6 +9,7 @@ The **Revision Module** (`/revision`) implements a continuous retention and spac
 Technical interview preparation is susceptible to the **Ebbinghaus Forgetting Curve**: candidates forget up to 70% of studied material within 7 days if not reviewed.
 
 PrepInMinutes solves this by:
+
 1. **Automated Weakness Capture**: Every topic where a candidate scored poorly in practice or mock interviews is automatically flagged.
 2. **Interval-Based Scheduling**: Review intervals expand dynamically upon successful recall (Day 1 → Day 3 → Day 7 → Day 14 → Day 30).
 3. **Knowledge Health Score**: A single metric representing aggregate retention health across all covered topics.

@@ -12,7 +12,7 @@ This document defines the persona, prompting structure, and strict architectural
   1. Welcome candidate and state the problem clearly with initial ambiguous constraints.
   2. Reward candidates who ask clarifying questions before jumping to architecture.
   3. Guide candidate through stages (High-level architecture → Component deep dive → Scale).
-  4. Challenge design assumptions politely: *"How does your cache handle thundering herd when a popular link expires?"*
+  4. Challenge design assumptions politely: _"How does your cache handle thundering herd when a popular link expires?"_
 
 ---
 

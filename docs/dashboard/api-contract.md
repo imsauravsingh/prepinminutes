@@ -9,11 +9,13 @@ This document defines the REST API endpoints and JSON payloads supporting the Da
 Fetches candidate profile, target role, timeline, and current onboarding status.
 
 ### Request Headers
+
 ```http
 Authorization: Bearer <clerk_session_token>
 ```
 
 ### Response `200 OK`
+
 ```json
 {
   "userId": "user_2aB9...xyz",
@@ -37,6 +39,7 @@ Authorization: Bearer <clerk_session_token>
 Submits initial onboarding preferences to generate a personalized curriculum.
 
 ### Request Payload
+
 ```json
 {
   "targetRole": "Senior Software Engineer",
@@ -48,6 +51,7 @@ Submits initial onboarding preferences to generate a personalized curriculum.
 ```
 
 ### Response `201 Created`
+
 ```json
 {
   "status": "success",
@@ -64,10 +68,12 @@ Submits initial onboarding preferences to generate a personalized curriculum.
 Uploads candidate's resume for background parsing and question generation.
 
 ### Request
+
 - `Content-Type: multipart/form-data`
 - Body: `file: <binary_pdf>`
 
 ### Response `202 Accepted`
+
 ```json
 {
   "uploadId": "res_881923",

@@ -31,7 +31,7 @@ This document defines the 4 specialized practice modes implemented in `src/compo
 
 - **Objective**: Practice leadership and behavioral questions using the STAR framework.
 - **Key Interactivity**:
-  - Prompt: e.g., *"Tell me about a time you resolved a major production outage."*
+  - Prompt: e.g., _"Tell me about a time you resolved a major production outage."_
   - STAR breakdown guides: Situation, Task, Action, Result input coaches.
   - Speech-to-text recording dock.
 
@@ -41,5 +41,5 @@ This document defines the 4 specialized practice modes implemented in `src/compo
 
 - **Objective**: Design highly available, fault-tolerant infrastructure on AWS/GCP.
 - **Key Interactivity**:
-  - Scenario architecture challenge (e.g. *Multi-region active-active database failover*).
+  - Scenario architecture challenge (e.g. _Multi-region active-active database failover_).
   - Cloud service selection cards (ALB, Route53, RDS Aurora, SQS, ECS/EKS).

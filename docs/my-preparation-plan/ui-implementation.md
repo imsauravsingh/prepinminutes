@@ -26,9 +26,9 @@ This document details the visual structure, layout components, and responsive de
 1. **Header (`PlanHeader.tsx`)**:
    - Breadcrumb: `Preparation Plan • Senior Software Engineer`
    - Title: `Your Personalized Preparation Roadmap`
-   - Meta bar: Target role, timeline (e.g. *6 Weeks*), estimated hours (*48 Hours Total*), and primary CTA "Start Next Practice Session →".
+   - Meta bar: Target role, timeline (e.g. _6 Weeks_), estimated hours (_48 Hours Total_), and primary CTA "Start Next Practice Session →".
 2. **Progress Gauge (`PreparationProgress.tsx`)**:
-   - Overall plan completion bar (e.g. *14 of 42 Topics Completed • 33%*).
+   - Overall plan completion bar (e.g. _14 of 42 Topics Completed • 33%_).
    - Time spent vs remaining.
 3. **Phased Timeline (`PreparationTimeline.tsx`)**:
    - Horizontal phase cards on desktop (`Phase 1`, `Phase 2`, `Phase 3`).
@@ -38,8 +38,8 @@ This document details the visual structure, layout components, and responsive de
    - 4 domain cards (System Design, Algorithms, Behavioral, Cloud).
    - Each card displays:
      - Area name and icon
-     - Current mastery percentage bar (e.g. *64% Readiness*)
-     - Covered topics count (e.g. *4/6 Topics*)
+     - Current mastery percentage bar (e.g. _64% Readiness_)
+     - Covered topics count (e.g. _4/6 Topics_)
      - "View Topics" button that launches the full-screen / modal topic list (`AreaTopicsModal.tsx`).
 5. **Plan Updated Callout (`PlanUpdatedCallout.tsx`)**:
    - Subtly notifies candidate when the plan was last adapted based on evaluation feedback.

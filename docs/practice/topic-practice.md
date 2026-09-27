@@ -9,6 +9,7 @@ This document details the interactive tooling within practice sessions, focusing
 The Whiteboard provides candidates with an architectural canvas inspired by real technical interview tools (Excalidraw / Miro):
 
 ### Features & Capabilities
+
 1. **Drawing Tools**:
    - `select`: Drag and move nodes, sticky notes, and shapes.
    - `pen`: Freehand ink with configurable stroke width and colors (`#7c3aed`, `#10b981`, `#ff5520`, `#1e1c1a`).

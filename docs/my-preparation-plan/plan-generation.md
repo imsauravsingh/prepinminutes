@@ -37,9 +37,9 @@ This document defines how preparation plans are generated, how LLM suggestions a
 
 ## 2. LLM vs. Deterministic Boundaries
 
-| Responsibility | Owner | Rule |
-|----------------|-------|------|
-| **Curriculum Topics** | LLM | Generates relevant topic names based on resume/JD (e.g. *PostgreSQL Sharding at Scale*). |
-| **Domain Weighting** | Deterministic Service | Senior role = 45% System Design, 35% Coding, 20% Behavioral. LLM cannot override percentages. |
-| **Phase Scheduling** | Deterministic Service | Hours per week = Total Hours / Timeline Weeks. Phase duration mapped mathematically. |
-| **Topic Completion** | Deterministic Service | A topic is marked complete ONLY after candidate achieves $\ge 70\%$ in a practice or mock evaluation. |
+| Responsibility        | Owner                 | Rule                                                                                                  |
+| --------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Curriculum Topics** | LLM                   | Generates relevant topic names based on resume/JD (e.g. _PostgreSQL Sharding at Scale_).              |
+| **Domain Weighting**  | Deterministic Service | Senior role = 45% System Design, 35% Coding, 20% Behavioral. LLM cannot override percentages.         |
+| **Phase Scheduling**  | Deterministic Service | Hours per week = Total Hours / Timeline Weeks. Phase duration mapped mathematically.                  |
+| **Topic Completion**  | Deterministic Service | A topic is marked complete ONLY after candidate achieves $\ge 70\%$ in a practice or mock evaluation. |

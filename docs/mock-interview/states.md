@@ -11,7 +11,7 @@ stateDiagram-v2
     [*] --> CONFIGURING: User visits /mock-interview/configure
     CONFIGURING --> BRIEFING: User clicks "Continue to Briefing"
     BRIEFING --> IN_INTERVIEW: User clicks "Start Interview"
-    
+
     state IN_INTERVIEW {
         [*] --> RECORDING_ACTIVE
         RECORDING_ACTIVE --> RECORDING_PAUSED: User clicks Pause
@@ -19,11 +19,11 @@ stateDiagram-v2
         RECORDING_ACTIVE --> TEXT_TYPING: User clicks switch to text
         TEXT_TYPING --> RECORDING_ACTIVE: User submits message
     }
-    
+
     IN_INTERVIEW --> CONFIRM_END: User clicks "End Interview" or timer reaches 45m
     CONFIRM_END --> IN_INTERVIEW: User cancels
     CONFIRM_END --> EVALUATING: User confirms "End Now & View Report"
-    
+
     EVALUATING --> EVALUATED: Evaluation report renders at /mock-interview/system-design/evaluation
 ```
 

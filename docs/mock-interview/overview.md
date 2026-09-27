@@ -7,8 +7,8 @@ The **Mock Interview Module** (`/mock-interview/*`) provides a full-length, end-
 ## 1. Core Principles
 
 1. **Realistic Atmosphere**: Timed 45-minute sessions, structured progression stages (Requirements → Architecture → Data Modeling → Bottlenecks), and live audio recording.
-2. **Dynamic Adaptation**: An AI Interviewer persona (e.g. *Sarah • Staff Infrastructure Engineer*) asking targeted follow-up questions based on candidate answers.
-3. **Rigorous Rubric Evaluation**: Comprehensive scoring across 6 key dimensions (Technical Depth, Reasoning, Data Modeling, Communication, Problem Solving, Follow-up Handling) with a definitive hiring verdict (*Strong Hire*, *Hire*, *Lean Hire*, *No Hire*).
+2. **Dynamic Adaptation**: An AI Interviewer persona (e.g. _Sarah • Staff Infrastructure Engineer_) asking targeted follow-up questions based on candidate answers.
+3. **Rigorous Rubric Evaluation**: Comprehensive scoring across 6 key dimensions (Technical Depth, Reasoning, Data Modeling, Communication, Problem Solving, Follow-up Handling) with a definitive hiring verdict (_Strong Hire_, _Hire_, _Lean Hire_, _No Hire_).
 4. **Complete Flow**:
    $$\text{Hub} \longrightarrow \text{Configure} \longrightarrow \text{Briefing} \longrightarrow \text{Live Session} \longrightarrow \text{Evaluation Report}$$
 

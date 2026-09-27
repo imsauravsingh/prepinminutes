@@ -7,6 +7,7 @@ This document defines the component interfaces and contracts used in `src/compon
 ## 1. Components & Props
 
 ### `PreparationTimeline`
+
 ```tsx
 interface PhaseItem {
   id: string; // e.g. "phase-1"
@@ -26,6 +27,7 @@ interface PreparationTimelineProps {
 ```
 
 ### `ReadinessByArea`
+
 ```tsx
 interface DomainArea {
   id: string;
@@ -49,6 +51,7 @@ interface ReadinessByAreaProps {
 ```
 
 ### `AreaTopicsModal`
+
 ```tsx
 interface AreaTopicsModalProps {
   area: DomainArea;
@@ -57,5 +60,6 @@ interface AreaTopicsModalProps {
   onStartPractice: (topicId: string) => void;
 }
 ```
+
 - Full-screen or centered modal displaying the list of topics under the selected domain.
 - Displays difficulty badges and "Practice Now →" link leading to `/practice/session/*`.
