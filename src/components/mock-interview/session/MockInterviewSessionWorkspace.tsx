@@ -125,18 +125,18 @@ export function MockInterviewSessionWorkspace() {
   );
 
   const renderAudioDock = () => (
-    <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-[#7c3aed] bg-[#f5f3ff] p-4 sm:p-5 shadow-sm text-center">
+    <div className="flex flex-col items-center gap-3 sm:gap-3.5 rounded-2xl border border-[#7c3aed] bg-[#f5f3ff] p-3.5 sm:p-5 shadow-sm text-center">
       {/* Listening / Paused status label */}
-      <span className="text-xs font-bold uppercase tracking-wider text-[#7c3aed]">
+      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#7c3aed]">
         {isPaused ? "Paused" : "Listening..."}
       </span>
 
       {/* Audio Waveform visualization (24 animated bars) */}
-      <div className="flex h-7 items-center justify-center gap-1">
+      <div className="flex h-7 items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-hidden px-1">
         {WAVEFORM_HEIGHTS.map((height, idx) => (
           <div
             key={idx}
-            className="w-[3px] rounded-full bg-[#7c3aed] transition-all duration-200"
+            className="w-[2.5px] sm:w-[3px] rounded-full bg-[#7c3aed] transition-all duration-200 shrink-0"
             style={{
               height: isPaused ? "4px" : `${height}px`,
               opacity: isPaused ? 0.4 : 1,
@@ -146,12 +146,12 @@ export function MockInterviewSessionWorkspace() {
       </div>
 
       {/* Controls row */}
-      <div className="flex items-center gap-3 sm:gap-4 pt-1">
+      <div className="flex items-center gap-3 sm:gap-4 pt-0.5 sm:pt-1">
         {/* Pause / Resume button */}
         <button
           type="button"
           onClick={handleTogglePause}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-[#7c3aed] bg-white px-3.5 sm:px-4 text-xs font-semibold text-[#7c3aed] shadow-sm transition-colors hover:bg-[#ede9fe] cursor-pointer"
+          className="flex h-9 items-center gap-1.5 rounded-full border border-[#7c3aed] bg-white px-3 sm:px-4 text-xs font-semibold text-[#7c3aed] shadow-sm transition-colors hover:bg-[#ede9fe] cursor-pointer"
         >
           {isPaused ? (
             <>
@@ -170,17 +170,17 @@ export function MockInterviewSessionWorkspace() {
         <button
           type="button"
           onClick={handleTogglePause}
-          className="flex size-13 sm:size-14 items-center justify-center rounded-full bg-[#7c3aed] text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] transition-transform active:scale-95 hover:bg-[#6d28d9] cursor-pointer"
+          className="flex size-12 sm:size-14 items-center justify-center rounded-full bg-[#7c3aed] text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] transition-transform active:scale-95 hover:bg-[#6d28d9] cursor-pointer"
           aria-label="Toggle microphone"
         >
-          <Mic className="size-6" />
+          <Mic className="size-5 sm:size-6" />
         </button>
 
         {/* Stop button -> finishes and evaluates */}
         <button
           type="button"
           onClick={handleStopSession}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-red-500 bg-white px-3.5 sm:px-4 text-xs font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50 cursor-pointer"
+          className="flex h-9 items-center gap-1.5 rounded-full border border-red-500 bg-white px-3 sm:px-4 text-xs font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50 cursor-pointer"
         >
           <Square className="size-3 fill-red-500" />
           <span>Stop</span>
@@ -188,7 +188,7 @@ export function MockInterviewSessionWorkspace() {
       </div>
 
       {/* Text Mode Toggle */}
-      <div className="text-xs text-ink-muted">
+      <div className="text-[11px] sm:text-xs text-ink-muted">
         Speak naturally. You can also{" "}
         <button
           type="button"
@@ -204,18 +204,19 @@ export function MockInterviewSessionWorkspace() {
       {isTextInput && (
         <form
           onSubmit={handleSendText}
-          className="mt-2 flex w-full items-center gap-2"
+          className="mt-1 sm:mt-2 flex w-full items-center gap-2"
         >
           <input
             type="text"
             value={textMessage}
             onChange={(e) => setTextMessage(e.target.value)}
-            placeholder="Type your system design response..."
-            className="flex-1 rounded-xl border border-[#ede6db] bg-white px-4 py-2.5 text-xs text-ink outline-none focus:border-[#7c3aed]"
+            placeholder="Type your response..."
+            className="min-w-0 flex-1 rounded-xl border border-[#ede6db] bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs text-ink outline-none focus:border-[#7c3aed]"
           />
           <button
             type="submit"
-            className="flex size-9 items-center justify-center rounded-xl bg-[#7c3aed] text-white transition-opacity hover:opacity-95 cursor-pointer"
+            className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-[#7c3aed] text-white transition-opacity hover:opacity-95 cursor-pointer"
+            aria-label="Send response"
           >
             <Send className="size-4" />
           </button>
@@ -225,24 +226,26 @@ export function MockInterviewSessionWorkspace() {
   );
 
   return (
-    <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4] p-4 sm:p-6 lg:p-7 gap-6 sm:gap-7">
+    <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4] p-3.5 sm:p-6 lg:p-7 gap-5 sm:gap-7">
       {/* 1. Header Row */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3.5 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Practice Header & Progress Track */}
-        <div className="flex flex-1 flex-col gap-2.5">
+        <div className="flex flex-1 flex-col gap-2 sm:gap-2.5 min-w-0">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <span className="font-bold text-brand uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+              <span className="font-bold text-brand uppercase tracking-wider text-[11px] sm:text-xs">
                 Live Mock Interview
               </span>
               <span className="text-[#b0a898]">•</span>
-              <span className="font-semibold text-ink">System Design</span>
+              <span className="font-semibold text-ink text-xs sm:text-sm">
+                System Design
+              </span>
               <span className="text-[#b0a898]">•</span>
-              <span className="text-ink-muted text-xs">
+              <span className="text-ink-muted text-xs truncate">
                 Senior Software Engineer
               </span>
             </div>
-            <span className="text-xs sm:text-sm text-ink-muted">
+            <span className="text-[11px] sm:text-xs text-ink-muted shrink-0">
               ~{remainingMinutes} min remaining
             </span>
           </div>
@@ -257,7 +260,7 @@ export function MockInterviewSessionWorkspace() {
         </div>
 
         {/* Top Header Action Buttons: Settings & End Interview */}
-        <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+        <div className="flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={() => setShowEndModal(true)}
@@ -270,7 +273,7 @@ export function MockInterviewSessionWorkspace() {
           <button
             type="button"
             onClick={() => setShowEndModal(true)}
-            className="flex h-9 sm:h-10 items-center justify-center rounded-full border border-red-500 bg-white px-4 sm:px-5 text-xs sm:text-sm font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50 cursor-pointer"
+            className="flex h-9 sm:h-10 items-center justify-center rounded-full border border-red-500 bg-white px-3.5 sm:px-5 text-xs sm:text-sm font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50 cursor-pointer"
           >
             End Interview
           </button>
@@ -288,32 +291,32 @@ export function MockInterviewSessionWorkspace() {
           {/* Left Column: Live AI Conversation & Audio Recording Panel */}
           <div className="flex flex-1 flex-col gap-5 w-full min-w-0">
             {/* Conversation Card */}
-            <div className="flex flex-col gap-5 rounded-2xl sm:rounded-[24px] border border-[#f4efe8] bg-white p-4 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+            <div className="flex flex-col gap-4 sm:gap-5 rounded-2xl sm:rounded-[24px] border border-[#f4efe8] bg-white p-3.5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
               {/* Conversation Header */}
-              <div className="flex flex-col gap-3 pb-4 border-b border-[#f4efe8] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-3 pb-3.5 sm:pb-4 border-b border-[#f4efe8]">
                 {/* Interviewer Profile Info */}
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#f5f0ff] border border-[#ede9fe] text-[#7c3aed]">
-                    <Cpu className="size-5" />
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f0ff] border border-[#ede9fe] text-[#7c3aed]">
+                    <Cpu className="size-4 sm:size-5" />
                   </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <span className="font-display font-bold text-ink text-sm sm:text-base">
                         AI Interviewer
                       </span>
-                      <span className="rounded bg-brand px-1.5 py-0.5 text-[10px] font-bold text-white tracking-wider">
+                      <span className="rounded bg-brand px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold text-white tracking-wider shrink-0">
                         MOCK SESSION
                       </span>
                     </div>
-                    <span className="text-xs text-ink-muted">
+                    <span className="text-[11px] sm:text-xs text-ink-muted truncate">
                       Senior SWE · System Design
                     </span>
                   </div>
                 </div>
 
                 {/* Timer Pill */}
-                <div className="flex items-center gap-2 self-start rounded-full border border-[#f4efe8] bg-white px-3.5 py-1.5 text-xs font-mono shadow-sm sm:self-center">
-                  <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 rounded-full border border-[#f4efe8] bg-white px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-mono shadow-sm">
+                  <span className="size-1.5 sm:size-2 rounded-full bg-red-500 animate-pulse" />
                   <span className="font-bold text-ink">
                     {formatTimer(secondsElapsed)}
                   </span>
@@ -322,13 +325,13 @@ export function MockInterviewSessionWorkspace() {
               </div>
 
               {/* Chat History Bubbles */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3.5 sm:gap-4">
                 {/* Message 1: Initial AI prompt */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
                     <Cpu className="size-4" />
                   </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink">
+                  <div className="flex flex-1 min-w-0 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
                     <p className="font-medium">
                       Design a URL shortener system that can handle 100 million
                       URLs and 200 million redirects per day. How would you
@@ -352,7 +355,7 @@ export function MockInterviewSessionWorkspace() {
                   <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0ec] text-brand">
                     <User className="size-4" />
                   </div>
-                  <div className="flex flex-1 rounded-2xl bg-[#f5f3ff] p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink">
+                  <div className="flex flex-1 min-w-0 rounded-2xl bg-[#f5f3ff] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
                     <p>
                       Sure. I have a few clarifying questions. What should be
                       the expected URL length, do we need custom aliases, and
@@ -366,7 +369,7 @@ export function MockInterviewSessionWorkspace() {
                   <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
                     <Cpu className="size-4" />
                   </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink">
+                  <div className="flex flex-1 min-w-0 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
                     <p className="font-bold">Good questions. Let me clarify:</p>
                     <ol className="flex flex-col gap-1 text-ink/90 text-xs sm:text-sm">
                       <li>
@@ -406,7 +409,7 @@ export function MockInterviewSessionWorkspace() {
                       )}
                     </div>
                     <div
-                      className={`flex flex-1 rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink ${
+                      className={`flex flex-1 min-w-0 rounded-2xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words ${
                         msg.sender === "user" ? "bg-[#f5f3ff]" : "bg-[#faf6f0]"
                       }`}
                     >
@@ -422,18 +425,18 @@ export function MockInterviewSessionWorkspace() {
           </div>
 
           {/* Right Column: Assistant Tools, Tips & Progress (width 300px) */}
-          <div className="flex flex-col gap-5 w-full lg:w-[300px] shrink-0">
+          <div className="flex flex-col gap-4 sm:gap-5 w-full lg:w-[300px] shrink-0">
             {/* Card 1: Interview Tools */}
-            <div className="flex flex-col gap-4 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3.5 sm:gap-4 rounded-2xl border border-[#ede6db] bg-white p-4 sm:p-5 shadow-sm">
               <h2 className="font-display font-bold text-sm text-ink">
                 Interview Tools
               </h2>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                 {/* Whiteboard -> opens full Whiteboard canvas */}
                 <button
                   type="button"
                   onClick={() => setIsWhiteboardOpen(true)}
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#f4efe8] bg-white p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-[#f4efe8] bg-white p-3 sm:p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
                 >
                   <div className="flex size-6 items-center justify-center text-[#7c3aed]">
                     <LayoutGrid className="size-5" />
@@ -445,7 +448,7 @@ export function MockInterviewSessionWorkspace() {
                 <button
                   type="button"
                   onClick={() => setActiveTool("diagram")}
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#f4efe8] bg-white p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-[#f4efe8] bg-white p-3 sm:p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
                 >
                   <div className="flex size-6 items-center justify-center text-[#7c3aed]">
                     <Network className="size-5" />
@@ -457,7 +460,7 @@ export function MockInterviewSessionWorkspace() {
                 <button
                   type="button"
                   onClick={() => setActiveTool("code")}
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#f4efe8] bg-white p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-[#f4efe8] bg-white p-3 sm:p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
                 >
                   <div className="flex size-6 items-center justify-center text-[#7c3aed]">
                     <FileCode className="size-5" />
@@ -469,7 +472,7 @@ export function MockInterviewSessionWorkspace() {
                 <button
                   type="button"
                   onClick={() => setActiveTool("notes")}
-                  className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#f4efe8] bg-white p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
+                  className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-[#f4efe8] bg-white p-3 sm:p-3.5 text-xs font-semibold text-ink shadow-sm transition-colors hover:border-[#7c3aed]/40 hover:bg-[#faf6f0] cursor-pointer"
                 >
                   <div className="flex size-6 items-center justify-center text-[#7c3aed]">
                     <FileText className="size-5" />
@@ -480,7 +483,7 @@ export function MockInterviewSessionWorkspace() {
             </div>
 
             {/* Card 2: Interview Tips */}
-            <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-4 sm:p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <Lightbulb className="size-4 text-amber-500" />
                 <h2 className="font-display font-bold text-sm text-ink">
@@ -506,7 +509,7 @@ export function MockInterviewSessionWorkspace() {
             </div>
 
             {/* Card 3: Session Status */}
-            <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-4 sm:p-5 shadow-sm">
               <h2 className="font-display font-bold text-sm text-ink">
                 Mock Progress
               </h2>
@@ -556,10 +559,10 @@ export function MockInterviewSessionWorkspace() {
 
       {/* Interactive Tool Modal (for Diagram, Code, Notes) */}
       {activeTool && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#f4efe8] px-5 py-3.5 bg-[#faf6f0]">
-              <span className="font-display font-bold text-sm text-ink uppercase tracking-wider">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#f4efe8] px-4 sm:px-5 py-3 sm:py-3.5 bg-[#faf6f0] shrink-0">
+              <span className="font-display font-bold text-xs sm:text-sm text-ink uppercase tracking-wider truncate mr-2">
                 {activeTool === "diagram" && "System Architecture Diagram"}
                 {activeTool === "code" && "Code & API Definitions"}
                 {activeTool === "notes" && "Session Scratchpad"}
@@ -567,19 +570,19 @@ export function MockInterviewSessionWorkspace() {
               <button
                 type="button"
                 onClick={() => setActiveTool(null)}
-                className="flex size-7 items-center justify-center rounded-full hover:bg-black/5 text-ink-muted cursor-pointer"
+                className="flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-black/5 text-ink-muted cursor-pointer"
               >
                 <X className="size-4" />
               </button>
             </div>
 
-            <div className="p-5 flex flex-col gap-3">
+            <div className="p-4 sm:p-5 flex flex-col gap-3 overflow-y-auto">
               {activeTool === "notes" && (
                 <textarea
                   value={notesContent}
                   onChange={(e) => setNotesContent(e.target.value)}
                   placeholder="Jot down numbers, QPS estimates, storage requirements..."
-                  rows={8}
+                  rows={6}
                   className="w-full rounded-xl border border-[#ede6db] p-3 text-xs font-sans text-ink outline-none focus:border-[#7c3aed]"
                 />
               )}
@@ -588,29 +591,29 @@ export function MockInterviewSessionWorkspace() {
                 <textarea
                   value={codeContent}
                   onChange={(e) => setCodeContent(e.target.value)}
-                  rows={8}
+                  rows={6}
                   className="w-full rounded-xl border border-[#2e2a27] bg-[#1e1c1a] p-3 font-mono text-xs text-[#f7f5f0] outline-none"
                 />
               )}
 
               {activeTool === "diagram" && (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#ede6db] bg-[#faf6f0] p-10 text-center text-xs text-ink-muted gap-2">
-                  <Network className="size-8 text-[#7c3aed]" />
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#ede6db] bg-[#faf6f0] p-6 sm:p-10 text-center text-xs text-ink-muted gap-2">
+                  <Network className="size-7 sm:size-8 text-[#7c3aed]" />
                   <span className="font-semibold text-ink">
                     Interactive Diagram Canvas
                   </span>
-                  <span>
+                  <span className="text-[11px] sm:text-xs">
                     Client → DNS → Load Balancer → API Gateways → Redis Cache /
                     DB Cluster
                   </span>
                 </div>
               )}
 
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-end pt-1 shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveTool(null)}
-                  className="rounded-full bg-brand px-5 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-95 cursor-pointer"
+                  className="w-full sm:w-auto rounded-full bg-brand px-5 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-95 cursor-pointer text-center"
                 >
                   Save & Close
                 </button>
@@ -622,26 +625,26 @@ export function MockInterviewSessionWorkspace() {
 
       {/* End Session Confirmation Modal */}
       {showEndModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-6 shadow-xl text-center">
-            <h3 className="font-display font-bold text-lg text-ink">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="flex w-full max-w-sm flex-col gap-3.5 sm:gap-4 rounded-2xl bg-white p-5 sm:p-6 shadow-xl text-center">
+            <h3 className="font-display font-bold text-base sm:text-lg text-ink">
               End Mock Interview?
             </h3>
             <p className="text-xs text-ink-muted leading-relaxed">
               Are you sure you want to end this mock interview? Your responses
               will be evaluated and your detailed feedback report generated.
             </p>
-            <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setShowEndModal(false)}
-                className="rounded-full border border-[#ede6db] bg-white px-4 py-2 text-xs font-semibold text-ink shadow-sm hover:bg-[#faf6f0] cursor-pointer"
+                className="w-full sm:w-auto rounded-full border border-[#ede6db] bg-white px-4 py-2.5 text-xs font-semibold text-ink shadow-sm hover:bg-[#faf6f0] cursor-pointer text-center"
               >
                 Continue Interview
               </button>
               <Link
                 href="/session/system-design/evaluation"
-                className="rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 cursor-pointer"
+                className="w-full sm:w-auto rounded-full bg-red-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-600 cursor-pointer text-center"
               >
                 End Now & View Report
               </Link>
