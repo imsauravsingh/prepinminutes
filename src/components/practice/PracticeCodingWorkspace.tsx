@@ -52,8 +52,8 @@ export function PracticeCodingWorkspace() {
     "problem" | "solution" | "interview" | "takeaways"
   >("problem");
   const [understandTab, setUnderstandTab] = useState<
-    "key-points" | "visual" | "meaning"
-  >("key-points");
+    "visual" | "explain-ar" | "key-points" | "meaning"
+  >("visual");
   const [testCaseTab, setTestCaseTab] = useState<"example" | "custom">(
     "example",
   );
@@ -251,17 +251,8 @@ export function PracticeCodingWorkspace() {
               </h1>
             </div>
 
-            {/* Action Buttons: Explain with AR, Save & Report */}
+            {/* Action Buttons: Save & Report */}
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 pt-1">
-              <button
-                type="button"
-                onClick={() => setIsAROpen(true)}
-                className="flex h-[30px] items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-[#ff855f] px-3.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,108,71,0.25)] hover:opacity-95 transition-all cursor-pointer"
-              >
-                <Sparkles className="size-3.5 fill-white" />
-                <span>Explain with AR</span>
-              </button>
-
               <button
                 type="button"
                 onClick={() => setIsSaved(!isSaved)}
@@ -421,22 +412,11 @@ export function PracticeCodingWorkspace() {
                 {isUnderstandOpen && (
                   <div className="mt-4 flex flex-col gap-4">
                     {/* Sub tabs */}
-                    <div className="flex items-center gap-4 border-b border-[#f4efe8]">
-                      <button
-                        type="button"
-                        onClick={() => setUnderstandTab("key-points")}
-                        className={`pb-1 text-[13px] transition-colors ${
-                          understandTab === "key-points"
-                            ? "border-b-2 border-brand font-semibold text-brand"
-                            : "font-normal text-ink-muted hover:text-ink"
-                        }`}
-                      >
-                        Key Points
-                      </button>
+                    <div className="flex items-center gap-2 sm:gap-4 border-b border-[#f4efe8] overflow-x-auto">
                       <button
                         type="button"
                         onClick={() => setUnderstandTab("visual")}
-                        className={`pb-1 text-[13px] transition-colors ${
+                        className={`pb-2 text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
                           understandTab === "visual"
                             ? "border-b-2 border-brand font-semibold text-brand"
                             : "font-normal text-ink-muted hover:text-ink"
@@ -444,10 +424,39 @@ export function PracticeCodingWorkspace() {
                       >
                         Visual Example
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setUnderstandTab("explain-ar")}
+                        className={`flex items-center gap-1.5 pb-2 text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
+                          understandTab === "explain-ar"
+                            ? "border-b-2 border-brand font-bold text-brand"
+                            : "font-normal text-ink-muted hover:text-ink"
+                        }`}
+                      >
+                        <Sparkles className="size-3.5 text-brand" />
+                        <span>Explain with AR</span>
+                        <span className="rounded-full bg-[#fff0ec] px-1.5 py-0.5 text-[10px] font-bold text-brand border border-[#ffd8cc]">
+                          3D
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setUnderstandTab("key-points")}
+                        className={`pb-2 text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
+                          understandTab === "key-points"
+                            ? "border-b-2 border-brand font-semibold text-brand"
+                            : "font-normal text-ink-muted hover:text-ink"
+                        }`}
+                      >
+                        Key Points
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setUnderstandTab("meaning")}
-                        className={`pb-1 text-[13px] transition-colors ${
+                        className={`pb-2 text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
                           understandTab === "meaning"
                             ? "border-b-2 border-brand font-semibold text-brand"
                             : "font-normal text-ink-muted hover:text-ink"
@@ -457,7 +466,199 @@ export function PracticeCodingWorkspace() {
                       </button>
                     </div>
 
-                    {/* Sub-tab 1: Key points */}
+                    {/* Sub-tab 1: Visual Example */}
+                    {understandTab === "visual" && (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-2 text-[13px] leading-relaxed text-ink">
+                          <p>
+                            Imagine sliding a magnifying window of size 3 across
+                            the array from left to right. Instead of recalculating
+                            the entire sum at each step, subtract the outgoing
+                            element and add the new incoming element in{" "}
+                            <code className="bg-[#faf6f0] px-1 py-0.5 rounded text-brand font-mono text-xs">
+                              O(1)
+                            </code>{" "}
+                            time!
+                          </p>
+                        </div>
+
+                        {/* Interactive Sliding Window Visualizer Box */}
+                        <div className="flex flex-col items-center gap-3 rounded-lg bg-[#faf6f0] p-4">
+                          <span className="self-start text-xs font-bold text-ink">
+                            Example Visualization (K = 3)
+                          </span>
+
+                          {/* Slider Array Row */}
+                          <div className="flex items-center gap-2 sm:gap-3 py-1">
+                            <button
+                              type="button"
+                              disabled={windowIndex === 0}
+                              onClick={() =>
+                                setWindowIndex((prev) => Math.max(0, prev - 1))
+                              }
+                              className="flex size-7 items-center justify-center rounded border border-[#ede6db] bg-white text-ink-muted transition-colors hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                              aria-label="Previous window"
+                            >
+                              <ChevronLeft className="size-4 text-[#b0a898]" />
+                            </button>
+
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              {ARRAY_DATA.map((num, i) => {
+                                const isInWindow =
+                                  i >= windowIndex && i < windowIndex + K_VALUE;
+                                return (
+                                  <div
+                                    key={i}
+                                    className={`flex size-8 items-center justify-center rounded-md text-[13px] font-bold transition-all ${
+                                      isInWindow
+                                        ? "border-2 border-brand bg-white text-brand shadow-sm scale-105"
+                                        : "border border-[#f4efe8] bg-white text-ink"
+                                    }`}
+                                  >
+                                    {num}
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={windowIndex >= maxWindowIndex}
+                              onClick={() =>
+                                setWindowIndex((prev) =>
+                                  Math.min(maxWindowIndex, prev + 1),
+                                )
+                              }
+                              className="flex size-7 items-center justify-center rounded border border-[#ede6db] bg-white text-ink-muted transition-colors hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                              aria-label="Next window"
+                            >
+                              <ChevronRight className="size-4 text-[#b0a898]" />
+                            </button>
+                          </div>
+
+                          {/* Dynamic Window Sum Calculation */}
+                          <div className="font-mono text-xs text-ink-muted">
+                            Window sum = {activeWindowElements.join(" + ")} ={" "}
+                            <span
+                              className={`font-bold ${
+                                currentWindowSum === 9
+                                  ? "text-emerald-600"
+                                  : "text-ink"
+                              }`}
+                            >
+                              {currentWindowSum}
+                            </span>
+                            {currentWindowSum === 9 && (
+                              <span className="ml-1 text-[11px] font-bold text-emerald-600">
+                                (Max!)
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Dots Pagination Indicator */}
+                          <div className="flex items-center gap-1.5 pt-0.5">
+                            {Array.from({ length: maxWindowIndex + 1 }).map(
+                              (_, dotIdx) => (
+                                <button
+                                  key={dotIdx}
+                                  type="button"
+                                  onClick={() => setWindowIndex(dotIdx)}
+                                  className={`size-1.5 rounded-full transition-all ${
+                                    dotIdx === windowIndex
+                                      ? "bg-brand scale-125"
+                                      : "bg-[#b0a898]"
+                                  }`}
+                                  aria-label={`Slide to window ${dotIdx + 1}`}
+                                />
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sub-tab 2: Explain with AR */}
+                    {understandTab === "explain-ar" && (
+                      <div className="flex flex-col gap-3.5 rounded-2xl bg-[#171514] border border-[#2b2723] p-4 sm:p-5 text-[#ede8de] shadow-md animate-in fade-in duration-200">
+                        {/* Header Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#292522]">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex size-9 items-center justify-center rounded-xl bg-brand/20 text-brand border border-brand/40 shadow-xs">
+                              <Sparkles className="size-4.5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-display text-sm font-bold text-white">
+                                  3D &amp; AR Algorithm Visualization
+                                </h3>
+                                <span className="rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold">
+                                  Live WebGL
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-[#9e9587]">
+                                Step-by-step spatial walkthrough of the sliding window invariant.
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setIsAROpen(true)}
+                            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand hover:bg-[#eb4a19] px-4 py-2 text-xs font-bold text-white shadow-[0_2px_10px_rgba(255,108,71,0.3)] transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto"
+                          >
+                            <Sparkles className="size-3.5 fill-white" />
+                            <span>Launch AR Solution Explorer →</span>
+                          </button>
+                        </div>
+
+                        {/* Interactive Feature Highlights */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                          <div className="rounded-xl bg-[#201d1a] border border-[#332d28] p-3 flex flex-col gap-1">
+                            <span className="font-bold text-brand text-[11px]">
+                              1. Spatial 3D Data Structure
+                            </span>
+                            <span className="text-[11px] text-[#b0a797] leading-relaxed">
+                              Array elements and moving window brackets rendered in 3D with interactive orbit and zoom controls.
+                            </span>
+                          </div>
+
+                          <div className="rounded-xl bg-[#201d1a] border border-[#332d28] p-3 flex flex-col gap-1">
+                            <span className="font-bold text-emerald-400 text-[11px]">
+                              2. Synchronized Execution
+                            </span>
+                            <span className="text-[11px] text-[#b0a797] leading-relaxed">
+                              Real-time pointer moves (<code className="text-white font-mono">i</code>, <code className="text-white font-mono">i-k</code>), sum updates, and synchronized code line highlights.
+                            </span>
+                          </div>
+
+                          <div className="rounded-xl bg-[#201d1a] border border-[#332d28] p-3 flex flex-col gap-1">
+                            <span className="font-bold text-blue-400 text-[11px]">
+                              3. Checkpoint Quizzes &amp; Big-O
+                            </span>
+                            <span className="text-[11px] text-[#b0a797] leading-relaxed">
+                              Interactive checkpoint questions and time/space complexity comparison (O(N) vs O(N·K)).
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Quick Action Preview Bar */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl bg-[#1d1a18] border border-[#2e2824] px-3.5 py-2.5 text-xs">
+                          <div className="flex items-center gap-2 text-[#9e9587]">
+                            <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Ready to visualize: <strong>Max Sum Subarray (Size K)</strong></span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsAROpen(true)}
+                            className="font-bold text-brand hover:underline cursor-pointer text-xs self-end sm:self-auto"
+                          >
+                            Explore 14 Execution Steps →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sub-tab 3: Key points */}
                     {understandTab === "key-points" && (
                       <div className="flex flex-col gap-2 text-[13px] leading-relaxed text-ink">
                         <p>
@@ -483,23 +684,7 @@ export function PracticeCodingWorkspace() {
                       </div>
                     )}
 
-                    {/* Sub-tab 2: Visual Explanation Text */}
-                    {understandTab === "visual" && (
-                      <div className="flex flex-col gap-2 text-[13px] leading-relaxed text-ink">
-                        <p>
-                          Imagine sliding a magnifying window of size 3 across
-                          the array from left to right. Instead of recalculating
-                          the entire sum at each step, subtract the outgoing
-                          element and add the new incoming element in{" "}
-                          <code className="bg-[#faf6f0] px-1 py-0.5 rounded text-brand font-mono text-xs">
-                            O(1)
-                          </code>{" "}
-                          time!
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Sub-tab 3: Meaning Explanation */}
+                    {/* Sub-tab 4: Meaning Explanation */}
                     {understandTab === "meaning" && (
                       <div className="flex flex-col gap-2 text-[13px] leading-relaxed text-ink">
                         <p>
@@ -510,100 +695,7 @@ export function PracticeCodingWorkspace() {
                         </p>
                       </div>
                     )}
-
-                    {/* Interactive Sliding Window Visualizer Box */}
-                    <div className="flex flex-col items-center gap-3 rounded-lg bg-[#faf6f0] p-4">
-                      <span className="self-start text-xs font-bold text-ink">
-                        Example Visualization (K = 3)
-                      </span>
-
-                      {/* Slider Array Row */}
-                      <div className="flex items-center gap-2 sm:gap-3 py-1">
-                        <button
-                          type="button"
-                          disabled={windowIndex === 0}
-                          onClick={() =>
-                            setWindowIndex((prev) => Math.max(0, prev - 1))
-                          }
-                          className="flex size-7 items-center justify-center rounded border border-[#ede6db] bg-white text-ink-muted transition-colors hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                          aria-label="Previous window"
-                        >
-                          <ChevronLeft className="size-4 text-[#b0a898]" />
-                        </button>
-
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          {ARRAY_DATA.map((num, i) => {
-                            const isInWindow =
-                              i >= windowIndex && i < windowIndex + K_VALUE;
-                            return (
-                              <div
-                                key={i}
-                                className={`flex size-8 items-center justify-center rounded-md text-[13px] font-bold transition-all ${
-                                  isInWindow
-                                    ? "border-2 border-brand bg-white text-brand shadow-sm scale-105"
-                                    : "border border-[#f4efe8] bg-white text-ink"
-                                }`}
-                              >
-                                {num}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={windowIndex >= maxWindowIndex}
-                          onClick={() =>
-                            setWindowIndex((prev) =>
-                              Math.min(maxWindowIndex, prev + 1),
-                            )
-                          }
-                          className="flex size-7 items-center justify-center rounded border border-[#ede6db] bg-white text-ink-muted transition-colors hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                          aria-label="Next window"
-                        >
-                          <ChevronRight className="size-4 text-[#b0a898]" />
-                        </button>
-                      </div>
-
-                      {/* Dynamic Window Sum Calculation */}
-                      <div className="font-mono text-xs text-ink-muted">
-                        Window sum = {activeWindowElements.join(" + ")} ={" "}
-                        <span
-                          className={`font-bold ${
-                            currentWindowSum === 9
-                              ? "text-emerald-600"
-                              : "text-ink"
-                          }`}
-                        >
-                          {currentWindowSum}
-                        </span>
-                        {currentWindowSum === 9 && (
-                          <span className="ml-1 text-[11px] font-bold text-emerald-600">
-                            (Max!)
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Dots Pagination Indicator */}
-                      <div className="flex items-center gap-1.5 pt-0.5">
-                        {Array.from({ length: maxWindowIndex + 1 }).map(
-                          (_, dotIdx) => (
-                            <button
-                              key={dotIdx}
-                              type="button"
-                              onClick={() => setWindowIndex(dotIdx)}
-                              className={`size-1.5 rounded-full transition-all ${
-                                dotIdx === windowIndex
-                                  ? "bg-brand scale-125"
-                                  : "bg-[#b0a898]"
-                              }`}
-                              aria-label={`Slide to window ${dotIdx + 1}`}
-                            />
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                </div>
                 )}
               </div>
             </div>
@@ -612,31 +704,6 @@ export function PracticeCodingWorkspace() {
           {/* Tab Content 2: Solution Tab */}
           {leftTab === "solution" && (
             <div className="rounded-2xl border border-[#f4efe8] bg-white p-5 shadow-sm flex flex-col gap-4 text-xs text-ink">
-              {/* Contextual AR Banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-gradient-to-r from-[#fff0ec] to-[#faf6f0] border border-[#ffd8cc] p-3.5 text-xs shadow-xs">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
-                    <Sparkles className="size-4 fill-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-ink">
-                      Understand with Interactive 3D / AR
-                    </span>
-                    <span className="text-[11px] text-ink-muted">
-                      Watch how the window slides and recalculates in O(1)
-                      step-by-step.
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsAROpen(true)}
-                  className="self-start sm:self-auto rounded-lg bg-brand px-3.5 py-1.5 font-bold text-white shadow-[0_2px_8px_rgba(255,108,71,0.25)] hover:bg-[#eb4a19] transition-all cursor-pointer whitespace-nowrap"
-                >
-                  Launch 3D View →
-                </button>
-              </div>
-
               <h2 className="font-display font-bold text-sm text-ink">
                 Optimal Approach: Sliding Window (O(N) Time, O(1) Space)
               </h2>
@@ -751,18 +818,8 @@ export function PracticeCodingWorkspace() {
                 </div>
               </div>
 
-              {/* Action Buttons: Explain with AR, Reset, Run, Submit */}
+              {/* Action Buttons: Reset, Run, Submit */}
               <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setIsAROpen(true)}
-                  className="flex h-7 items-center gap-1 rounded-lg border border-brand/30 bg-[#fff0ec] px-2.5 text-xs font-bold text-brand shadow-xs hover:bg-[#ffe5df] transition-colors cursor-pointer"
-                >
-                  <Sparkles className="size-3 text-brand" />
-                  <span className="hidden sm:inline">Explain with AR</span>
-                  <span className="sm:hidden">AR</span>
-                </button>
-
                 <button
                   type="button"
                   onClick={handleReset}
