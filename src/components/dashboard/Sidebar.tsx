@@ -21,6 +21,7 @@ import {
   X,
   Sparkles,
   CheckSquare,
+  SquarePen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,9 +38,9 @@ const navLinks: {
     href: "/preparation-plan",
   },
   { icon: Target, label: "Practice", href: "/practice" },
+  { icon: SquarePen, label: "Mock Interview", href: "/mock-interview" },
   { icon: ClipboardCheck, label: "Evaluation", href: "/evaluation" },
   { icon: CheckSquare, label: "Revision", href: "/revision" },
-  { icon: Users, label: "Mock Interview", href: "#", locked: true },
 ];
 
 const requiredChecklist: { label: string; done: boolean }[] = [
@@ -63,6 +64,8 @@ function SidebarContent() {
   const isPlanRoute =
     pathname === "/preparation-plan" ||
     pathname.startsWith("/preparation-plan/");
+  const isMockInterviewRoute =
+    pathname === "/mock-interview" || pathname.startsWith("/mock-interview/");
   const isEvaluationRoute =
     pathname === "/evaluation" ||
     pathname.startsWith("/evaluation/") ||
@@ -71,6 +74,7 @@ function SidebarContent() {
     pathname === "/revision" || pathname.startsWith("/revision/");
   const isPracticeRoute =
     !isEvaluationRoute &&
+    !isMockInterviewRoute &&
     (pathname === "/practice" ||
       pathname.startsWith("/practice/") ||
       pathname.startsWith("/session/"));
@@ -114,11 +118,13 @@ function SidebarContent() {
                   ? isPlanRoute
                   : link.href === "/practice"
                     ? isPracticeRoute
-                    : link.href === "/evaluation"
-                      ? isEvaluationRoute
-                      : link.href === "/revision"
-                        ? isRevisionRoute
-                        : false;
+                    : link.href === "/mock-interview"
+                      ? isMockInterviewRoute
+                      : link.href === "/evaluation"
+                        ? isEvaluationRoute
+                        : link.href === "/revision"
+                          ? isRevisionRoute
+                          : false;
 
             if (link.locked) {
               return (
