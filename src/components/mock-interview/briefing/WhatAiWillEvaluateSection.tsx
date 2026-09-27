@@ -57,15 +57,17 @@ export function WhatAiWillEvaluateSection() {
       </div>
 
       {/* 6 Criteria Badges Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {criteria.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.label}
-              className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-3 text-xs font-bold text-ink shadow-2xs"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-line bg-white px-2.5 sm:px-3 py-2.5 sm:py-3 text-[11px] sm:text-xs font-bold text-ink shadow-2xs"
             >
-              <Icon className={`size-4 shrink-0 ${item.iconColor}`} />
+              <Icon
+                className={`size-3.5 sm:size-4 shrink-0 ${item.iconColor}`}
+              />
               <span className="truncate">{item.label}</span>
             </div>
           );

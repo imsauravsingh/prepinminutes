@@ -98,7 +98,7 @@ export function ConfigurationPreviewCard({
   };
 
   return (
-    <div className="sticky top-6 flex flex-col gap-5 rounded-2xl border border-line bg-gradient-to-b from-[#fffbf8] via-white to-white p-5 sm:p-6 shadow-2xs">
+    <div className="lg:sticky lg:top-6 flex flex-col gap-5 rounded-2xl border border-line bg-gradient-to-b from-[#fffbf8] via-white to-white p-5 sm:p-6 shadow-2xs">
       {/* Top Stylized Illustration */}
       <div className="relative flex items-center justify-center py-2 select-none">
         {/* Soft Background Glow */}

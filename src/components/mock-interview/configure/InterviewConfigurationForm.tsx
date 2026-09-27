@@ -73,9 +73,9 @@ export function InterviewConfigurationForm({
   };
 
   return (
-    <div className="flex flex-col gap-7 rounded-2xl border border-line bg-white p-6 sm:p-7 shadow-2xs">
+    <div className="flex flex-col gap-6 sm:gap-7 rounded-2xl border border-line bg-white p-4 sm:p-7 shadow-2xs">
       {/* Card Header */}
-      <div className="flex items-center gap-3 border-b border-line/60 pb-5">
+      <div className="flex items-center gap-3 border-b border-line/60 pb-4 sm:pb-5">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-[#ffd8cc] bg-[#fff0ec] text-brand">
           <SlidersHorizontal className="size-4" />
         </div>

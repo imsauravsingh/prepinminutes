@@ -18,11 +18,11 @@ export function BriefingBottomBar() {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+    <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pt-2">
       {/* Back to Configuration */}
       <Link
         href="/mock-interview/configure"
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cbd5e1] bg-white px-5 py-3 text-sm font-semibold text-ink shadow-2xs hover:bg-cream hover:border-[#94a3b8] transition-all cursor-pointer w-fit"
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cbd5e1] bg-white px-5 py-3.5 sm:py-3 text-sm font-semibold text-ink shadow-2xs hover:bg-cream hover:border-[#94a3b8] transition-all cursor-pointer w-full sm:w-auto text-center"
       >
         <ArrowLeft className="size-4" />
         <span>Back to Configuration</span>
@@ -33,7 +33,7 @@ export function BriefingBottomBar() {
         type="button"
         onClick={handleStartInterview}
         disabled={isStarting}
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff5520] px-7 py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(255,85,32,0.35)] transition-all hover:bg-[#eb4a19] active:scale-[0.98] disabled:opacity-80 cursor-pointer"
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff5520] px-7 py-3.5 sm:py-3 text-sm font-bold text-white shadow-[0_4px_14px_rgba(255,85,32,0.35)] transition-all hover:bg-[#eb4a19] active:scale-[0.98] disabled:opacity-80 cursor-pointer w-full sm:w-auto"
       >
         {isStarting ? (
           <>

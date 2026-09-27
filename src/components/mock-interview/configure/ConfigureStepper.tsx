@@ -12,8 +12,8 @@ export function ConfigureStepper({ currentStep = 1 }: ConfigureStepperProps) {
   ];
 
   return (
-    <div className="flex w-full items-center justify-center py-3">
-      <div className="flex items-center w-full max-w-xl px-4">
+    <div className="flex w-full items-center justify-center py-2 sm:py-3">
+      <div className="flex items-center w-full max-w-xl px-2 sm:px-4">
         {steps.map((step, idx) => {
           const isActive = currentStep === step.number;
           const isCompleted = currentStep > step.number;
@@ -24,9 +24,9 @@ export function ConfigureStepper({ currentStep = 1 }: ConfigureStepperProps) {
               className={`flex items-center ${idx < steps.length - 1 ? "flex-1" : ""}`}
             >
               {/* Step indicator (Circle + Label) */}
-              <div className="flex flex-col items-center gap-1.5 relative">
+              <div className="flex flex-col items-center gap-1 sm:gap-1.5 relative">
                 <div
-                  className={`flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                  className={`flex size-6 sm:size-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
                     isActive
                       ? "bg-[#2563eb] text-white shadow-xs ring-4 ring-[#2563eb]/10"
                       : isCompleted
@@ -35,13 +35,13 @@ export function ConfigureStepper({ currentStep = 1 }: ConfigureStepperProps) {
                   }`}
                 >
                   {isCompleted ? (
-                    <Check className="size-3.5 stroke-[3]" />
+                    <Check className="size-3 sm:size-3.5 stroke-[3]" />
                   ) : (
                     <span>{step.number}</span>
                   )}
                 </div>
                 <span
-                  className={`text-xs whitespace-nowrap ${
+                  className={`text-[10px] sm:text-xs whitespace-nowrap ${
                     isActive
                       ? "font-bold text-[#2563eb]"
                       : "font-medium text-ink-muted"
@@ -53,7 +53,7 @@ export function ConfigureStepper({ currentStep = 1 }: ConfigureStepperProps) {
 
               {/* Connecting line between steps */}
               {idx < steps.length - 1 && (
-                <div className="flex-1 mx-3 mb-5 h-0.5 bg-[#e2e8f0]">
+                <div className="flex-1 mx-1.5 sm:mx-3 mb-4 sm:mb-5 h-0.5 bg-[#e2e8f0]">
                   <div
                     className={`h-full transition-all duration-300 ${
                       currentStep > step.number

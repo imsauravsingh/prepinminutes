@@ -40,10 +40,10 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-[#ffe6dc] bg-gradient-to-br from-[#fffaf7] via-[#fffdfb] to-[#ffffff] p-6 sm:p-8 lg:p-9 shadow-[0_8px_30px_rgba(255,108,71,0.06)]">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-[#ffe6dc] bg-gradient-to-br from-[#fffaf7] via-[#fffdfb] to-[#ffffff] p-5 sm:p-8 lg:p-9 shadow-[0_8px_30px_rgba(255,108,71,0.06)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-6 items-center">
         {/* Left Column (7 cols): Details & CTAs */}
-        <div className="lg:col-span-7 flex flex-col items-start gap-4">
+        <div className="lg:col-span-7 flex flex-col items-start gap-3.5 sm:gap-4 w-full">
           {/* Recommendation Badge */}
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3c7]/80 border border-[#fde68a] px-3 py-1 text-xs font-bold text-[#b45309]">
             <Sparkles className="size-3.5 fill-[#f59e0b] text-[#f59e0b]" />
@@ -52,16 +52,16 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
 
           {/* Titles */}
           <div className="flex flex-col gap-1">
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-[32px] font-black text-ink tracking-tight">
+            <h2 className="font-display text-xl sm:text-3xl lg:text-[32px] font-black text-ink tracking-tight">
               {mock.role}
             </h2>
-            <p className="font-display text-lg sm:text-xl font-bold text-[#334155]">
+            <p className="font-display text-base sm:text-xl font-bold text-[#334155]">
               {mock.title}
             </p>
           </div>
 
           {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-ink-muted">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-ink-muted">
             <div className="inline-flex items-center gap-1.5">
               <Clock className="size-4 text-brand" />
               <span>{mock.durationLabel}</span>
@@ -79,16 +79,16 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
           </div>
 
           {/* Description */}
-          <p className="text-sm text-ink-muted leading-relaxed max-w-xl">
+          <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
             {mock.description}
           </p>
 
           {/* Focus Tags */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5 sm:pt-1">
             {mock.focusAreas.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center rounded-full bg-[#f0f9ff] border border-[#e0f2fe] px-3.5 py-1 text-xs font-semibold text-[#0369a1]"
+                className="inline-flex items-center rounded-full bg-[#f0f9ff] border border-[#e0f2fe] px-3 py-1 text-[11px] sm:text-xs font-semibold text-[#0369a1]"
               >
                 {tag}
               </span>
@@ -96,12 +96,12 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 sm:pt-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleStartMock}
               disabled={isStarting}
-              className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#ff5520] px-6 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_14px_rgba(255,85,32,0.35)] transition-all hover:bg-[#eb4a19] hover:shadow-[0_6px_20px_rgba(255,85,32,0.45)] active:scale-[0.98] disabled:opacity-80 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#ff5520] px-6 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-[0_4px_14px_rgba(255,85,32,0.35)] transition-all hover:bg-[#eb4a19] hover:shadow-[0_6px_20px_rgba(255,85,32,0.45)] active:scale-[0.98] disabled:opacity-80 cursor-pointer w-full sm:w-auto"
             >
               {isStarting ? (
                 <>
@@ -120,7 +120,7 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
             <button
               type="button"
               onClick={handleCustomize}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-3.5 text-sm font-semibold text-ink transition-all hover:bg-[#faf9f6] hover:border-[#cbd5e1] hover:text-ink active:scale-[0.98] cursor-pointer shadow-2xs"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-3.5 text-sm font-semibold text-ink transition-all hover:bg-[#faf9f6] hover:border-[#cbd5e1] hover:text-ink active:scale-[0.98] cursor-pointer shadow-2xs w-full sm:w-auto"
             >
               <SlidersHorizontal className="size-4 text-ink-muted" />
               <span>Customize</span>
@@ -129,7 +129,7 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
         </div>
 
         {/* Right Column (5 cols): AI Visual Illustration */}
-        <div className="lg:col-span-5 relative flex items-center justify-center py-4 lg:py-0 select-none">
+        <div className="lg:col-span-5 relative flex items-center justify-center py-4 sm:py-6 lg:py-0 select-none overflow-hidden sm:overflow-visible">
           {/* Ambient Glow */}
           <div
             className="pointer-events-none absolute -inset-4 bg-gradient-to-tr from-[#ffe4e6]/30 via-[#f3e8ff]/50 to-[#dbeafe]/30 blur-2xl rounded-full"
@@ -137,27 +137,27 @@ export function RecommendedMockCard({ mock }: RecommendedMockCardProps) {
           />
 
           {/* Laptop Composition Container */}
-          <div className="relative w-full max-w-[420px] aspect-[16/11] flex items-center justify-center">
+          <div className="relative w-full max-w-[340px] sm:max-w-[420px] aspect-[16/11] flex items-center justify-center">
             {/* Floating Badge 1: Real interview questions (Top Left) */}
-            <div className="absolute -top-1 left-2 z-20 flex items-center gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-3 py-1.5 text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
-                <MessageSquare className="size-3" />
+            <div className="absolute -top-1 left-0 sm:left-2 z-20 flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
+              <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
+                <MessageSquare className="size-2.5 sm:size-3" />
               </span>
               <span>Real interview questions</span>
             </div>
 
             {/* Floating Badge 2: Adaptive follow-ups (Top Right) */}
-            <div className="absolute top-4 -right-1 z-20 flex items-center gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-3 py-1.5 text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
-                <GitFork className="size-3" />
+            <div className="absolute top-3 sm:top-4 right-0 sm:-right-1 z-20 flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
+              <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
+                <GitFork className="size-2.5 sm:size-3" />
               </span>
               <span>Adaptive follow-ups</span>
             </div>
 
             {/* Floating Badge 3: Personalized evaluation (Bottom Right) */}
-            <div className="absolute -bottom-2 right-1 z-20 flex items-center gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-3 py-1.5 text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
-                <BarChart3 className="size-3" />
+            <div className="absolute -bottom-2 right-0 sm:right-1 z-20 flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#ede9fe] bg-white/95 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-bold text-ink shadow-[0_4px_12px_rgba(30,28,26,0.08)] backdrop-blur-xs">
+              <span className="flex size-4 sm:size-5 items-center justify-center rounded-full bg-[#f5efff] text-[#8b5cf6]">
+                <BarChart3 className="size-2.5 sm:size-3" />
               </span>
               <span>Personalized evaluation</span>
             </div>

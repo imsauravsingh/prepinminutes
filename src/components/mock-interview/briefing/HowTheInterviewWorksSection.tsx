@@ -6,6 +6,7 @@ import {
   Sparkles,
   GitFork,
   ArrowRight,
+  ArrowDown,
 } from "lucide-react";
 
 export function HowTheInterviewWorksSection() {
@@ -57,20 +58,23 @@ export function HowTheInterviewWorksSection() {
 
       {/* Main Flow Card */}
       <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+        <div className="flex flex-col md:grid md:grid-cols-5 gap-3 md:gap-4 items-center">
           {steps.map((step, idx) => {
             const Icon = step.icon;
 
             return (
-              <div key={step.title} className="flex items-center gap-3">
+              <div
+                key={step.title}
+                className="flex flex-col md:flex-row items-center gap-3 w-full"
+              >
                 {/* Step Item */}
-                <div className="flex flex-1 flex-col items-center text-center gap-2">
+                <div className="flex flex-1 flex-col items-center text-center gap-2 w-full">
                   <div
                     className={`flex size-11 items-center justify-center rounded-full ${step.iconBg} shadow-2xs`}
                   >
                     <Icon className="size-5" />
                   </div>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0.5 max-w-xs md:max-w-none">
                     <span className="text-xs font-bold text-ink">
                       {step.title}
                     </span>
@@ -80,11 +84,16 @@ export function HowTheInterviewWorksSection() {
                   </div>
                 </div>
 
-                {/* Arrow connector (hidden on last item, hidden on mobile) */}
+                {/* Arrow connector: Right on desktop, Down on mobile */}
                 {idx < steps.length - 1 && (
-                  <div className="hidden md:flex shrink-0 items-center justify-center text-[#cbd5e1]">
-                    <ArrowRight className="size-4" />
-                  </div>
+                  <>
+                    <div className="hidden md:flex shrink-0 items-center justify-center text-[#cbd5e1]">
+                      <ArrowRight className="size-4" />
+                    </div>
+                    <div className="flex md:hidden shrink-0 items-center justify-center text-[#cbd5e1] py-1">
+                      <ArrowDown className="size-4" />
+                    </div>
+                  </>
                 )}
               </div>
             );

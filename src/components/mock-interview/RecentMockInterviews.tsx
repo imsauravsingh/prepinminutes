@@ -56,8 +56,48 @@ export function RecentMockInterviews({ history }: RecentMockInterviewsProps) {
         </Link>
       </div>
 
-      {/* Table container */}
-      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
+      {/* Mobile Card List (< md) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {history.map((row) => (
+          <div
+            key={row.id}
+            className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 shadow-2xs"
+          >
+            <div className="flex items-center justify-between border-b border-line/60 pb-2.5">
+              <div className="flex items-center gap-2">
+                {getTypeIcon(row.type)}
+                <span className="text-xs font-bold text-ink">
+                  {row.typeLabel}
+                </span>
+              </div>
+              <span className="text-xs text-ink-muted">{row.date}</span>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-ink">{row.role}</span>
+              <span className="text-xs text-ink-muted">{row.focus}</span>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-line/50">
+              <div className="flex items-center gap-3">
+                <InterviewResult score={row.score} />
+                <span className="text-xs text-ink-muted">· {row.duration}</span>
+              </div>
+
+              <Link
+                href={row.reportUrl}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1e40af] hover:text-brand transition-colors"
+              >
+                <span>View report</span>
+                <ArrowRight className="size-3" />
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table Container (md and up) */}
+      <div className="hidden md:block overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] border-collapse text-left">
             <thead>
