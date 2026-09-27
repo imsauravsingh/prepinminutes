@@ -84,6 +84,11 @@ export function PracticeCodingWorkspace() {
     message?: string;
   }>({ status: "idle" });
 
+  // Mobile workspace view switcher: "problem" | "code"
+  const [mobileWorkspaceTab, setMobileWorkspaceTab] = useState<
+    "problem" | "code"
+  >("problem");
+
   // Sliding Window Visualizer state (window index: 0 to ARRAY_DATA.length - K_VALUE)
   const [windowIndex, setWindowIndex] = useState(0);
   const maxWindowIndex = ARRAY_DATA.length - K_VALUE; // 6 - 3 = 3
@@ -225,10 +230,44 @@ export function PracticeCodingWorkspace() {
         />
       </div>
 
+      {/* Mobile Mode Switcher: Problem & Explanation vs Code Editor */}
+      <div className="lg:hidden flex items-center justify-center p-2.5 bg-white border-b border-[#f4efe8] sticky top-0 z-20">
+        <div className="flex w-full max-w-sm items-center rounded-xl bg-[#faf6f0] p-1 border border-[#f4efe8]">
+          <button
+            type="button"
+            onClick={() => setMobileWorkspaceTab("problem")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              mobileWorkspaceTab === "problem"
+                ? "bg-white text-brand shadow-xs border border-[#f4efe8]"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            <BookOpen className="size-3.5" />
+            <span>Problem &amp; Visuals</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileWorkspaceTab("code")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              mobileWorkspaceTab === "code"
+                ? "bg-white text-brand shadow-xs border border-[#f4efe8]"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            <CodeXml className="size-3.5" />
+            <span>Code &amp; Execution</span>
+          </button>
+        </div>
+      </div>
+
       {/* 3. Main Two-Column Split Layout */}
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* Left Column (Problem Details & Concept) */}
-        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 lg:p-7 overflow-y-auto">
+        <div
+          className={`flex-1 flex-col gap-4 p-4 sm:p-6 lg:p-7 overflow-y-auto ${
+            mobileWorkspaceTab === "problem" ? "flex" : "hidden lg:flex"
+          }`}
+        >
           {/* Title & Tags Row */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-2">
@@ -787,7 +826,11 @@ export function PracticeCodingWorkspace() {
         <div className="hidden lg:block w-[1px] bg-[#f4efe8] self-stretch" />
 
         {/* Right Column (Code Editor & Test Cases) */}
-        <div className="flex w-full lg:w-[480px] xl:w-[527px] flex-col bg-white border-t lg:border-t-0 border-[#f4efe8]">
+        <div
+          className={`w-full lg:w-[480px] xl:w-[527px] flex-col bg-white border-t lg:border-t-0 border-[#f4efe8] ${
+            mobileWorkspaceTab === "code" ? "flex" : "hidden lg:flex"
+          }`}
+        >
           {/* Panel Tab Header */}
           <div className="flex border-b border-[#f4efe8]">
             <div className="border-b-2 border-brand px-5 py-3 text-[13px] font-semibold text-brand">

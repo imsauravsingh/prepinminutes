@@ -238,7 +238,7 @@ export function ARSceneCanvas({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full min-h-[380px] overflow-hidden select-none ${
+      className={`relative w-full h-full min-h-[250px] sm:min-h-[380px] overflow-hidden select-none ${
         theme === "dark" ? "bg-[#0f0e0d]" : "bg-[#fcfaf6]"
       } ${className}`}
     >
@@ -311,7 +311,10 @@ export function ARSceneCanvas({
       {/* Interactive Helper Overlay hint at bottom */}
       <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 z-10 text-[11px] text-[#9c9384] bg-[#141311]/75 backdrop-blur-sm px-2.5 py-1 rounded-md border border-white/5">
         <Eye className="size-3 text-brand" />
-        <span>Drag to rotate • Scroll to zoom • Right-click to pan</span>
+        <span className="hidden sm:inline">
+          Drag to rotate • Scroll to zoom • Right-click to pan
+        </span>
+        <span className="sm:hidden">Drag to rotate • Pinch to zoom</span>
       </div>
 
       {/* Notification Toast for WebXR info / fallback */}
