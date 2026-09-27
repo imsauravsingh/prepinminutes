@@ -20,6 +20,7 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
 ## 🚀 Complete Feature Inventory
 
 ### 1. Application Shell & Navigation
+
 - **Persistent Sidebar Navigation**:
   - Direct routes: Dashboard (`/dashboard`), Preparation Plan (`/preparation-plan`), Practice (`/practice`), Mock Interview (`/mock-interview`), Evaluation (`/evaluation`), and Revision (`/revision`).
   - Active route highlighting logic with strict isolation so sub-pages (e.g. mock interview evaluations) only highlight their respective parent module.
@@ -33,6 +34,7 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
 ---
 
 ### 2. Candidate Dashboard (`/dashboard`)
+
 - **Readiness Meter**: Real-time circular percentage ring displaying overall interview readiness.
 - **Role & Company Alignment**: Displays candidate's target role (e.g., Senior Software Engineer), target companies (FAANG/Tier-1), and countdown timeline.
 - **Three-Step Onboarding Flow**:
@@ -44,6 +46,7 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
 ---
 
 ### 3. Preparation Plan (`/preparation-plan`)
+
 - **Personalized Learning Roadmaps**: Structured curriculum tailored to candidate's target seniority (Senior, Staff, Principal).
 - **Domain Weighting**: Prioritized breakdown across System Design, Algorithms & Data Structures, Behavioral/Leadership (STAR), and Cloud Architecture.
 - **Progress Tracking**: Completed vs remaining milestones with estimated study hours.
@@ -51,6 +54,7 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
 ---
 
 ### 4. Practice Hub & Interactive Workspaces (`/practice`)
+
 - **Topic Selection (`/practice/choose-topic`)**: Interactive cards across System Design, Coding, Behavioral, and Cloud.
 - **Interactive Practice Sessions**:
   - **System Design (`/practice/session/system-design`)**:
@@ -66,9 +70,11 @@ $$\text{Understand} \longrightarrow \text{Plan} \longrightarrow \text{Practice} 
 ---
 
 ### 5. Mock Interview Module (`/mock-interview/*`)
+
 A dedicated full-length interview simulation ecosystem designed for desktop and mobile devices:
 
 #### A. Main Mock Interview Page (`/mock-interview`)
+
 - **Hero Recommendation Card**: Dynamic banner featuring recommended mock interview based on preparation weak spots (e.g., Senior SWE System Design - URL Shortener).
 - **Interview Type Grid**: 5 specialized categories:
   - Technical (30–45 min)
@@ -81,7 +87,8 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
   - Responsive mobile card view for `< md` screens.
 
 #### B. Mock Configuration Page (`/mock-interview/configure`)
-- 3-step progress stepper: *1. Configure* → *2. Briefing* → *3. Interview*.
+
+- 3-step progress stepper: _1. Configure_ → _2. Briefing_ → _3. Interview_.
 - Configurable parameters:
   - Interview Type (Technical, System Design, Behavioral, Resume, Mixed).
   - Target Role selector (Senior SWE, Staff SWE, Backend, Full Stack, Frontend, EM).
@@ -91,12 +98,14 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 - Live preview summary card (stacked naturally on mobile, sticky on desktop).
 
 #### C. Pre-Interview Briefing Page (`/mock-interview/briefing`)
+
 - Interactive 5-stage interview flow diagram (vertical with down connectors on mobile, horizontal with right connectors on desktop).
 - 6 AI evaluation criteria badges (Technical Depth, Reasoning, Trade-offs, Communication, Problem Solving, Follow-up Handling).
 - Advice card with 3 essential tips before starting.
 - Bottom action bar with full-width mobile CTAs navigating to the live session.
 
 #### D. Live Mock Interview Workspace (`/mock-interview/interview-session`)
+
 - Breadcrumb header with 4-stage progression track (`1: Requirements`, `2: High-Level Architecture`, `3: Deep Dive`, `4: Bottlenecks & Scale`).
 - AI Interviewer profile badge (`Sarah • Staff Infrastructure Engineer`) and pulsing timer pill (`formatTimer / 45:00`).
 - Realistic conversational stream with AI prompts, candidate responses, and clarifying questions.
@@ -107,6 +116,7 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 - Graceful end-of-interview confirmation modal.
 
 #### E. Mock System Design Evaluation (`/mock-interview/system-design/evaluation`)
+
 - **Executive Summary**: 84/100 score ring with **Strong Hire** badge (Top 12% percentile).
 - **Readiness Impact Tracker**: +6% growth (68% → 74%).
 - **AI Evaluator Assessment**: Personalized written breakdown from Staff Infrastructure Engineer evaluator.
@@ -119,6 +129,7 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 ---
 
 ### 6. Evaluation Hub (`/evaluation`)
+
 - Overall readiness progress chart over time.
 - Breakdown by performance area (Algorithms, System Design, Behavioral, Code Quality).
 - Activity logs and weekly score improvements.
@@ -126,6 +137,7 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 ---
 
 ### 7. Revision Module (`/revision`)
+
 - Weakness detection engine identifying recurring candidate gaps from past practice sessions.
 - Spaced repetition revision queues for reinforced retention.
 
@@ -134,6 +146,7 @@ A dedicated full-length interview simulation ecosystem designed for desktop and 
 ## 📱 Mobile & Responsive Architecture
 
 Every page and component has been audited and built to adhere to responsive design principles:
+
 1. **Narrow Viewports (320px – 375px)**:
    - Header breadcrumbs wrap gracefully without horizontal scrollbars.
    - Conversation header keeps avatar on the left and timer pill on the right without overlapping.
@@ -161,14 +174,14 @@ Every page and component has been audited and built to adhere to responsive desi
 
 ## 🏷️ Change Log Summary (Tag: `prepinminutes`)
 
-| Date | Scope | Description |
-|------|-------|-------------|
+| Date       | Scope                     | Description                                                                                                                  |
+| ---------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | 2026-09-27 | Mock Interview Evaluation | Created `/mock-interview/system-design/evaluation` with complete rubric scoring, readiness impact, and strengths/weaknesses. |
-| 2026-09-27 | Sidebar Navigation | Fixed `isEvaluationRoute` to exclude mock interview routes so only "Mock Interview" stays highlighted. |
-| 2026-09-27 | Sidebar Cleanup | Removed "Stay consistent!" widget from mock interview routes for an uncluttered layout. |
-| 2026-09-27 | Live Mock Session | Cloned and tailored `/mock-interview/interview-session` with full audio dock, whiteboard, and tools. |
-| 2026-09-27 | Mobile Responsiveness | Upgraded all mock interview pages with mobile touch padding, fluid headers, and responsive modals. |
-| 2026-09-27 | Mock Briefing & Config | Built `/mock-interview/configure` and `/mock-interview/briefing` multi-step interview launcher. |
-| 2026-09-27 | Mock Interview Main | Built desktop and mobile `/mock-interview` hub with recommendations and past history table/cards. |
+| 2026-09-27 | Sidebar Navigation        | Fixed `isEvaluationRoute` to exclude mock interview routes so only "Mock Interview" stays highlighted.                       |
+| 2026-09-27 | Sidebar Cleanup           | Removed "Stay consistent!" widget from mock interview routes for an uncluttered layout.                                      |
+| 2026-09-27 | Live Mock Session         | Cloned and tailored `/mock-interview/interview-session` with full audio dock, whiteboard, and tools.                         |
+| 2026-09-27 | Mobile Responsiveness     | Upgraded all mock interview pages with mobile touch padding, fluid headers, and responsive modals.                           |
+| 2026-09-27 | Mock Briefing & Config    | Built `/mock-interview/configure` and `/mock-interview/briefing` multi-step interview launcher.                              |
+| 2026-09-27 | Mock Interview Main       | Built desktop and mobile `/mock-interview` hub with recommendations and past history table/cards.                            |
 
 </prepinminutes>
