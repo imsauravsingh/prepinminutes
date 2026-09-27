@@ -13,7 +13,7 @@ export function BriefingBottomBar() {
     if (isStarting) return;
     setIsStarting(true);
     setTimeout(() => {
-      router.push("/practice/session/system-design");
+      router.push("/mock-interview/interview-session");
     }, 450);
   };
 

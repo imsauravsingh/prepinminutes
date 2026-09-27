@@ -19,7 +19,7 @@ export const defaultRecommendedMock: RecommendedMock = {
     "Based on your preparation and recent performance, this mock interview focuses on trade-offs, scalability and failure handling.",
   focusAreas: ["Trade-offs", "Scalability", "Failure Handling"],
   recommendationLabel: "Recommended for you",
-  startUrl: "/practice/session/system-design",
+  startUrl: "/mock-interview/interview-session",
   customizeUrl: "/mock-interview/configure",
 };
 
