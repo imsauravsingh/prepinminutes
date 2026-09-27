@@ -99,6 +99,25 @@ This index is the **single source of truth** for tracking completed, in-progress
       - Description: `Are you ready to submit your code for evaluation? Your implementation will be analyzed across test correctness, algorithmic complexity, and code quality.`
       - Actions: `Continue Session` and `Confirm & Submit`.
     - Mobile touch-stacked action buttons (`flex-col-reverse sm:flex-row`).
+- [x] **AI-Powered 3D/AR Coding Solution & Explanation System (Exclusive to `/practice/session/coding`)**
+  - **Source Files**:
+    - Master Explorer: [`src/components/practice/coding-ar/ARSolutionExplorer.tsx`](../src/components/practice/coding-ar/ARSolutionExplorer.tsx)
+    - Three.js WebGL/WebXR Viewport: [`src/components/practice/coding-ar/ARSceneCanvas.tsx`](../src/components/practice/coding-ar/ARSceneCanvas.tsx)
+    - Step Timeline & Playback Scrubber: [`src/components/practice/coding-ar/ARControls.tsx`](../src/components/practice/coding-ar/ARControls.tsx)
+    - Synchronized Code Viewer: [`src/components/practice/coding-ar/SynchronizedCodeViewer.tsx`](../src/components/practice/coding-ar/SynchronizedCodeViewer.tsx)
+    - Live Variables & State Inspector: [`src/components/practice/coding-ar/LiveVariablesInspector.tsx`](../src/components/practice/coding-ar/LiveVariablesInspector.tsx)
+    - Concise What/Why/Result Card: [`src/components/practice/coding-ar/StepExplanationCard.tsx`](../src/components/practice/coding-ar/StepExplanationCard.tsx)
+    - Algorithmic Complexity Explorer: [`src/components/practice/coding-ar/ComplexityVisualizer.tsx`](../src/components/practice/coding-ar/ComplexityVisualizer.tsx)
+    - Interactive Checkpoint Quiz: [`src/components/practice/coding-ar/LearnWithARQuiz.tsx`](../src/components/practice/coding-ar/LearnWithARQuiz.tsx)
+    - 3D Procedural Scene Builder: [`src/components/practice/coding-ar/renderers/SceneBuilder.ts`](../src/components/practice/coding-ar/renderers/SceneBuilder.ts)
+    - 10 Reference Problems & Execution Traces: [`src/components/practice/coding-ar/problems/index.ts`](../src/components/practice/coding-ar/problems/index.ts)
+  - **Documentation**: [`docs/practice/practice-modes.md`](./practice/practice-modes.md)
+  - **Details**:
+    - Strictly scoped to `/practice/session/coding`; non-destructive (user's code editor is never overwritten).
+    - Procedural Three.js 3D rendering for 8 data structure families (Arrays, Sliding Windows, HashMaps, Stacks, Queues, Linked Lists, Trees, Call Stacks).
+    - WebXR device detection with automatic fallback to interactive 3D WebGL (OrbitControls, zoom, camera reset, light/dark themes).
+    - Step scrubber with auto-play (0.5x–2x speed), keyboard shortcuts (`Space`, `ArrowLeft`, `ArrowRight`, `R`), fullscreen expansion.
+    - Synchronized code line highlights, variable inspector, Big-O comparison metrics, and checkpoint quizzes.
 - [x] **Behavioral (STAR) & Cloud Infrastructure Workspaces**
   - **Source Files**: [`src/components/practice/BehavioralWorkspace.tsx`](../src/components/practice/BehavioralWorkspace.tsx), [`src/components/practice/CloudWorkspace.tsx`](../src/components/practice/CloudWorkspace.tsx)
   - **Documentation**: [`docs/practice/practice-modes.md`](./practice/practice-modes.md)

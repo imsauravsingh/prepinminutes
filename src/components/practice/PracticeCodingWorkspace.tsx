@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   Clock,
   Bookmark,
@@ -20,7 +21,16 @@ import {
   X,
   CodeXml,
   Loader2,
+  Sparkles,
 } from "lucide-react";
+
+const ARSolutionExplorer = dynamic(
+  () =>
+    import("@/components/practice/coding-ar/ARSolutionExplorer").then(
+      (mod) => mod.ARSolutionExplorer,
+    ),
+  { ssr: false },
+);
 
 const INITIAL_CODE_JS = `// Write your solution here
 function maxSubarraySum(arr, k) {
@@ -55,6 +65,7 @@ export function PracticeCodingWorkspace() {
   // Actions
   const [isSaved, setIsSaved] = useState(false);
   const [isReported, setIsReported] = useState(false);
+  const [isAROpen, setIsAROpen] = useState(false);
 
   const router = useRouter();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -240,8 +251,17 @@ export function PracticeCodingWorkspace() {
               </h1>
             </div>
 
-            {/* Action Buttons: Save & Report */}
+            {/* Action Buttons: Explain with AR, Save & Report */}
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsAROpen(true)}
+                className="flex h-[30px] items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-[#ff855f] px-3.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,108,71,0.25)] hover:opacity-95 transition-all cursor-pointer"
+              >
+                <Sparkles className="size-3.5 fill-white" />
+                <span>Explain with AR</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsSaved(!isSaved)}
@@ -592,6 +612,31 @@ export function PracticeCodingWorkspace() {
           {/* Tab Content 2: Solution Tab */}
           {leftTab === "solution" && (
             <div className="rounded-2xl border border-[#f4efe8] bg-white p-5 shadow-sm flex flex-col gap-4 text-xs text-ink">
+              {/* Contextual AR Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl bg-gradient-to-r from-[#fff0ec] to-[#faf6f0] border border-[#ffd8cc] p-3.5 text-xs shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-brand text-white">
+                    <Sparkles className="size-4 fill-white" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-ink">
+                      Understand with Interactive 3D / AR
+                    </span>
+                    <span className="text-[11px] text-ink-muted">
+                      Watch how the window slides and recalculates in O(1)
+                      step-by-step.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAROpen(true)}
+                  className="self-start sm:self-auto rounded-lg bg-brand px-3.5 py-1.5 font-bold text-white shadow-[0_2px_8px_rgba(255,108,71,0.25)] hover:bg-[#eb4a19] transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Launch 3D View →
+                </button>
+              </div>
+
               <h2 className="font-display font-bold text-sm text-ink">
                 Optimal Approach: Sliding Window (O(N) Time, O(1) Space)
               </h2>
@@ -706,8 +751,18 @@ export function PracticeCodingWorkspace() {
                 </div>
               </div>
 
-              {/* Action Buttons: Reset, Run, Submit */}
+              {/* Action Buttons: Explain with AR, Reset, Run, Submit */}
               <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsAROpen(true)}
+                  className="flex h-7 items-center gap-1 rounded-lg border border-brand/30 bg-[#fff0ec] px-2.5 text-xs font-bold text-brand shadow-xs hover:bg-[#ffe5df] transition-colors cursor-pointer"
+                >
+                  <Sparkles className="size-3 text-brand" />
+                  <span className="hidden sm:inline">Explain with AR</span>
+                  <span className="sm:hidden">AR</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleReset}
@@ -933,6 +988,15 @@ export function PracticeCodingWorkspace() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AR Solution Explorer Modal / Workspace Overlay */}
+      {isAROpen && (
+        <ARSolutionExplorer
+          isOpen={isAROpen}
+          onClose={() => setIsAROpen(false)}
+          initialProblemId="max-sum-subarray"
+        />
       )}
     </div>
   );
