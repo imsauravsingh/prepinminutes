@@ -82,7 +82,7 @@ export const defaultMockInterviewHistory: MockInterviewHistoryItem[] = [
     focus: "(Scalability & Architecture)",
     duration: "45 min",
     score: 68,
-    reportUrl: "/session/system-design/evaluation",
+    reportUrl: "/mock-interview/system-design/evaluation",
   },
   {
     id: "hist-2",

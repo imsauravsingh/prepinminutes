@@ -643,7 +643,7 @@ export function MockInterviewSessionWorkspace() {
                 Continue Interview
               </button>
               <Link
-                href="/session/system-design/evaluation"
+                href="/mock-interview/system-design/evaluation"
                 className="w-full sm:w-auto rounded-full bg-red-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-600 cursor-pointer text-center"
               >
                 End Now & View Report

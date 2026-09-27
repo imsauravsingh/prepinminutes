@@ -67,9 +67,10 @@ function SidebarContent() {
   const isMockInterviewRoute =
     pathname === "/mock-interview" || pathname.startsWith("/mock-interview/");
   const isEvaluationRoute =
-    pathname === "/evaluation" ||
-    pathname.startsWith("/evaluation/") ||
-    pathname.includes("/evaluation");
+    !isMockInterviewRoute &&
+    (pathname === "/evaluation" ||
+      pathname.startsWith("/evaluation/") ||
+      pathname.includes("/evaluation"));
   const isRevisionRoute =
     pathname === "/revision" || pathname.startsWith("/revision/");
   const isPracticeRoute =
@@ -227,7 +228,8 @@ function SidebarContent() {
               </div>
             </div>
           </div>
-        ) : isRevisionRoute ? null : isEvaluationRoute ? (
+        ) : isRevisionRoute ||
+          isMockInterviewRoute ? null : isEvaluationRoute ? (
           <div className="relative overflow-hidden rounded-2xl border border-[#fee2e2]/80 bg-gradient-to-b from-[#fff7f5] via-[#fff3f0] to-[#feedeb] p-4 shadow-xs">
             <div className="relative z-10 flex flex-col gap-1.5">
               <div className="flex size-7 items-center justify-center rounded-lg bg-[#fff0ec] text-brand border border-[#ffd8cc]">
