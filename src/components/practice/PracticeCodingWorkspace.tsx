@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Clock,
   Bookmark,
@@ -16,6 +17,9 @@ import {
   Play,
   CheckCircle2,
   XCircle,
+  X,
+  CodeXml,
+  Loader2,
 } from "lucide-react";
 
 const INITIAL_CODE_JS = `// Write your solution here
@@ -52,6 +56,10 @@ export function PracticeCodingWorkspace() {
   const [isSaved, setIsSaved] = useState(false);
   const [isReported, setIsReported] = useState(false);
 
+  const router = useRouter();
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Editor states
   const [language, setLanguage] = useState<"javascript" | "python">(
     "javascript",
@@ -85,6 +93,24 @@ export function PracticeCodingWorkspace() {
     const secs = totalSeconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const handleConfirmSubmit = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      router.push("/practice/session/coding/evaluation");
+    }, 400);
+  };
+
+  useEffect(() => {
+    if (!showSubmitModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isSubmitting) {
+        setShowSubmitModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSubmitModal, isSubmitting]);
 
   const handleLanguageChange = (lang: "javascript" | "python") => {
     setLanguage(lang);
@@ -703,12 +729,13 @@ export function PracticeCodingWorkspace() {
                   </span>
                 </button>
 
-                <Link
-                  href="/practice/session/coding/evaluation"
-                  className="flex h-7 items-center rounded-lg border border-[#f4efe8] bg-white px-3 text-xs font-semibold text-ink shadow-sm hover:bg-[#faf6f0] transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitModal(true)}
+                  className="flex h-7 items-center rounded-lg border border-[#f4efe8] bg-white px-3 text-xs font-semibold text-ink shadow-xs hover:bg-[#faf6f0] hover:text-brand hover:border-[#ffd8cc] transition-all cursor-pointer"
                 >
                   Submit Answer
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -822,7 +849,7 @@ export function PracticeCodingWorkspace() {
                     {runResult.status === "error" && (
                       <XCircle className="size-4 shrink-0 text-red-600 mt-0.5" />
                     )}
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-1 w-full">
                       <span className="font-bold">
                         {runResult.status === "running"
                           ? "Executing code against test cases..."
@@ -833,6 +860,15 @@ export function PracticeCodingWorkspace() {
                           Output: {runResult.output}
                         </span>
                       )}
+                      {runResult.status === "success" && (
+                        <button
+                          type="button"
+                          onClick={() => setShowSubmitModal(true)}
+                          className="mt-1.5 self-start inline-flex items-center gap-1.5 rounded-lg bg-[#10b981] hover:bg-[#059669] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                        >
+                          <span>Submit Solution for Evaluation →</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -841,6 +877,63 @@ export function PracticeCodingWorkspace() {
           </div>
         </div>
       </div>
+
+      {/* Submit Confirmation Modal */}
+      {showSubmitModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmitting) {
+              setShowSubmitModal(false);
+            }
+          }}
+        >
+          <div className="flex w-full max-w-sm sm:max-w-md flex-col gap-4 rounded-2xl sm:rounded-3xl border border-line bg-white p-6 sm:p-7 shadow-2xl text-center animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[#fff0ec] text-brand border border-[#ffd8cc]">
+              <CodeXml className="size-6 stroke-[2.2]" />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <h3 className="font-display font-extrabold text-lg sm:text-xl text-ink leading-tight">
+                Submit Coding Solution?
+              </h3>
+              <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
+                Are you ready to submit your code for evaluation? Your
+                implementation will be analyzed across test correctness,
+                algorithmic complexity, and code quality.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowSubmitModal(false)}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto rounded-xl border border-line bg-white px-5 py-2.5 text-xs sm:text-sm font-semibold text-ink hover:bg-[#faf6f0] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Continue Session
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-[#eb4a19] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-[0_4px_14px_rgba(255,108,71,0.25)] transition-all cursor-pointer disabled:opacity-75"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Evaluating Solution...</span>
+                  </>
+                ) : (
+                  <span>Confirm &amp; Submit</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
