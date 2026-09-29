@@ -27,7 +27,20 @@ docs/
 ├── README.md                                  ← (You are here) Master documentation index
 ├── TASKS.md                                   ← Master Task & Implementation Index (with file references)
 │
+├── plan/                                      ← Phase-Wise Implementation Roadmap & Blueprints
+│   ├── README.md                              ← Master Plan Index & execution roadmap
+│   ├── 00-automation-test-framework.md        ← Phase 0: Test matrix, cloud smoke tests, math assertions
+│   ├── 01-persistence-foundation.md           ← Phase 1: Prisma, Neon PostgreSQL, pgvector, schema & seed
+│   ├── 02-server-infrastructure-clients.md    ← Phase 2: Prisma singleton, Upstash Redis, R2, Gemini SDK
+│   ├── 03-deterministic-domain-core.md        ← Phase 3: Scoring rubric, Bayesian readiness, SM-2 decay
+│   ├── 04-edge-security-and-middleware.md     ← Phase 4: Clerk auth guard, Upstash rate limiting, idempotency
+│   ├── 05-onboarding-and-vector-pipeline.md   ← Phase 5: Profile APIs, resume parser & pgvector pipeline
+│   ├── 06-session-and-evaluation-apis.md      ← Phase 6: Practice submission, mock end, evaluation & revision
+│   ├── 07-realtime-voice-gateway.md           ← Phase 7: Deepgram STT, Cartesia TTS & VAD barge-in gateway
+│   └── 08-frontend-integration-and-verification.md ← Phase 8: Frontend wiring, 43 routes verify & build
+│
 ├── architecture/
+│   ├── infrastructure-setup.md                ← Verified services, Neon, Upstash, R2, Gemini, Voice setup
 │   ├── frontend-architecture.md               ← Next.js 16 App Router, client/server split, layouts
 │   ├── ui-design-system.md                    ← Colors, typography, components, spacing, mobile rules
 │   ├── navigation.md                          ← Sidebar active states, auth guards, mobile drawer
