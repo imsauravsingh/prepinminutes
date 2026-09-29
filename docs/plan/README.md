@@ -118,7 +118,7 @@ Every phase in this roadmap strictly abides by these four non-negotiable rules:
 Each phase relies on keys already provisioned and verified in `.env`:
 
 ```bash
-# Phase 1 & 2: Database & Caching (Configured in .env & Bitwarden)
+# Phase 1 & 2: Database & Caching (Configured in .env & Cloudflare)
 DATABASE_URL="postgresql://[user]:[password]@[endpoint]-pooler.aws.neon.tech/[database]?sslmode=require"
 DIRECT_URL="postgresql://[user]:[password]@[endpoint].aws.neon.tech/[database]?sslmode=require"
 UPSTASH_REDIS_REST_URL="https://[database].upstash.io"
