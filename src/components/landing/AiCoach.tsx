@@ -23,21 +23,21 @@ const highlights = [
 
 export function AiCoach() {
   return (
-    <section className="border-y border-line bg-cream px-[120px] py-[100px]">
-      <div className="flex flex-col items-center gap-16">
+    <section className="border-y border-line bg-cream px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
+      <div className="flex flex-col items-center gap-10 lg:gap-16">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase text-brand">Adaptive Coaching</p>
-          <h2 className="font-display text-[40px] font-extrabold leading-[48px] text-ink">
+          <h2 className="font-display text-[28px] font-extrabold leading-[34px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
             Your preparation should adapt to you
           </h2>
-          <p className="w-[720px] text-base leading-[26px] text-ink-muted">
+          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
             PrepInMinutes continuously updates your study schedule and mocks based on your real
             performance metrics, saving you weeks of misaligned focus.
           </p>
         </div>
 
-        <div className="flex w-full items-center gap-12">
-          <div className="flex flex-1 flex-col gap-6 rounded-3xl border-[1.5px] border-brand bg-white p-8 shadow-[0_12px_12px_rgba(255,108,71,0.07)]">
+        <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-12">
+          <div className="flex flex-1 flex-col gap-6 rounded-3xl border-[1.5px] border-brand bg-white p-6 shadow-[0_12px_12px_rgba(255,108,71,0.07)] sm:p-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="size-2 rounded-full bg-brand" />
@@ -78,7 +78,7 @@ export function AiCoach() {
           </div>
 
           <div className="flex flex-1 flex-col gap-6">
-            <h3 className="font-display text-[32px] font-extrabold leading-10 text-ink">
+            <h3 className="font-display text-2xl font-extrabold leading-8 text-ink sm:text-[32px] sm:leading-10">
               Smart coaching designed to eliminate study guesswork.
             </h3>
             <p className="text-base leading-[26px] text-ink-muted">

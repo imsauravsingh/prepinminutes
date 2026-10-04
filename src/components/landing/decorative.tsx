@@ -96,7 +96,12 @@ export function ProgressRing({
   const offset = circumference * (1 - percentage / 100);
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${size} ${size}`}
+      className="-rotate-90"
+    >
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -116,6 +121,104 @@ export function ProgressRing({
         strokeDasharray={circumference}
         strokeDashoffset={offset}
       />
+    </svg>
+  );
+}
+
+type RadarChartProps = {
+  data: { label: string; value: number }[];
+  size?: number;
+  maxValue?: number;
+  color?: string;
+  gridColor?: string;
+};
+
+export function RadarChart({
+  data,
+  size = 240,
+  maxValue = 100,
+  color = "#ec4899",
+  gridColor = "#f4efe8",
+}: RadarChartProps) {
+  const n = data.length;
+  const center = size / 2;
+  const labelGutter = 34;
+  const maxRadius = size / 2 - labelGutter;
+  const angleFor = (i: number) => -Math.PI / 2 + i * ((2 * Math.PI) / n);
+  const pointAt = (i: number, r: number): [number, number] => {
+    const a = angleFor(i);
+    return [center + r * Math.cos(a), center + r * Math.sin(a)];
+  };
+  const toPoints = (pts: [number, number][]) =>
+    pts.map(([x, y]) => `${x},${y}`).join(" ");
+
+  const rings = [0.25, 0.5, 0.75, 1];
+  const dataPoints = data.map((d, i) =>
+    pointAt(i, (Math.min(d.value, maxValue) / maxValue) * maxRadius),
+  );
+
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${size} ${size}`}
+      className="overflow-visible"
+    >
+      {rings.map((f) => (
+        <polygon
+          key={f}
+          points={toPoints(data.map((_, i) => pointAt(i, maxRadius * f)))}
+          fill="none"
+          stroke={gridColor}
+          strokeWidth={1}
+        />
+      ))}
+      {data.map((_, i) => {
+        const [x, y] = pointAt(i, maxRadius);
+        return (
+          <line
+            key={i}
+            x1={center}
+            y1={center}
+            x2={x}
+            y2={y}
+            stroke={gridColor}
+            strokeWidth={1}
+          />
+        );
+      })}
+      <polygon
+        points={toPoints(dataPoints)}
+        fill={color}
+        fillOpacity={0.18}
+        stroke={color}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      {dataPoints.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={3} fill={color} />
+      ))}
+      {data.map((d, i) => {
+        const [x, y] = pointAt(i, maxRadius + 16);
+        const dx = x - center;
+        const dy = y - center;
+        const anchor = Math.abs(dx) < 4 ? "middle" : dx > 0 ? "start" : "end";
+        const baseline = dy < -4 ? "auto" : dy > 4 ? "hanging" : "middle";
+        return (
+          <text
+            key={d.label}
+            x={x}
+            y={y}
+            textAnchor={anchor}
+            dominantBaseline={baseline}
+            fontSize={10}
+            fontWeight={600}
+            fill="#6b6661"
+          >
+            {d.label}
+          </text>
+        );
+      })}
     </svg>
   );
 }

@@ -3,7 +3,7 @@ import { Hero } from "@/components/landing/Hero";
 import { Problem } from "@/components/landing/Problem";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { AiCoach } from "@/components/landing/AiCoach";
-import { FeaturesBento } from "@/components/landing/FeaturesBento";
+import { Capabilities } from "@/components/landing/Capabilities";
 import { ReadinessScore } from "@/components/landing/ReadinessScore";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/landing/Footer";
@@ -16,7 +16,7 @@ export default function Home() {
       <Problem />
       <HowItWorks />
       <AiCoach />
-      <FeaturesBento />
+      <Capabilities />
       <ReadinessScore />
       <FinalCta />
       <Footer />

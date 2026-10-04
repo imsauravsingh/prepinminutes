@@ -31,25 +31,25 @@ const steps: {
 
 export function HowItWorks() {
   return (
-    <section className="relative overflow-hidden px-[120px] py-[100px]">
+    <section className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
       <RuledLines height={500} spacing={28} opacity={0.4} color="#c9c2b6" />
-      <Blob size={280} color="#93C5FD" opacity={0.12} className="left-[1280px] top-20" />
+      <Blob size={280} color="#93C5FD" opacity={0.12} className="left-[1280px] top-20 hidden lg:block" />
 
-      <div className="relative flex flex-col items-center gap-16">
+      <div className="relative flex flex-col items-center gap-10 lg:gap-16">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-sm font-bold uppercase text-brand">Workflow pipeline</p>
-          <h2 className="font-display text-[40px] font-extrabold leading-[48px] text-ink">
+          <h2 className="font-display text-[28px] font-extrabold leading-[34px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
             How PrepInMinutes Works
           </h2>
-          <p className="w-[720px] text-base leading-[26px] text-ink-muted">
+          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
             A highly intelligent continuous loop designed to take you from a raw candidate to
             fully interview-confident.
           </p>
         </div>
 
-        <div className="flex w-full items-center gap-2">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 lg:flex lg:items-center lg:gap-2">
           {steps.map((step, i) => (
-            <div key={step.number} className="flex flex-1 items-center">
+            <div key={step.number} className="flex items-center lg:flex-1">
               <div
                 className="flex flex-1 flex-col gap-2.5 rounded-2xl border-[1.5px] bg-white p-4"
                 style={{
@@ -67,7 +67,7 @@ export function HowItWorks() {
                 <p className="truncate text-[11px] text-ink-muted">{step.description}</p>
               </div>
               {i < steps.length - 1 && (
-                <ArrowRight className="mx-1 size-3 shrink-0 text-ink-muted" />
+                <ArrowRight className="mx-1 hidden size-3 shrink-0 text-ink-muted lg:block" />
               )}
             </div>
           ))}
