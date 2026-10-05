@@ -86,23 +86,23 @@
 
 ### Phase 2: Server Infrastructure Clients
 
-- [ ] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
+  - **Column**: `Done`
   - **Scope**: Build `withCandidateContext(clerkUserId)` helper ensuring all queries are tenant-scoped.
   - **Deliverable**: `src/server/db/client.ts`
 
-- [ ] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
+  - **Column**: `Done`
   - **Scope**: Centralized REST client with automatic retry and rate-limiting wrapper.
   - **Deliverable**: `src/server/redis/client.ts`
 
-- [ ] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
+  - **Column**: `Done`
   - **Scope**: Presigned URL generator and multipart upload handler for whiteboard PNGs and audio.
   - **Deliverable**: `src/server/storage/r2.ts`
 
-- [ ] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
+  - **Column**: `Done`
   - **Scope**: Client wrapper for `gemini-3.1-flash-lite` and `gemini-embedding-001`.
   - **Deliverable**: `src/server/ai/gemini.ts`
 

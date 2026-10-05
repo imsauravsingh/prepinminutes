@@ -195,7 +195,10 @@
         "commands": [
           "npm test tests/unit/db-tenant.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z"
     },
     {
       "id": "TASK-P2-02",
@@ -219,7 +222,10 @@
         "commands": [
           "npm test tests/unit/redis.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z"
     },
     {
       "id": "TASK-P2-03",
@@ -243,7 +249,10 @@
         "commands": [
           "npm test tests/unit/r2-storage.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z"
     },
     {
       "id": "TASK-P2-04",
@@ -267,7 +276,10 @@
         "commands": [
           "npm test tests/unit/gemini.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z"
     },
     {
       "id": "TASK-P3-01",
