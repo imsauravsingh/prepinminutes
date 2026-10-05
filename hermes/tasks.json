@@ -77,8 +77,9 @@
           "npx prisma validate"
         ]
       },
-      "status": "READY_FOR_REVIEW",
-      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-02",
@@ -106,8 +107,9 @@
           "npx tsx scripts/verify-infra.ts"
         ]
       },
-      "status": "READY_FOR_REVIEW",
-      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-03",
@@ -135,8 +137,9 @@
           "npx prisma db push"
         ]
       },
-      "status": "READY_FOR_REVIEW",
-      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-04",
@@ -164,8 +167,9 @@
           "npx prisma db seed"
         ]
       },
-      "status": "READY_FOR_REVIEW",
-      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P2-01",
