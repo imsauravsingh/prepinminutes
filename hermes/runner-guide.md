@@ -390,14 +390,18 @@ If the project has an approved external documentation workflow, the agent must f
 
 # 16. Hermes Task / Kanban Updates
 
-Hermes MUST maintain the task lifecycle.
+Hermes MUST maintain the task lifecycle in real time.
+
+### Real-Time In-Progress Tracking Rule
+
+> **Mandatory**: Whenever the agent begins progressing or working on a task, it MUST immediately update the status of that task to `IN PROGRESS` in both `hermes/kanban-board.md` and `hermes/tasks.json` before writing code. This allows the user to inspect the exact live task status at any moment.
 
 Recommended status flow:
 
 ```
 TODO
   ↓
-IN PROGRESS
+IN PROGRESS (Updated immediately when work begins)
   ↓
 IMPLEMENTATION COMPLETE
   ↓
@@ -414,11 +418,12 @@ DONE
 
 The agent must update the Hermes Kanban/task status when reaching meaningful milestones:
 
-- **Start**: `IN PROGRESS`
+- **Start of Task**: Immediately set to `IN PROGRESS` in `hermes/kanban-board.md` and `hermes/tasks.json`
 - **Implementation finished**: `IMPLEMENTATION COMPLETE`
 - **Verification started**: `TESTING`
 - **Verification passed**: `TEST PASSED`
 - **PR created**: `PR CREATED`
+- **Ready for review**: `READY FOR REVIEW` (with PR URL recorded)
 - **Final completion**: `DONE`
 
 The agent must not mark a task `DONE` merely because the code was written.
