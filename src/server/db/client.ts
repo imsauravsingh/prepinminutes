@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeonHttp } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -9,10 +10,11 @@ declare global {
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL!;
-  const adapter = new PrismaNeonHttp(connectionString, {} as any);
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
-    adapter: adapter as any,
+    adapter,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
