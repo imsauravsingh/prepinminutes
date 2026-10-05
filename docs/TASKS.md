@@ -191,25 +191,31 @@ This section provides complete implementation specifications for backend enginee
 
 ### 8. Database & Persistence Layer (`prisma/`)
 
-- [ ] **Task 8.1: Prisma Schema & Extensions**
+- [ ] **Task 8.1: Prisma Schema & Extensions (TASK-P1-01)**
   - **Target File**: `prisma/schema.prisma`
   - **Specification**: [`docs/architecture/layers/06-persistence-storage-layer.md`](./architecture/layers/06-persistence-storage-layer.md)
+  - **Connection Configuration**:
+    - `DATABASE_URL`: Neon pooled port (PgBouncer) for high-concurrency serverless query handling.
+    - `DIRECT_URL`: Direct compute instance connection for DDL schema migrations and advisory locks.
+    - `extensions`: `[pgvector(map: "vector")]` for 1536-dimensional embeddings.
+    - `previewFeatures`: `["postgresqlExtensions", "driverAdapters"]`.
   - **Required Models**:
-    - `User`: `id`, `clerkId` (unique), `email` (unique), `fullName`, `createdAt`.
-    - `CandidateProfile`: `userId` (1:1 with User), `targetRole`, `experienceLevel`, `targetCompanies` (string array), `timelineWeeks`, `readinessScore` (int 0–100), `weeklyGoalHours`, `completedHours`, `streakDays`.
-    - `PreparationPlan`: `candidateId`, `targetSeniority`, `status`, `weeksTotal`, `milestones` (JSON).
-    - `Topic`: `domain` (system-design, coding, behavioral, cloud), `slug` (unique), `title`, `difficulty`, `estimatedMinutes`.
-    - `PracticeSession`: `candidateId`, `domain`, `topicSlug`, `durationSeconds`, `status` (`ACTIVE`, `COMPLETED`, `ABANDONED`).
-    - `MockInterviewSession`: `candidateId`, `interviewType`, `targetRole`, `difficulty`, `durationMinutes`, `status` (`CONFIGURING`, `ACTIVE`, `EVALUATING`, `COMPLETED`).
+    - `User`: `id`, `clerkId` (unique), `email` (unique), `fullName`, timestamps.
+    - `CandidateProfile`: `userId` (1:1 with User), `targetRole`, `experienceLevel`, `targetCompanies`, `timelineWeeks`, `readinessScore` (int 0–100), `weeklyGoalHours`, `completedHours`, `streakDays`.
+    - `PreparationPlan`: `candidateId` (1:1 unique), `targetRole`, `targetSeniority`, `timelineWeeks`, `weeklyMilestones` (JSON), `domainWeights` (JSON).
+    - `CurriculumDomain`: `slug` (unique: `system-design`, `coding`, `behavioral`, `cloud`), `name`, `description`.
+    - `CurriculumCategory`: `domainId`, `slug`, `name`, `description`, `order`.
+    - `CurriculumTopic`: `domainId`, `categoryId`, `slug` (unique), `title`, `description`, `durationMin`, `difficulty`, `rubricAtoms` (string array).
+    - `CurriculumQuestion`: `topicId`, `title`, `prompt`, `targetLevel`, `hints`, `rubricGuide`, `starterCode`, `testCases`.
+    - `TopicEmbedding`: `topicId`, `content`, `embedding` (`vector(1536)`).
+    - `CandidateTopicMastery`: `candidateId`, `topicId`, `masteryScore`, `status`, `cognitiveStage`, `totalAttempts`, `lastPracticedAt`, `intervalDays`, `easeFactor`, `nextReviewDate`, and dimension running averages.
+    - `PracticeSession`: `candidateId`, `topicId`, `domain`, `topicSlug`, `durationSeconds`, `status`, `whiteboardUrl`, `codeSubmission`.
+    - `MockInterviewSession`: `candidateId`, `interviewType`, `targetRole`, `difficulty`, `durationMinutes`, `status`, `recordingUrl`, `transcript` (JSON).
     - `EvaluationReport`: `practiceId` / `mockId` (1:1 unique), `overallScore`, `verdict`, `readinessDelta`, `evaluatorNotes`, `strengths`, `improvements`.
-    - `RubricScore`: `reportId` (foreign key), `dimension` (enum), `score` (float 1.0–10.0), `assessment` (text).
-    - `RevisionItem`: `candidateId`, `topicId`, `intervalDays`, `easeFactor` (float), `repetitions` (int), `nextReviewDate` (DateTime indexed).
-    - `DocumentEmbedding`: `candidateId`, `docType` (`resume` | `job_description`), `content` (text), `embedding` (`vector(1536)`).
-  - **Commands**:
-    ```bash
-    npx prisma migrate dev --name init_platform_schema
-    npx prisma generate
-    ```
+    - `RubricScore`: `reportId` (foreign key), `dimension`, `score` (float 1.0–10.0), `assessment`, `missingAtoms` (string array).
+    - `RevisionItem`: `candidateId`, `topicId`, `intervalDays`, `easeFactor` (float), `repetitions`, `nextReviewDate` (DateTime indexed).
+    - `DocumentEmbedding`: `candidateId`, `docType` (`resume` | `job_description`), `content`, `embedding` (`vector(1536)`).
+  - **Verification**: Passes `npx prisma validate` with 0 errors.
 - [ ] **Task 8.2: Database Client Singleton & Tenant Scoping**
   - **Target File**: `src/server/db/client.ts`
   - **Specification**: [`docs/architecture/layers/06-persistence-storage-layer.md`](./architecture/layers/06-persistence-storage-layer.md)

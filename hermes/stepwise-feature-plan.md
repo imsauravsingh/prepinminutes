@@ -51,10 +51,21 @@ flowchart TD
   - **Cartesia**: Probes `GET /voices` via Cartesia API.
 - **Clearance**: Returns exit code 0 when all 6 services report healthy.
 
-### Step 0.2: Master Test Orchestrator (`scripts/verify-all.ts`)
+### Step 0.3: Specialist Agent Profiles & Quality Gate Protocols
 
-- **Objective**: Consolidated dashboard executing all phase unit and integration suites in sequence.
-- **Deliverable**: Color-coded terminal summary matrix reporting pass/fail counts and execution times.
+Hermes spawns task-specialized worker agents based on the task domain. Each specialist must enforce specific quality gates before marking a task complete:
+
+| Specialist Profile | Domain Ownership | Mandatory Quality Gates |
+| :--- | :--- | :--- |
+| **`database-architect`** | `prisma/schema.prisma`, migrations | `npx prisma validate`, migration DDL audit, public schema verification. |
+| **`infrastructure-engineer`**| Pooled/Direct DB clients, R2/Redis | Live ping/probe tests, `@prisma/adapter-neon` socket assertions. |
+| **`backend-developer`** | API route handlers (`/api/*`), tenant isolation | Zod schema validation, unit tests for request mocks, integration API tests. |
+| **`math-engineer`** | Scoring, Bayesian readiness, SM-2 decay | **100% boundary unit tests** (min/max scores, EMA momentum, EF decay). Zero LLM inference allowed. |
+| **`security-engineer`** | Edge middleware, rate limiting, idempotency | Route isolation unit tests, HTTP 429 Retry-After assertions, 24h cache hits. |
+| **`ai-engineer`** | Gemini structured JSON, pgvector embeddings | Strict JSON schema output without backticks, 1536-dim vector cosine lookup. |
+| **`voice-engineer`** | Deepgram STT, Cartesia TTS, Barge-in | Sub-80ms STT latency, sub-50ms TTS first-byte, sub-100ms VAD interruption test. |
+| **`frontend-developer`** | Component wiring, submit modals, visualizers | UI regression tests, form hydration, submit confirmation modal flows. |
+| **`qa-engineer`** | Master test orchestration, production build | `npm test`, `npm run typecheck`, `npm run lint`, clean `npm run build` across 43 routes. |
 
 ---
 
@@ -62,22 +73,31 @@ flowchart TD
 
 ### Step 1.1: Database Schema Authoring (`prisma/schema.prisma`)
 
-- **Objective**: Define the 10 core domain models, native PostgreSQL enums, and `pgvector(1536)` extension.
-- **Models**:
-  1. `User`: Clerk tenant anchor (`clerkId` unique, `email` unique).
-  2. `CandidateProfile`: Role preferences, seniority, target companies, weekly goals, streak days, overall readiness score.
-  3. `PreparationPlan`: Adaptive roadmap milestones stored as structured JSON.
-  4. `Topic`: Global curriculum catalog (4 domains: System Design, Coding, Behavioral, Cloud).
-  5. `PracticeSession`: Coding/whiteboard self-paced practice with R2 asset links.
-  6. `MockInterviewSession`: Real-time AI interview turns, transcripts, and audio links.
-  7. `EvaluationReport`: Polymorphic 1:1 link to practice or mock sessions with 0–100 score, verdict, strengths, and improvements.
-  8. `RubricScore`: 5-dimension rubric breakdown (1.0–10.0 scale with qualitative assessments).
-  9. `RevisionItem`: SuperMemo-2 spaced repetition tracking with compound index `@@index([userId, nextReviewDate])`.
-  10. `DocumentEmbedding`: 1,536-dimensional vector chunks for candidate resumes and job descriptions.
-- **Dual Connection Setup**:
-  - `DATABASE_URL`: Neon pooled port (PgBouncer) for high-concurrency serverless application queries.
-  - `DIRECT_URL`: Direct compute instance for advisory locks and DDL migrations.
-- **Clearance**: `npx prisma validate` reports schema validity.
+- **Objective**: Author the complete relational models, PostgreSQL extensions, and candidate mastery architecture in `prisma/schema.prisma`.
+- **Datasource & Generator Specification**:
+  - `provider = "postgresql"`
+  - `url = env("DATABASE_URL")` (Neon pooled connection with `-pooler`)
+  - `directUrl = env("DIRECT_URL")` (Neon direct compute connection for migrations)
+  - `extensions = [pgvector(map: "vector")]`
+  - `previewFeatures = ["postgresqlExtensions", "driverAdapters"]`
+- **Complete Model Catalog**:
+  1. `User`: Clerk tenant anchor (`id`, `clerkId` unique, `email` unique, `fullName`, `createdAt`, `updatedAt`).
+  2. `CandidateProfile`: Role preferences, seniority, target companies, weekly goals, streak days, overall readiness score (1:1 with `User`).
+  3. `PreparationPlan`: Adaptive syllabus milestones stored as structured JSON, domain weighting breakdown (1:1 with `CandidateProfile`).
+  4. `CurriculumDomain`: Top-level domains (`system-design`, `coding`, `behavioral`, `cloud`).
+  5. `CurriculumCategory`: Sub-patterns within domains (e.g. `partitioning-sharding`, `two-pointers`, `sliding-window`).
+  6. `CurriculumTopic`: Atomic curriculum topics with difficulty, duration, and `rubricAtoms: String[]` (e.g., `["virtual nodes", "hash ring"]`).
+  7. `CurriculumQuestion`: Concrete interview challenges with prompts, hints, starter code templates, and rubric guidelines.
+  8. `TopicEmbedding`: 1,536-dimensional vector embedding chunks for semantic concept matching (`Unsupported("vector(1536)")`).
+  9. `CandidateTopicMastery`: Granular candidate understanding state (`masteryScore: Float`, `cognitiveStage: String`, `intervalDays`, `easeFactor`, `nextReviewDate`, and running rubric averages).
+  10. `PracticeSession`: Coding/whiteboard self-paced practice with duration, status, whiteboard R2 URL, and code submissions.
+  11. `MockInterviewSession`: Real-time AI interview sessions with target role, audio recording R2 key, full conversational transcripts, and evaluations.
+  12. `EvaluationReport`: 1:1 polymorphic evaluation link for practice or mock interviews with overall 0–100 score, verdict, readiness delta, strengths, and improvements.
+  13. `RubricScore`: 5-dimension rubric breakdown (1.0–10.0 scale, evaluator assessments, and `missingAtoms: String[]`).
+  14. `RevisionItem`: SuperMemo-2 spaced repetition tracking with compound index `@@index([candidateId, nextReviewDate])`.
+  15. `DocumentEmbedding`: 1,536-dimensional vector chunks for candidate resumes and job descriptions.
+- **Reference Document**: Complete reference schema is documented in [`docs/architecture/layers/06-persistence-storage-layer.md`](../docs/architecture/layers/06-persistence-storage-layer.md).
+- **Clearance**: `npx prisma validate` reports zero syntax or relation errors.
 
 ### Step 1.2: Database Migration Push to Neon
 
