@@ -307,7 +307,10 @@
         "commands": [
           "npm test tests/unit/scoring.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z"
     },
     {
       "id": "TASK-P3-02",
@@ -331,7 +334,10 @@
         "commands": [
           "npm test tests/unit/readiness.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z"
     },
     {
       "id": "TASK-P3-03",
@@ -355,7 +361,10 @@
         "commands": [
           "npm test tests/unit/spaced-repetition.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z"
     },
     {
       "id": "TASK-P4-01",
