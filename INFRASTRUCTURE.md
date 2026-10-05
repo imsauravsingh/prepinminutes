@@ -173,9 +173,9 @@ This triggers a normal new deploy with the revert applied. Use this after an ins
 
 | Environment | Trigger                           | URL                                     | Data              |
 | ----------- | --------------------------------- | --------------------------------------- | ----------------- |
-| Local       | `npm run dev`                     | localhost                               | mocked/local      |
-| Preview     | Any PR / any non-main branch push | auto-generated `*.pages.dev` per deploy | staging/test data |
-| Production  | Merge to `main`                   | prepinminutes production domain         | real data         |
+| Local       | `npm run dev`                     | `http://localhost:3000`                 | mocked/local      |
+| Preview     | Any PR / non-main branch push     | auto-generated `*.workers.dev` per deploy | staging/test data |
+| Production  | Merge to `main`                   | `https://prepinminutes.com`             | real data         |
 
 ## 8. Monitoring (MVP baseline)
 

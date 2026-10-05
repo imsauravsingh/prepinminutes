@@ -101,6 +101,13 @@ AI services provide:
 
 Infrastructure includes cloud deployment, object storage, caching/queues, monitoring, logging, error tracking and backups.
 
+## 🌐 Environments & Live Deployments
+
+| Environment | Branch | Domain / URL | Runtime | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **Production** | `main` | [`prepinminutes.com`](https://prepinminutes.com) | Cloudflare Worker / Edge | Live environment. Gated with early-access launch gate. |
+| **Local** | `develop` / `feature/*` | `http://localhost:3000` | Next.js Dev Server | Local development with `.env` secrets. |
+
 ## 📌 Product Principle
 
 > **PrepInMinutes should not simply tell candidates what they can learn. It should tell them what they should do next to become interview-ready.**
