@@ -115,7 +115,7 @@ Every phase in this roadmap strictly abides by these four non-negotiable rules:
 
 ## ⚙️ Environment Variables Cross-Reference
 
-Each phase relies on keys already provisioned and verified in `.env`:
+Each phase relies on keys already provisioned and verified in file `.env`:
 
 ```bash
 # Phase 1 & 2: Database & Caching (Configured in .env & Cloudflare)
