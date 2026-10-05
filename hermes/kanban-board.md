@@ -4,14 +4,11 @@
 
 ---
 
-## 📊 Board Overview & Columns
+## 📊 Live Visual Kanban Board
 
-| Column                        | Description                                       | WIP Limit |
-| :---------------------------- | :------------------------------------------------ | :-------: |
-| 📋 **Backlog**                | Defined tasks queued for development              | $\infty$  |
-| 🔄 **In Progress**            | Actively being coded                              |     2     |
-| 🧪 **Testing & Verification** | Code written, automated test suite executing      |     2     |
-| ✅ **Done (Cleared)**         | 100% tests passing, zero UI regressions, verified | $\infty$  |
+| 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
+| :--- | :--- | :--- | :--- |
+| `TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #4 Open**:<br>`TASK-P2-01`: Prisma Tenant<br>`TASK-P2-02`: Upstash Redis<br>`TASK-P2-03`: Cloudflare R2<br>`TASK-P2-04`: Gemini SDK | **PR #3 Merged**:<br>`TASK-P1-01`: Prisma Schema<br>`TASK-P1-02`: Neon Pool Client<br>`TASK-P1-03`: Neon DB Push<br>`TASK-P1-04`: 135 Topics Seed |
 
 ---
 
@@ -86,23 +83,23 @@
 
 ### Phase 2: Server Infrastructure Clients
 
-- [ ] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
+  - **Column**: `Done`
   - **Scope**: Build `withCandidateContext(clerkUserId)` helper ensuring all queries are tenant-scoped.
   - **Deliverable**: `src/server/db/client.ts`
 
-- [ ] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
+  - **Column**: `Done`
   - **Scope**: Centralized REST client with automatic retry and rate-limiting wrapper.
   - **Deliverable**: `src/server/redis/client.ts`
 
-- [ ] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
+  - **Column**: `Done`
   - **Scope**: Presigned URL generator and multipart upload handler for whiteboard PNGs and audio.
   - **Deliverable**: `src/server/storage/r2.ts`
 
-- [ ] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
+  - **Column**: `Done`
   - **Scope**: Client wrapper for `gemini-3.1-flash-lite` and `gemini-embedding-001`.
   - **Deliverable**: `src/server/ai/gemini.ts`
 
