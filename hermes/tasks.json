@@ -77,7 +77,8 @@
           "npx prisma validate"
         ]
       },
-      "status": "TEST_PASSED"
+      "status": "READY_FOR_REVIEW",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
     },
     {
       "id": "TASK-P1-02",
@@ -105,7 +106,8 @@
           "npx tsx scripts/verify-infra.ts"
         ]
       },
-      "status": "TEST_PASSED"
+      "status": "READY_FOR_REVIEW",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
     },
     {
       "id": "TASK-P1-03",
@@ -133,7 +135,8 @@
           "npx prisma db push"
         ]
       },
-      "status": "TEST_PASSED"
+      "status": "READY_FOR_REVIEW",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
     },
     {
       "id": "TASK-P1-04",
@@ -161,7 +164,8 @@
           "npx prisma db seed"
         ]
       },
-      "status": "TEST_PASSED"
+      "status": "READY_FOR_REVIEW",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3"
     },
     {
       "id": "TASK-P2-01",
