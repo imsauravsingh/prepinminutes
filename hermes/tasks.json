@@ -579,7 +579,8 @@
       },
       "status": "DONE",
       "startedAt": "2026-10-05T21:05:00Z",
-      "completedAt": "2026-10-05T21:15:00Z"
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-02",
@@ -610,7 +611,8 @@
       },
       "status": "DONE",
       "startedAt": "2026-10-05T21:05:00Z",
-      "completedAt": "2026-10-05T21:15:00Z"
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-03",
@@ -639,7 +641,8 @@
       },
       "status": "DONE",
       "startedAt": "2026-10-05T21:05:00Z",
-      "completedAt": "2026-10-05T21:15:00Z"
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-04",
@@ -668,7 +671,8 @@
       },
       "status": "DONE",
       "startedAt": "2026-10-05T21:05:00Z",
-      "completedAt": "2026-10-05T21:15:00Z"
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P7-01",
