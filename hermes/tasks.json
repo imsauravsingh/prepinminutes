@@ -391,7 +391,10 @@
         "commands": [
           "npm test tests/unit/middleware-auth.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z"
     },
     {
       "id": "TASK-P4-02",
@@ -417,7 +420,10 @@
         "commands": [
           "npm test tests/unit/rate-limiter.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z"
     },
     {
       "id": "TASK-P4-03",
@@ -443,7 +449,10 @@
         "commands": [
           "npm test tests/unit/idempotency.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z"
     },
     {
       "id": "TASK-P5-01",
