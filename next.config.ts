@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+// Cloudflare Deploy Guard: Ensure Cloudflare only builds/deploys the 'main' branch
+const isCloudflareCI = process.env.WORKERS_CI === "1" || !!process.env.CF_PAGES;
+const cfBranch = process.env.WORKERS_CI_BRANCH || process.env.CF_PAGES_BRANCH;
+
+if (isCloudflareCI && cfBranch && cfBranch !== "main") {
+  throw new Error(
+    `[Cloudflare Deploy Guard] Deployment trigger blocked: '${cfBranch}' is not authorized for Cloudflare deployment. ` +
+      `Only the 'main' branch triggers Cloudflare Worker deployments. ` +
+      `Ensure Preview Builds are disabled in Cloudflare Dashboard: Settings -> Build -> Branch control.`,
+  );
+}
+
 if (
   process.env.NODE_ENV === "production" &&
   !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY

@@ -17,19 +17,23 @@ This document defines how PrepInMinutes ships code — from a merged pull reques
 - **Phase 1 (now):** CSR/static — pages built with `next build` + `output: 'export'`, shipped as static HTML/JS/CSS. No Node.js server, no Cloudflare Functions/Workers involved yet. This is what §4's build settings target.
 - **Phase 2 (later, once SSR is actually needed):** move to a server-rendered Next.js build. This changes the Cloudflare build command/output and adapter — see **"Migrating to SSR"** in §4. Nothing about the CI pipeline (§3), domain, or rollback model (§5) changes when this happens.
 
-## 3. Branching Strategy
+## 3. Branching Strategy & Deployment Triggers
 
-| Branch               | Purpose                                                          | Deploys to        |
-| -------------------- | ---------------------------------------------------------------- | ----------------- |
-| `main`               | Production-ready code only                                       | Production (auto) |
-| `develop`            | Integration branch, in-progress work                             | Preview (auto)    |
-| `feature/*`, `fix/*` | Individual work branches, opened as PRs into `develop` or `main` | PR Preview (auto) |
+| Branch               | Purpose                                                          | Cloudflare Worker Trigger | Deployment Target |
+| -------------------- | ---------------------------------------------------------------- | :-----------------------: | ----------------- |
+| `main`               | Production-ready, verified code only                             |     ✅ **Auto-Trigger**   | Production (`https://prepinminutes.com`) |
+| `develop`            | Active integration & Hermes feature development                 |     ❌ **No Trigger**     | Local / Server verification only |
+| `feature/*`, `fix/*` | Isolated feature branches                                        |     ❌ **No Trigger**     | Local development only |
 
 **Rules:**
 
-- `main` is protected: no direct pushes, PRs required, at least 1 approval, required checks must pass (see §3).
-- Every PR (into `develop` or `main`) gets its own ephemeral preview deployment for review — nothing gets merged unseen.
-- `develop` → `main` is promoted via PR once a batch of work is verified on the `develop` preview.
+- **Production Only on `main`**: Pushes or merges to `main` are the **only** actions that trigger automated Cloudflare Worker deployments.
+- **`develop` Trigger Disabled**: Pushes to `develop` do **not** trigger Cloudflare builds. In-progress work and intermediate commits on `develop` remain completely decoupled from production and preview deployments, preventing unnecessary build churn, broken edge states, or accidental deployments.
+- **Three-Layer Trigger Decoupling**:
+  1. **Dashboard Level (Primary)**: In the Cloudflare Dashboard (`Workers & Pages > prepinminutes > Settings > Build > Branch control`), uncheck **"Enable Preview Builds"** (or set Preview branches to **None**). Cloudflare will completely ignore git push events on `develop`.
+  2. **Code Guard Level (`next.config.ts`)**: Built-in guard checks `WORKERS_CI_BRANCH` and `CF_PAGES_BRANCH`. If Cloudflare CI ever runs on a branch other than `main`, it immediately halts the build with an explicit error.
+  3. **Commit Level (Optional)**: Commit messages on `develop` can append `[skip ci]` for extra safety.
+- **Promotion via PR**: Features are merged into `develop` for integration testing. Once verified by Hermes and automated quality gates, `develop` is promoted to `main` via Pull Request, triggering the live Cloudflare Worker deploy.
 
 ## 4. CI — GitHub Actions
 
@@ -123,16 +127,23 @@ jobs:
 
    With this, `next build` alone produces the `out/` directory — no separate `next export` step (that command is deprecated in current Next.js).
 
-4. Set **Production branch** = `main`. Every other branch/PR deploys as a **Preview Deployment** automatically — no extra config needed.
-5. Add the custom domain under the Pages project's **Custom Domains** tab.
-6. Set environment variables in the Pages project settings (per environment: Production / Preview) — never commit secrets to the repo.
+4. **Branch Trigger Configuration (Workers Builds / Pages)**:
+   - Go to **Workers & Pages** -> Select **prepinminutes** -> **Settings** -> **Build** (or **Builds & deployments**).
+   - Set **Production branch** to `main`.
+   - Under **Branch control** (or **Preview branch control**):
+     - Uncheck **"Enable Preview Builds"** (or select **"None"** / **"Disabled"**).
+     - Save changes.
+   - *Result*: Pushes to `develop` and feature branches will **never** trigger Cloudflare builds or deployments. Only pushes or merges to `main` will trigger the live Worker build.
+   - As a secondary safety net, `next.config.ts` includes a `Cloudflare Deploy Guard` that halts any unauthorized preview build if triggered.
+5. Add the custom domain under the Worker/Pages project's **Custom Domains** tab (`prepinminutes.com`).
+6. Set environment variables in the project settings for the Production environment — never commit secrets to the repo.
 
 **Flow:**
 
 ```
-PR opened → CI runs + Cloudflare Preview deploy → review on preview URL
-   → PR approved + CI green → merge to main
-   → Cloudflare auto-builds main → promotes to Production (auto)
+Commits to develop → Local & Hermes autonomous verification (Zero Cloudflare build triggered)
+   → PR to main created & approved
+   → Merge to main → Cloudflare auto-builds main → deploys to Production (Auto)
 ```
 
 ### Migrating to SSR (Phase 2, when needed)
@@ -171,11 +182,11 @@ This triggers a normal new deploy with the revert applied. Use this after an ins
 
 ## 7. Environments Summary
 
-| Environment | Trigger                           | URL                                     | Data              |
-| ----------- | --------------------------------- | --------------------------------------- | ----------------- |
-| Local       | `npm run dev`                     | `http://localhost:3000`                 | mocked/local      |
-| Preview     | Any PR / non-main branch push     | auto-generated `*.workers.dev` per deploy | staging/test data |
-| Production  | Merge to `main`                   | `https://prepinminutes.com`             | real data         |
+| Environment | Trigger Branch                    | Cloudflare Deployment Trigger | URL                                     | Data              |
+| ----------- | --------------------------------- | :---------------------------: | --------------------------------------- | ----------------- |
+| **Local**   | `develop` / `feature/*`           | ❌ **None**                   | `http://localhost:3000`                 | mocked/local      |
+| **Hermes**  | `develop` (Remote VPS)            | ❌ **None**                   | `https://hermes.prepinminutes.com`     | dev/staging       |
+| **Production** | Merge to `main`                | ✅ **Auto-Trigger**           | `https://prepinminutes.com`             | production data   |
 
 ## 8. Monitoring (MVP baseline)
 

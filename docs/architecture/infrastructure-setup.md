@@ -227,6 +227,25 @@ PrepInMinutes deploys to **Cloudflare**:
 - **Database Connectivity in Workers**:
   - Prisma Client connects to Neon inside Cloudflare Workers using `@neondatabase/serverless` via `@prisma/adapter-neon`, enabling queries over WebSockets/Fetch without TCP socket limitations.
 
+### 5.3. Branch Trigger Policy & Cloudflare Worker Decoupling
+
+| Branch | Cloudflare Deployment Trigger | Target Environment | Notes |
+| :--- | :---: | :--- | :--- |
+| **`main`** | ✅ **Auto-Trigger** | Production (`https://prepinminutes.com`) | Merging PR to `main` deploys the live Worker |
+| **`develop`** | ❌ **No Trigger (Disabled)** | Local & Remote Hermes VPS (`129.225.125.67`) | Preview builds disabled in dashboard & blocked via `next.config.ts` |
+| **`feature/*`** | ❌ **No Trigger (Disabled)** | Isolated local development | Zero Cloudflare build triggered |
+
+#### How `develop` is Decoupled from Cloudflare:
+1. **Cloudflare Dashboard Branch Control**:
+   - In Cloudflare Dashboard -> **Workers & Pages** -> **prepinminutes** -> **Settings** -> **Build** (or **Builds & deployments**):
+   - **Production branch** is set to `main`.
+   - **Preview Builds** is unchecked / set to **None**. Cloudflare completely ignores GitHub webhook push events for `develop`.
+2. **Code Guard Safeguard (`next.config.ts`)**:
+   - `next.config.ts` checks `WORKERS_CI_BRANCH` and `CF_PAGES_BRANCH`. If any build is attempted on a non-main branch in Cloudflare CI, it immediately halts with an explicit error.
+3. **Commit Convention**:
+   - Commits pushed to `develop` can optionally include `[skip ci]`.
+
+
 ---
 
 ## 6. Service Health Check Runbook
