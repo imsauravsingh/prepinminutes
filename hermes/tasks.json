@@ -482,7 +482,11 @@
         "commands": [
           "npm test tests/integration/api-profile.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P5-02",
@@ -509,7 +513,11 @@
         "commands": [
           "npm test tests/integration/api-resume-embedding.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P5-03",
@@ -536,7 +544,11 @@
         "commands": [
           "npm test tests/integration/api-plan-generate.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P6-01",
