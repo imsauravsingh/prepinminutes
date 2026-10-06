@@ -576,7 +576,10 @@
         "commands": [
           "npm test tests/integration/api-practice-submit.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z"
     },
     {
       "id": "TASK-P6-02",
@@ -604,7 +607,10 @@
         "commands": [
           "npm test tests/integration/api-mock-end.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z"
     },
     {
       "id": "TASK-P6-03",
@@ -630,7 +636,10 @@
         "commands": [
           "npm test tests/integration/api-evaluation-report.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z"
     },
     {
       "id": "TASK-P6-04",
@@ -656,7 +665,10 @@
         "commands": [
           "npm test tests/integration/api-revision-sync.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z"
     },
     {
       "id": "TASK-P7-01",
