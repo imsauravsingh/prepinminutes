@@ -76,7 +76,10 @@
         "commands": [
           "npx prisma validate"
         ]
-      }
+      },
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-02",
@@ -103,7 +106,10 @@
           "npm run typecheck",
           "npx tsx scripts/verify-infra.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-03",
@@ -130,7 +136,10 @@
         "commands": [
           "npx prisma db push"
         ]
-      }
+      },
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P1-04",
@@ -157,7 +166,10 @@
           "npm run typecheck",
           "npx prisma db seed"
         ]
-      }
+      },
+      "status": "DONE",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/3",
+      "completedAt": "2026-10-05T19:00:00Z"
     },
     {
       "id": "TASK-P2-01",
@@ -183,7 +195,11 @@
         "commands": [
           "npm test tests/unit/db-tenant.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/4"
     },
     {
       "id": "TASK-P2-02",
@@ -207,7 +223,11 @@
         "commands": [
           "npm test tests/unit/redis.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/4"
     },
     {
       "id": "TASK-P2-03",
@@ -231,7 +251,11 @@
         "commands": [
           "npm test tests/unit/r2-storage.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/4"
     },
     {
       "id": "TASK-P2-04",
@@ -255,7 +279,11 @@
         "commands": [
           "npm test tests/unit/gemini.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:15:00Z",
+      "completedAt": "2026-10-05T19:25:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/4"
     },
     {
       "id": "TASK-P3-01",
@@ -264,7 +292,7 @@
       "column": "Backlog",
       "assignee": "math-engineer",
       "priority": "HIGH",
-      "scope": "Pure mathematical calculation of 0–100 overall score using weighted harmonic mean.",
+      "scope": "Pure mathematical calculation of 0\u2013100 overall score using weighted harmonic mean.",
       "deliverables": [
         "src/server/domain/scoring.ts"
       ],
@@ -279,7 +307,11 @@
         "commands": [
           "npm test tests/unit/scoring.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/5"
     },
     {
       "id": "TASK-P3-02",
@@ -303,7 +335,11 @@
         "commands": [
           "npm test tests/unit/readiness.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/5"
     },
     {
       "id": "TASK-P3-03",
@@ -327,7 +363,11 @@
         "commands": [
           "npm test tests/unit/spaced-repetition.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T19:35:00Z",
+      "completedAt": "2026-10-05T19:50:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/5"
     },
     {
       "id": "TASK-P4-01",
@@ -351,7 +391,11 @@
         "commands": [
           "npm test tests/unit/middleware-auth.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/6"
     },
     {
       "id": "TASK-P4-02",
@@ -377,7 +421,11 @@
         "commands": [
           "npm test tests/unit/rate-limiter.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/6"
     },
     {
       "id": "TASK-P4-03",
@@ -403,7 +451,11 @@
         "commands": [
           "npm test tests/unit/idempotency.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:00:00Z",
+      "completedAt": "2026-10-05T20:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/6"
     },
     {
       "id": "TASK-P5-01",
@@ -430,7 +482,11 @@
         "commands": [
           "npm test tests/integration/api-profile.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P5-02",
@@ -457,7 +513,11 @@
         "commands": [
           "npm test tests/integration/api-resume-embedding.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P5-03",
@@ -484,7 +544,11 @@
         "commands": [
           "npm test tests/integration/api-plan-generate.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T20:25:00Z",
+      "completedAt": "2026-10-05T20:45:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/7"
     },
     {
       "id": "TASK-P6-01",
@@ -512,7 +576,11 @@
         "commands": [
           "npm test tests/integration/api-practice-submit.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-02",
@@ -540,7 +608,11 @@
         "commands": [
           "npm test tests/integration/api-mock-end.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-03",
@@ -566,7 +638,11 @@
         "commands": [
           "npm test tests/integration/api-evaluation-report.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P6-04",
@@ -592,7 +668,11 @@
         "commands": [
           "npm test tests/integration/api-revision-sync.test.ts"
         ]
-      }
+      },
+      "status": "DONE",
+      "startedAt": "2026-10-05T21:05:00Z",
+      "completedAt": "2026-10-05T21:15:00Z",
+      "pr": "https://github.com/imsauravsingh/prepinminutes/pull/8"
     },
     {
       "id": "TASK-P7-01",

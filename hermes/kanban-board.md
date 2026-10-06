@@ -4,16 +4,11 @@
 
 ---
 
-## 📊 Board Overview & Columns
+## 📊 Live Visual Kanban Board
 
-| Column                        | Description                                       | WIP Limit |
-| :---------------------------- | :------------------------------------------------ | :-------: |
-| 📋 **Backlog**                | Defined tasks queued for development              | $\infty$  |
-| 🔄 **In Progress**            | Actively being coded                              |     2     |
-| 🧪 **Testing & Verification** | Code written, automated test suite executing      |     2     |
-| ✅ **Done (Cleared)**         | 100% tests passing, zero UI regressions, verified | $\infty$  |
-
-> ⚡ **Live Status Tracking Requirement**: Whatever task an agent is currently progressing **must immediately be updated to `IN PROGRESS` (or claimed as `running`) on the Kanban board**. This guarantees the board continuously reflects real-time operational status.
+| 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
+| :--- | :--- | :--- | :--- |
+| `TASK-P7-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #8 Open**:<br>`TASK-P6-01`: Practice Submit & Eval<br>`TASK-P6-02`: Mock End & Grade<br>`TASK-P6-03`: Report Detail API<br>`TASK-P6-04`: Spaced Revision Sync | **PR #3, #4, #5, #6, #7 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01` to `P3-03`<br>`TASK-P4-01` to `P4-03`<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API |
 
 ---
 
@@ -56,60 +51,55 @@
 
 ### Phase 1: Persistence Foundation (Neon PostgreSQL & pgvector)
 
-- [ ] **`TASK-P1-01`**: **Database Schema Design (`prisma/schema.prisma`)**
-  - **Column**: `In Progress`
+- [x] **`TASK-P1-01`**: **Database Schema Design (`prisma/schema.prisma`)**
+  - **Column**: `Done`
   - **Domain**: Persistence & Storage
-  - **Scope**: Author the full production schema in `prisma/schema.prisma` with Neon dual connection (`DATABASE_URL`, `DIRECT_URL`), `pgvector(1536)` extension, and 15 relational models covering:
-    - User & Profile: `User`, `CandidateProfile`, `PreparationPlan`.
-    - Knowledge Graph & Curriculum: `CurriculumDomain`, `CurriculumCategory`, `CurriculumTopic`, `CurriculumQuestion`, `TopicEmbedding`.
-    - Understanding & Mastery: `CandidateTopicMastery` (cognitive stages, SM-2 decay timestamps, rubric averages).
-    - Sessions & Evaluation: `PracticeSession`, `MockInterviewSession`, `EvaluationReport`, `RubricScore`, `RevisionItem`, `DocumentEmbedding`.
+  - **Scope**: Author the full production schema in `prisma/schema.prisma` with Neon dual connection (`DATABASE_URL`, `DIRECT_URL`), `pgvector(1536)` extension, and 15 relational models.
   - **Deliverable**: `prisma/schema.prisma`
-  - **Specifications Reference**: [`docs/architecture/layers/06-persistence-storage-layer.md`](../docs/architecture/layers/06-persistence-storage-layer.md)
   - **Clearance**: Passes `npx prisma validate` with zero errors.
 
-- [ ] **`TASK-P1-02`**: **Dual Connection Configuration & Prisma Adapters**
-  - **Column**: `Backlog`
+- [x] **`TASK-P1-02`**: **Dual Connection Configuration & Prisma Adapters**
+  - **Column**: `Done`
   - **Domain**: Infrastructure
-  - **Scope**: Configure Neon pooled connection (`DATABASE_URL`) with `@prisma/adapter-neon` and direct connection (`DIRECT_URL`) for advisory lock migration safety.
+  - **Scope**: Configure Neon pooled connection (`DATABASE_URL`) with `@prisma/adapter-neon` HTTP queryable and direct connection (`DIRECT_URL`).
   - **Deliverable**: `src/server/db/client.ts`
   - **Clearance**: Database connection smoke test returns live timestamp from Neon.
 
-- [ ] **`TASK-P1-03`**: **Database Migration Push to Neon PostgreSQL**
-  - **Column**: `Backlog`
+- [x] **`TASK-P1-03`**: **Database Migration Push to Neon PostgreSQL**
+  - **Column**: `Done`
   - **Domain**: Database Operations
-  - **Scope**: Execute `npx prisma db push` to synchronize 10 tables and vector extension with live Neon cloud instance.
+  - **Scope**: Execute `npx prisma db push` to synchronize 15 tables and vector extension with live Neon cloud instance.
   - **Deliverable**: Live tables in Neon schema `public`.
-  - **Clearance**: `SELECT tablename FROM pg_tables WHERE schemaname = 'public';` verifies all 10 tables.
+  - **Clearance**: Verified 15 tables and `vector` extension in Neon `public` schema.
 
-- [ ] **`TASK-P1-04`**: **Curriculum Catalog Seeding (`prisma/seed.ts`)**
-  - **Column**: `Backlog`
+- [x] **`TASK-P1-04`**: **Curriculum Catalog Seeding (`prisma/seed.ts`)**
+  - **Column**: `Done`
   - **Domain**: Catalog Content
-  - **Scope**: Seed 135+ topics across System Design (40+), Algorithms (50+), Behavioral (20+), and Cloud (25+).
+  - **Scope**: Seed 135 topics across System Design (40), Algorithms (50), Behavioral (20), and Cloud (25).
   - **Deliverable**: `prisma/seed.ts`
-  - **Clearance**: `npx prisma db seed` inserts $>135$ records without constraint errors.
+  - **Clearance**: `npx prisma db seed` inserted 135 records without constraint errors.
 
 ---
 
 ### Phase 2: Server Infrastructure Clients
 
-- [ ] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-01`**: **Prisma Client Singleton with Tenant Isolation**
+  - **Column**: `Done`
   - **Scope**: Build `withCandidateContext(clerkUserId)` helper ensuring all queries are tenant-scoped.
   - **Deliverable**: `src/server/db/client.ts`
 
-- [ ] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-02`**: **Upstash Redis Client Singleton**
+  - **Column**: `Done`
   - **Scope**: Centralized REST client with automatic retry and rate-limiting wrapper.
   - **Deliverable**: `src/server/redis/client.ts`
 
-- [ ] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-03`**: **Cloudflare R2 Object Storage S3 Client**
+  - **Column**: `Done`
   - **Scope**: Presigned URL generator and multipart upload handler for whiteboard PNGs and audio.
   - **Deliverable**: `src/server/storage/r2.ts`
 
-- [ ] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
-  - **Column**: `Backlog`
+- [x] **`TASK-P2-04`**: **Google Gemini SDK Singleton**
+  - **Column**: `Done`
   - **Scope**: Client wrapper for `gemini-3.1-flash-lite` and `gemini-embedding-001`.
   - **Deliverable**: `src/server/ai/gemini.ts`
 
@@ -117,18 +107,18 @@
 
 ### Phase 3: Deterministic Domain Core
 
-- [ ] **`TASK-P3-01`**: **5-Dimension Rubric Scoring Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-01`**: **5-Dimension Rubric Scoring Engine**
+  - **Column**: `Done`
   - **Scope**: Mathematical calculation of 0–100 overall score using weighted harmonic mean.
   - **Deliverable**: `src/server/domain/scoring.ts`
 
-- [ ] **`TASK-P3-02`**: **Bayesian Candidate Readiness Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-02`**: **Bayesian Candidate Readiness Engine**
+  - **Column**: `Done`
   - **Scope**: Prior readiness score updated via Bayesian evidence weighting per completed session.
   - **Deliverable**: `src/server/domain/readiness.ts`
 
-- [ ] **`TASK-P3-03`**: **SuperMemo-2 Spaced Repetition Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-03`**: **SuperMemo-2 Spaced Repetition Engine**
+  - **Column**: `Done`
   - **Scope**: Calculates next review intervals and ease factor decay based on candidate grade.
   - **Deliverable**: `src/server/domain/spaced-repetition.ts`
 
@@ -136,52 +126,52 @@
 
 ### Phase 4: Edge Security & Middleware
 
-- [ ] **`TASK-P4-01`**: **Clerk Edge Authentication Route Guard**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-01`**: **Clerk Edge Authentication Route Guard**
+  - **Column**: `Done`
   - **Deliverable**: `src/middleware.ts`
 
-- [ ] **`TASK-P4-02`**: **Upstash Sliding Window Rate Limiter**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-02`**: **Upstash Sliding Window Rate Limiter**
+  - **Column**: `Done`
   - **Deliverable**: `src/server/edge/rate-limiter.ts`
 
-- [ ] **`TASK-P4-03`**: **Idempotency Key Interceptor**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-03`**: **Idempotency Key Interceptor**
+  - **Column**: `Done`
   - **Deliverable**: `src/server/edge/idempotency.ts`
 
 ---
 
 ### Phase 5: Onboarding & Vector Pipeline
 
-- [ ] **`TASK-P5-01`**: **Candidate Profile API (`/api/onboarding/profile`)**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-01`**: **Candidate Profile API (`/api/onboarding/profile`)**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/onboarding/profile/route.ts`
 
-- [ ] **`TASK-P5-02`**: **Resume PDF Parser & 1536-dim Embedding Pipeline**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-02`**: **Resume PDF Parser & 1536-dim Embedding Pipeline**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/onboarding/resume/route.ts`
 
-- [ ] **`TASK-P5-03`**: **Personalized Prep Roadmap Synthesis API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-03`**: **Personalized Prep Roadmap Synthesis API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/plan/generate/route.ts`
 
 ---
 
 ### Phase 6: Session & Evaluation APIs
 
-- [ ] **`TASK-P6-01`**: **Practice Session Submit & Evaluate API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-01`**: **Practice Session Submit & Evaluate API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/practice/session/submit/route.ts`
 
-- [ ] **`TASK-P6-02`**: **Mock Interview Session End & Grading API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-02`**: **Mock Interview Session End & Grading API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/mock-interview/session/end/route.ts`
 
-- [ ] **`TASK-P6-03`**: **Evaluation Report Retrieval API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-03`**: **Evaluation Report Retrieval API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/evaluation/[reportId]/route.ts`
 
-- [ ] **`TASK-P6-04`**: **Revision Queue Synchronization API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-04`**: **Revision Queue Synchronization API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/revision/items/route.ts`
 
 ---
