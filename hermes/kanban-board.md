@@ -8,7 +8,7 @@
 
 | 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
 | :--- | :--- | :--- | :--- |
-| `TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #7 Open**:<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API | **PR #3, #4, #5, #6 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01` to `P3-03`<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor |
+| `TASK-P7-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #8 Open**:<br>`TASK-P6-01`: Practice Submit & Eval<br>`TASK-P6-02`: Mock End & Grade<br>`TASK-P6-03`: Report Detail API<br>`TASK-P6-04`: Spaced Revision Sync | **PR #3, #4, #5, #6, #7 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01` to `P3-03`<br>`TASK-P4-01` to `P4-03`<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API |
 
 ---
 
@@ -158,20 +158,20 @@
 
 ### Phase 6: Session & Evaluation APIs
 
-- [ ] **`TASK-P6-01`**: **Practice Session Submit & Evaluate API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-01`**: **Practice Session Submit & Evaluate API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/practice/session/submit/route.ts`
 
-- [ ] **`TASK-P6-02`**: **Mock Interview Session End & Grading API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-02`**: **Mock Interview Session End & Grading API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/mock-interview/session/end/route.ts`
 
-- [ ] **`TASK-P6-03`**: **Evaluation Report Retrieval API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-03`**: **Evaluation Report Retrieval API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/evaluation/[reportId]/route.ts`
 
-- [ ] **`TASK-P6-04`**: **Revision Queue Synchronization API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P6-04`**: **Revision Queue Synchronization API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/revision/items/route.ts`
 
 ---
