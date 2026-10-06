@@ -8,7 +8,7 @@
 
 | 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
 | :--- | :--- | :--- | :--- |
-| `TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #5 Open**:<br>`TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay | **PR #3 & PR #4 Merged**:<br>`TASK-P1-01`: Prisma Schema<br>`TASK-P1-02`: Neon Pool Client<br>`TASK-P1-03`: Neon DB Push<br>`TASK-P1-04`: 135 Topics Seed<br>`TASK-P2-01`: Prisma Tenant<br>`TASK-P2-02`: Upstash Redis<br>`TASK-P2-03`: Cloudflare R2<br>`TASK-P2-04`: Gemini SDK |
+| `TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #6 Open**:<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor | **PR #3, #4, #5 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay |
 
 ---
 
@@ -126,16 +126,16 @@
 
 ### Phase 4: Edge Security & Middleware
 
-- [ ] **`TASK-P4-01`**: **Clerk Edge Authentication Route Guard**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-01`**: **Clerk Edge Authentication Route Guard**
+  - **Column**: `Done`
   - **Deliverable**: `src/middleware.ts`
 
-- [ ] **`TASK-P4-02`**: **Upstash Sliding Window Rate Limiter**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-02`**: **Upstash Sliding Window Rate Limiter**
+  - **Column**: `Done`
   - **Deliverable**: `src/server/edge/rate-limiter.ts`
 
-- [ ] **`TASK-P4-03`**: **Idempotency Key Interceptor**
-  - **Column**: `Backlog`
+- [x] **`TASK-P4-03`**: **Idempotency Key Interceptor**
+  - **Column**: `Done`
   - **Deliverable**: `src/server/edge/idempotency.ts`
 
 ---
