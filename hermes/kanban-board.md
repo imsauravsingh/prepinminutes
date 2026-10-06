@@ -8,7 +8,7 @@
 
 | 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
 | :--- | :--- | :--- | :--- |
-| `TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #6 Open**:<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor | **PR #3, #4, #5 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay |
+| `TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #7 Open**:<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API | **PR #3, #4, #5, #6 Merged**:<br>`TASK-P1-01` to `P1-04`<br>`TASK-P2-01` to `P2-04`<br>`TASK-P3-01` to `P3-03`<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor |
 
 ---
 
@@ -142,16 +142,16 @@
 
 ### Phase 5: Onboarding & Vector Pipeline
 
-- [ ] **`TASK-P5-01`**: **Candidate Profile API (`/api/onboarding/profile`)**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-01`**: **Candidate Profile API (`/api/onboarding/profile`)**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/onboarding/profile/route.ts`
 
-- [ ] **`TASK-P5-02`**: **Resume PDF Parser & 1536-dim Embedding Pipeline**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-02`**: **Resume PDF Parser & 1536-dim Embedding Pipeline**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/onboarding/resume/route.ts`
 
-- [ ] **`TASK-P5-03`**: **Personalized Prep Roadmap Synthesis API**
-  - **Column**: `Backlog`
+- [x] **`TASK-P5-03`**: **Personalized Prep Roadmap Synthesis API**
+  - **Column**: `Done`
   - **Deliverable**: `src/app/api/plan/generate/route.ts`
 
 ---
