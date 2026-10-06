@@ -8,7 +8,7 @@
 
 | 📋 TODO (Backlog) | 🔄 IN PROGRESS | 🚀 READY FOR REVIEW / PR | ✅ DONE (Merged / Cleared) |
 | :--- | :--- | :--- | :--- |
-| `TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay<br>`TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #4 Open**:<br>`TASK-P2-01`: Prisma Tenant<br>`TASK-P2-02`: Upstash Redis<br>`TASK-P2-03`: Cloudflare R2<br>`TASK-P2-04`: Gemini SDK | **PR #3 Merged**:<br>`TASK-P1-01`: Prisma Schema<br>`TASK-P1-02`: Neon Pool Client<br>`TASK-P1-03`: Neon DB Push<br>`TASK-P1-04`: 135 Topics Seed |
+| `TASK-P4-01`: Clerk Edge Auth<br>`TASK-P4-02`: Upstash Rate Limiter<br>`TASK-P4-03`: Idempotency Interceptor<br>`TASK-P5-01`: Profile API<br>`TASK-P5-02`: Resume RAG Embedding<br>`TASK-P5-03`: Roadmap API<br>`TASK-P6-01` to `TASK-P8-04` | *(Awaiting next task kickoff)* | **PR #5 Open**:<br>`TASK-P3-01`: 5-Dim Rubric Math<br>`TASK-P3-02`: Bayesian Readiness<br>`TASK-P3-03`: SuperMemo-2 Decay | **PR #3 & PR #4 Merged**:<br>`TASK-P1-01`: Prisma Schema<br>`TASK-P1-02`: Neon Pool Client<br>`TASK-P1-03`: Neon DB Push<br>`TASK-P1-04`: 135 Topics Seed<br>`TASK-P2-01`: Prisma Tenant<br>`TASK-P2-02`: Upstash Redis<br>`TASK-P2-03`: Cloudflare R2<br>`TASK-P2-04`: Gemini SDK |
 
 ---
 
@@ -107,18 +107,18 @@
 
 ### Phase 3: Deterministic Domain Core
 
-- [ ] **`TASK-P3-01`**: **5-Dimension Rubric Scoring Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-01`**: **5-Dimension Rubric Scoring Engine**
+  - **Column**: `Done`
   - **Scope**: Mathematical calculation of 0–100 overall score using weighted harmonic mean.
   - **Deliverable**: `src/server/domain/scoring.ts`
 
-- [ ] **`TASK-P3-02`**: **Bayesian Candidate Readiness Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-02`**: **Bayesian Candidate Readiness Engine**
+  - **Column**: `Done`
   - **Scope**: Prior readiness score updated via Bayesian evidence weighting per completed session.
   - **Deliverable**: `src/server/domain/readiness.ts`
 
-- [ ] **`TASK-P3-03`**: **SuperMemo-2 Spaced Repetition Engine**
-  - **Column**: `Backlog`
+- [x] **`TASK-P3-03`**: **SuperMemo-2 Spaced Repetition Engine**
+  - **Column**: `Done`
   - **Scope**: Calculates next review intervals and ease factor decay based on candidate grade.
   - **Deliverable**: `src/server/domain/spaced-repetition.ts`
 
