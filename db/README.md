@@ -28,15 +28,16 @@ db/
 
 ---
 
-## 🏛️ Comprehensive Table & Entity Inventory (24 Tables)
+## 🏛️ Comprehensive Table & Entity Inventory (25 Tables)
 
 | Module | Table Name | Purpose & Cardinality |
 | :--- | :--- | :--- |
-| **1. Auth & Profiles** | `users` | Root identity record for candidates, interviewers, and admins. Supports soft-deletes (`deleted_at`). |
+| **1. Auth & Profiles** | `users` | Root identity record. Supports soft-deletes (`deleted_at`), `token_version` for instant $O(1)$ global JWT invalidation, and `token_valid_after` cutoff. |
 | | `user_auth_identities` | Decoupled identity providers (`clerk`, `google`, `github`, `email_password`). |
-| | `user_sessions` | Stateful session tracker with IP detection, user agent, expiration, and revocation. |
+| | `user_refresh_tokens` | Rotating refresh token ledger with family-based replay detection and single-use `jti`. Access tokens remain 100% stateless JWTs. |
+| | `jwt_revoked_tokens` | Fast denylist of explicit revoked `jti` identifiers for immediate single-token invalidation prior to natural expiration. |
 | | `candidate_profiles` | Candidate career targets, seniority, target companies, weekly goals, and JSONB preferences. |
-| | `user_security_audit_logs` | Append-only ledger auditing logins, role changes, and token revocations. |
+| | `user_security_audit_logs` | Append-only ledger auditing logins, token refreshes, role changes, and revocations. |
 | **2. Knowledge Graph** | `curriculum_domains` | Top-level domains (`system-design`, `coding`, `behavioral`, `cloud`). |
 | | `curriculum_categories` | Hierarchical categories within domains (e.g. Partitioning & Sharding, Concurrency). |
 | | `curriculum_topics` | 135 canonical topics with rubric atoms, durations, and difficulty levels. |
