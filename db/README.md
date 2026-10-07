@@ -1,73 +1,84 @@
-# PrepInMinutes — PostgreSQL Schema (User Authentication & Profiles)
+# PrepInMinutes — Master PostgreSQL System Schema
 
-## Overview
+## 📌 Architectural Overview
 
-This directory contains the PostgreSQL reference schema for **User Authentication, Identity Management, Stateful Sessions, and Candidate Profiles** in PrepInMinutes.
+This directory contains the production-grade PostgreSQL reference architecture for **PrepInMinutes**, synthesized directly from the system specifications across [`docs/`](../docs/).
 
-> ⚠️ **Internal Reference Only:**  
-> This schema is strictly maintained in the GitHub repository for architecture documentation, schema design, and internal modeling. It is **NOT** pushed or migrated to live production or Neon database servers.
+> 🔒 **Repository-Only Constraint:**  
+> This schema is strictly maintained in the GitHub repository for architecture documentation, design parity, and internal modeling. It is **NOT** pushed or migrated to any live database server.
 
 ---
 
-## Directory Structure
+## 📂 Directory Layout
 
 ```text
 db/
-├── schema.sql      # Production-grade PostgreSQL DDL script
-└── README.md       # Architecture specification and entity relationships
+├── schema.sql                               # Master consolidated DDL script (24 tables, transactional)
+├── README.md                                # Full architecture, ERD & indexing reference
+└── modules/
+    ├── 01_auth_and_profiles.sql             # Users, identities, sessions, candidate profiles & audit
+    ├── 02_curriculum_knowledge_graph.sql    # Domains, categories, topics, questions & topic vectors
+    ├── 03_preparation_plans.sql             # Plans, weekly milestones & dynamic adaptation events
+    ├── 04_practice_and_mock_sessions.sql    # Practice drills, mock interviews, transcripts & whiteboards
+    ├── 05_evaluations_and_rubrics.sql       # Evaluation reports, 6 rubric dimensions & readiness history
+    ├── 06_spaced_repetition_and_mastery.sql # Candidate topic masteries, SM-2 revision items & drill logs
+    ├── 07_document_embeddings_rag.sql       # Resumes, JD chunks & pgvector HNSW cosine indexes
+    └── 08_triggers_and_routines.sql         # Automated PL/pgSQL timestamp synchronization triggers
 ```
 
 ---
 
-## Entities & Table Specifications
+## 🏛️ Comprehensive Table & Entity Inventory (24 Tables)
 
-### 1. `users`
-Master identity record for candidates, interviewers, and administrators.
-- **`id`** (`UUID`): Primary key generated via `gen_random_uuid()`.
-- **`email`** (`VARCHAR(255)`): Unique, validated email address.
-- **`email_verified_at`** (`TIMESTAMPTZ`): Verification timestamp.
-- **`role`** (`ENUM user_role`): `candidate` | `interviewer` | `mentor` | `admin`.
-- **`status`** (`ENUM account_status`): `active` | `suspended` | `pending_verification` | `deactivated`.
-- **`deleted_at`** (`TIMESTAMPTZ`): Soft delete support for compliance and data retention.
-
-### 2. `user_auth_identities`
-Decouples user identities from identity providers (IdPs). A single user can link multiple login mechanisms:
-- **`user_id`** (`UUID`): Foreign key referencing `users(id)` (`ON DELETE CASCADE`).
-- **`provider`** (`ENUM auth_provider`): `clerk` | `email_password` | `google` | `github` | `linkedin`.
-- **`provider_user_id`** (`VARCHAR(255)`): Unique external subject ID (e.g. Clerk user ID).
-- **`password_hash`** (`VARCHAR(255)`): Argon2id/Bcrypt hash for local password accounts.
-- **`metadata`** (`JSONB`): External OAuth profile attributes and claim tokens.
-
-### 3. `user_sessions`
-Stateful session store for token management and device auditing:
-- **`user_id`** (`UUID`): Foreign key referencing `users(id)`.
-- **`session_token`** (`VARCHAR(512)`): Unique cryptographic session identifier.
-- **`ip_address`** (`INET`): Client IP for geo-anomaly detection.
-- **`user_agent`** (`TEXT`): Browser/device string.
-- **`expires_at`** (`TIMESTAMPTZ`): Absolute expiration deadline.
-- **`revoked_at`** (`TIMESTAMPTZ`): Timestamp of manual or security revocation.
-
-### 4. `user_profiles`
-Rich candidate profile capturing interview targets, seniority, and preferences:
-- **`user_id`** (`UUID`): 1:1 Foreign key referencing `users(id)`.
-- **`first_name`**, **`last_name`**, **`display_name`**, **`avatar_url`**, **`bio`**, **`headline`**.
-- **`target_role`** (`VARCHAR(150)`): Target position (e.g., *Staff Distributed Systems Architect*).
-- **`target_seniority`** (`ENUM experience_level`): `entry_level` | `mid_level` | `senior` | `staff` | `principal`.
-- **`target_companies`** (`TEXT[]`): Array of target companies (indexed with PostgreSQL `GIN`).
-- **`target_timeline_weeks`** (`INTEGER`): Timeline constraint (1 to 52 weeks).
-- **`weekly_goal_hours`** (`NUMERIC(4, 1)`): Weekly preparation commitment (1.0 to 80.0 hrs).
-- **`preferences`** (`JSONB`): Configurable UI theme, coding language, and notification toggles.
-
-### 5. `user_security_audit_logs`
-Immutable append-only ledger for all security events:
-- **`user_id`** (`UUID`): References `users(id)` (`ON DELETE SET NULL`).
-- **`event_type`** (`VARCHAR(60)`): Event type (e.g., `LOGIN_SUCCESS`, `FAILED_PASSWORD_ATTEMPT`, `MFA_CHALLENGE`).
-- **`metadata`** (`JSONB`): Contextual event attributes.
+| Module | Table Name | Purpose & Cardinality |
+| :--- | :--- | :--- |
+| **1. Auth & Profiles** | `users` | Root identity record for candidates, interviewers, and admins. Supports soft-deletes (`deleted_at`). |
+| | `user_auth_identities` | Decoupled identity providers (`clerk`, `google`, `github`, `email_password`). |
+| | `user_sessions` | Stateful session tracker with IP detection, user agent, expiration, and revocation. |
+| | `candidate_profiles` | Candidate career targets, seniority, target companies, weekly goals, and JSONB preferences. |
+| | `user_security_audit_logs` | Append-only ledger auditing logins, role changes, and token revocations. |
+| **2. Knowledge Graph** | `curriculum_domains` | Top-level domains (`system-design`, `coding`, `behavioral`, `cloud`). |
+| | `curriculum_categories` | Hierarchical categories within domains (e.g. Partitioning & Sharding, Concurrency). |
+| | `curriculum_topics` | 135 canonical topics with rubric atoms, durations, and difficulty levels. |
+| | `curriculum_questions` | Interview question templates, prompts, starter code, and test cases. |
+| | `topic_embeddings` | 1,536-dimensional semantic vectors for topic matching and RAG retrieval. |
+| **3. Preparation Plans**| `preparation_plans` | Multi-week preparation syllabus with domain weightings and state machine tracking. |
+| | `plan_milestones` | Relational breakdown of weekly goals, focus areas, and recommended topics. |
+| | `plan_adaptation_events`| Audit trail of automated re-balancing triggers (`MOCK_EVALUATION`, `PRACTICE_DRILL`). |
+| **4. Sessions** | `practice_sessions` | Interactive workspace sessions (coding, system design whiteboard, behavioral). |
+| | `mock_interview_sessions`| End-to-end full mock interview simulations (configuring, active, evaluating, completed). |
+| | `session_transcripts` | Granular turn-by-turn conversational history (`ai` vs `candidate`) with audio timestamps. |
+| | `session_whiteboard_snapshots` | Versioned whiteboard diagram assets (storage URLs and raw SVG vector data). |
+| **5. Evaluations** | `evaluation_reports` | Evaluation output from deterministic engines and Gemini reasoning. |
+| | `rubric_scores` | Breakdown across 6 rubric dimensions with specific missing atom concepts. |
+| | `readiness_trajectory_history` | Audit log of Bayesian EMA updates ($\Delta R$) with dual-alpha calibration tracking. |
+| **6. Spaced Repetition**| `candidate_topic_masteries` | Longitudinal mastery progress across topics with cognitive stage tracking. |
+| | `revision_items` | SuperMemo-2 (SM-2) prioritized active queue with next review dates and ease factors. |
+| | `revision_drill_logs` | Audit trail of every flashcard recall attempt and interval expansion. |
+| **7. Vector RAG** | `document_embeddings` | Resumes and job description text chunks embedded into 1,536-dim vector space. |
 
 ---
 
-## Performance Indexes & Triggers
+## ⚡ Indexing & Vector Search Strategy
 
-- **GIN Indexes**: Accelerated full-text/array queries on `target_companies` and `preferences`.
-- **Composite Indexes**: Optimized active session lookup (`user_id, expires_at WHERE revoked_at IS NULL`).
-- **Automated Triggers**: `trigger_set_timestamp()` automatically synchronizes `updated_at` timestamps on row mutation.
+1. **HNSW Cosine Vector Indexing**:
+   ```sql
+   CREATE INDEX idx_document_embeddings_hnsw_cosine 
+       ON document_embeddings 
+       USING hnsw (embedding vector_cosine_ops)
+       WITH (m = 16, ef_construction = 64);
+   ```
+2. **PostgreSQL GIN Inverted Indexes**:
+   - `candidate_profiles USING GIN (target_companies)`
+   - `candidate_profiles USING GIN (preferences)`
+3. **Filtered Composite B-Tree Indexes**:
+   - `user_sessions (user_id, expires_at) WHERE revoked_at IS NULL`
+   - `users (status) WHERE deleted_at IS NULL`
+   - `revision_items (candidate_id, next_review_date ASC)`
+
+---
+
+## 🔄 Automated Triggers & Data Integrity
+
+- **PL/pgSQL Trigger (`trigger_set_timestamp`)**: Automatically updates `updated_at = CURRENT_TIMESTAMP` across all 13 mutable entities before any update operation.
+- **Cascading Referential Integrity**: All candidate-scoped tables configure `ON DELETE CASCADE` referencing `users(id)` or `candidate_profiles(id)` for full compliance with data cleanup and privacy laws.
