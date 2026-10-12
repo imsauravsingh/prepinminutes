@@ -82,20 +82,28 @@ export async function POST(req: NextRequest) {
     // 3. Chunk text into semantic windows
     const chunks = chunkText(cleanText, 1200, 200);
 
-    // 4. Generate 1,536-dimensional embeddings and persist to pgvector
+    // 4. Save resume metadata on CandidateProfile and persist 1,536-dim embeddings to pgvector
     const candidateId = context.profile.id;
+    await db.candidateProfile.update({
+      where: { id: candidateId },
+      data: {
+        resumeFileName: file.name,
+        resumeFileUrl: r2AssetUrl,
+      },
+    });
+
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const embedding = await generate1536Embedding(chunk);
 
       await db.$executeRaw`
-        INSERT INTO "DocumentEmbedding" (
-          "id",
-          "candidateId",
-          "docType",
-          "content",
-          "embedding",
-          "createdAt"
+        INSERT INTO document_embeddings (
+          id,
+          candidate_id,
+          doc_type,
+          content,
+          embedding,
+          created_at
         )
         VALUES (
           gen_random_uuid()::text,

@@ -1,5 +1,6 @@
 // PrepInMinutes Master Prisma Schema
 // Database: Neon Serverless PostgreSQL with pgvector
+// Naming Convention: PascalCase/camelCase in TypeScript -> plural/snake_case in PostgreSQL via @@map / @map
 
 datasource db {
   provider   = "postgresql"
@@ -17,49 +18,88 @@ generator client {
 
 model User {
   id        String            @id @default(cuid())
-  clerkId   String            @unique
+  clerkId   String            @unique @map("clerk_id")
   email     String            @unique
-  fullName  String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  fullName  String?           @map("full_name")
+  avatarUrl String?           @map("avatar_url")
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
   profile   CandidateProfile?
+
+  @@map("users")
 }
 
 model CandidateProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetRole      String // e.g. "Senior Software Engineer"
-  experienceLevel String // "0-2", "3-5", "6-9", "10+"
-  targetCompanies String[] // ["Google", "Meta", "Stripe"]
-  timelineWeeks   Int      @default(8)
-  readinessScore  Int      @default(45) // 0 - 100%
-  weeklyGoalHours Float    @default(6.0)
-  completedHours  Float    @default(0.0)
-  streakDays      Int      @default(1)
+  id                 String   @id @default(cuid())
+  userId             String   @unique @map("user_id")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole         String   @map("target_role") // e.g. "Senior Software Engineer"
+  experienceLevel    String   @map("experience_level") // "0-1 years", "1-3 years", "4-5 years", "6-8 years", "8+ years"
+  targetCompanies    String[] @map("target_companies") // ["Google", "Meta", "Stripe"]
+  timelineWeeks      Int      @default(8) @map("timeline_weeks")
+  timelineLabel      String   @default("1 month") @map("timeline_label") // "1-2 weeks", "1 month", "2-3 months", "3+ months"
+  onboardingStep     Int      @default(1) @map("onboarding_step") // 1: Setup, 2: Plan Ready, 3: Start Preparing
+  isOnboardingDone   Boolean  @default(false) @map("is_onboarding_done")
+  readinessScore     Int      @default(45) @map("readiness_score") // 0 - 100%
+  weeklyGoalHours    Float    @default(6.0) @map("weekly_goal_hours")
+  completedHours     Float    @default(0.0) @map("completed_hours")
+  streakDays         Int      @default(1) @map("streak_days")
 
-  plan             PreparationPlan?
-  practiceSessions PracticeSession[]
-  mockSessions     MockInterviewSession[]
-  revisionItems    RevisionItem[]
-  embeddings       DocumentEmbedding[]
-  topicMasteries   CandidateTopicMastery[]
+  // Optional Uploaded Resume & Job Description Metadata
+  resumeFileName     String?  @map("resume_file_name")
+  resumeFileUrl      String?  @map("resume_file_url")
+  jobDescriptionText String?  @db.Text @map("job_description_text")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  plan               PreparationPlan?
+  practiceSessions   PracticeSession[]
+  mockSessions       MockInterviewSession[]
+  revisionItems      RevisionItem[]
+  embeddings         DocumentEmbedding[]
+  topicMasteries     CandidateTopicMastery[]
+  weeklySnapshots    WeeklyAreaSnapshot[]
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("candidate_profiles")
 }
 
 model PreparationPlan {
   id               String           @id @default(cuid())
-  candidateId      String           @unique
+  candidateId      String           @unique @map("candidate_id")
   candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  targetRole       String
-  targetSeniority  String
-  timelineWeeks    Int
-  weeklyMilestones Json // Detailed weekly breakdown of phases and topics
-  domainWeights    Json // e.g. {"system-design": 0.40, "coding": 0.35, "behavioral": 0.15, "cloud": 0.10}
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  targetRole       String           @map("target_role")
+  targetSeniority  String           @map("target_seniority")
+  timelineWeeks    Int              @map("timeline_weeks")
+  activePhaseId    String           @default("phase-1") @map("active_phase_id")
+  weeklyMilestones Json             @map("weekly_milestones") // Detailed breakdown of phases and topics
+  domainWeights    Json             @map("domain_weights") // e.g. {"system-design": 0.40, "coding": 0.35, "behavioral": 0.15, "cloud": 0.10}
+  dailyTasks       DailyPlanTask[]
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  @@map("preparation_plans")
+}
+
+model DailyPlanTask {
+  id            String           @id @default(cuid())
+  planId        String           @map("plan_id")
+  plan          PreparationPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  topicId       String?          @map("topic_id")
+  topic         CurriculumTopic? @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  domainSlug    String           @map("domain_slug") // "system-design" | "coding" | "behavioral" | "cloud"
+  title         String           // e.g. "System Design: Load Balancing"
+  subtitle      String?          // e.g. "Read key concepts and patterns"
+  durationMin   Int              @default(10) @map("duration_min")
+  practiceHref  String           @map("practice_href") // "/practice/session/system-design"
+  scheduledDate DateTime         @map("scheduled_date")
+  orderIndex    Int              @default(0) @map("order_index")
+  isCompleted   Boolean          @default(false) @map("is_completed")
+  completedAt   DateTime?        @map("completed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  @@index([planId, scheduledDate])
+  @@map("daily_plan_tasks")
 }
 
 // -------------------------------------------------------------
@@ -69,107 +109,139 @@ model PreparationPlan {
 model CurriculumDomain {
   id          String               @id @default(cuid())
   slug        String               @unique // "system-design", "coding", "behavioral", "cloud"
-  name        String // "System Design"
+  name        String               // "System Design"
   description String
   categories  CurriculumCategory[]
   topics      CurriculumTopic[]
-  createdAt   DateTime             @default(now())
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  @@map("curriculum_domains")
 }
 
 model CurriculumCategory {
-  id          String           @id @default(cuid())
-  domainId    String
-  domain      CurriculumDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  slug        String // "partitioning-sharding", "two-pointers"
-  name        String // "Partitioning & Sharding"
+  id          String            @id @default(cuid())
+  domainId    String            @map("domain_id")
+  domain      CurriculumDomain  @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  slug        String            // "partitioning-sharding", "two-pointers"
+  name        String            // "Partitioning & Sharding"
   description String
-  order       Int              @default(0)
+  order       Int               @default(0)
   topics      CurriculumTopic[]
 
   @@unique([domainId, slug])
+  @@map("curriculum_categories")
 }
 
 model CurriculumTopic {
-  id           String             @id @default(cuid())
-  domainId     String
-  domain       CurriculumDomain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  categoryId   String
-  category     CurriculumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  slug         String             @unique // "consistent-hashing", "sliding-window"
-  title        String // "Consistent Hashing & DHT"
-  description  String
-  durationMin  Int                @default(15)
-  difficulty   String // "EASY" | "MEDIUM" | "HARD"
-  rubricAtoms  String[] // ["virtual nodes", "hash ring", "rebalancing"]
-  practiceHref String // "/practice/session/system-design"
-  iconName     String?
+  id               String                  @id @default(cuid())
+  domainId         String                  @map("domain_id")
+  domain           CurriculumDomain        @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  categoryId       String                  @map("category_id")
+  category         CurriculumCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  slug             String                  @unique // "consistent-hashing", "sliding-window"
+  title            String                  // "Consistent Hashing & DHT"
+  description      String
+  durationMin      Int                     @default(15) @map("duration_min")
+  difficulty       String                  // "EASY" | "MEDIUM" | "HARD"
+  rubricAtoms      String[]                @map("rubric_atoms") // ["virtual nodes", "hash ring", "rebalancing"]
+  practiceHref     String                  @map("practice_href") // "/practice/session/system-design"
+  iconName         String?                 @map("icon_name")
 
   masteries        CandidateTopicMastery[]
   questions        CurriculumQuestion[]
   embeddings       TopicEmbedding[]
   revisionItems    RevisionItem[]
   practiceSessions PracticeSession[]
+  dailyTasks       DailyPlanTask[]
 
-  createdAt DateTime @default(now())
+  createdAt        DateTime                @default(now()) @map("created_at")
+
+  @@index([domainId, difficulty])
+  @@map("curriculum_topics")
 }
 
 model CurriculumQuestion {
   id          String          @id @default(cuid())
-  topicId     String
+  topicId     String          @map("topic_id")
   topic       CurriculumTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
   title       String
   prompt      String          @db.Text
-  targetLevel String // "senior" | "staff"
+  targetLevel String          @map("target_level") // "senior" | "staff"
   hints       String[]
-  rubricGuide String          @db.Text
-  starterCode Json? // Language-specific templates
-  testCases   Json? // Automated verification suites
-  createdAt   DateTime        @default(now())
+  rubricGuide String          @db.Text @map("rubric_guide")
+  starterCode Json?           @map("starter_code") // Language-specific templates
+  testCases   Json?           @map("test_cases") // Automated verification suites
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  @@index([topicId])
+  @@map("curriculum_questions")
 }
 
 model TopicEmbedding {
   id        String                      @id @default(cuid())
-  topicId   String
+  topicId   String                      @map("topic_id")
   topic     CurriculumTopic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
   content   String                      @db.Text
   embedding Unsupported("vector(1536)")
-  createdAt DateTime                    @default(now())
+  createdAt DateTime                    @default(now()) @map("created_at")
+
+  @@index([topicId])
+  @@map("topic_embeddings")
 }
 
 // -------------------------------------------------------------
-// 3. Candidate Understanding & Progress Mastery Tracking
+// 3. Candidate Understanding, Mastery & Weekly Analytics
 // -------------------------------------------------------------
 
 model CandidateTopicMastery {
-  id          String           @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId     String
-  topic       CurriculumTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  id                String           @id @default(cuid())
+  candidateId       String           @map("candidate_id")
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  topicId           String           @map("topic_id")
+  topic             CurriculumTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  masteryScore   Float     @default(0.0) // 0.0 - 100.0%
-  status         String    @default("NOT_STARTED") // "NOT_STARTED" | "NEEDS_PRACTICE" | "PRACTICED" | "MASTERED"
-  cognitiveStage String    @default("RECALL") // "RECALL" | "APPLICATION" | "TRADE_OFFS" | "EXPERT"
-  totalAttempts  Int       @default(0)
-  lastPracticedAt DateTime?
+  masteryScore      Float            @default(0.0) @map("mastery_score") // 0.0 - 100.0%
+  status            String           @default("NOT_STARTED") // "NOT_STARTED" | "NEEDS_PRACTICE" | "PRACTICED" | "MASTERED"
+  cognitiveStage    String           @default("RECALL") @map("cognitive_stage") // "RECALL" | "APPLICATION" | "TRADE_OFFS" | "EXPERT"
+  totalAttempts     Int              @default(0) @map("total_attempts")
+  lastPracticedAt   DateTime?        @map("last_practiced_at")
 
   // Spaced Repetition (SuperMemo SM-2)
-  intervalDays   Float     @default(1.0)
-  easeFactor     Float     @default(2.5)
-  nextReviewDate DateTime?
+  intervalDays      Float            @default(1.0) @map("interval_days")
+  easeFactor        Float            @default(2.5) @map("ease_factor")
+  nextReviewDate    DateTime?        @map("next_review_date")
 
   // Dimension Running Averages
-  avgTechnicalDepth Float @default(0.0)
-  avgTradeoffs      Float @default(0.0)
-  avgDataModeling   Float @default(0.0)
-  avgScalability    Float @default(0.0)
+  avgTechnicalDepth Float            @default(0.0) @map("avg_technical_depth")
+  avgTradeoffs      Float            @default(0.0) @map("avg_tradeoffs")
+  avgDataModeling   Float            @default(0.0) @map("avg_data_modeling")
+  avgScalability    Float            @default(0.0) @map("avg_scalability")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
 
   @@unique([candidateId, topicId])
   @@index([candidateId, status])
   @@index([candidateId, nextReviewDate])
+  @@map("candidate_topic_masteries")
+}
+
+model WeeklyAreaSnapshot {
+  id                String           @id @default(cuid())
+  candidateId       String           @map("candidate_id")
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  domainSlug        String           @map("domain_slug") // "system-design" | "coding" | "behavioral" | "cloud"
+  weekNumber        Int              @map("week_number") // 1, 2, 3, 4...
+  weekStartDate     DateTime         @map("week_start_date")
+  readinessPercent  Int              @map("readiness_percent") // 0 - 100
+  deltaPercent      Int              @default(0) @map("delta_percent") // e.g. +10
+  sessionsCompleted Int              @default(0) @map("sessions_completed")
+  minutesPracticed  Int              @default(0) @map("minutes_practiced")
+  createdAt         DateTime         @default(now()) @map("created_at")
+
+  @@unique([candidateId, domainSlug, weekNumber])
+  @@index([candidateId, weekStartDate])
+  @@map("weekly_area_snapshots")
 }
 
 // -------------------------------------------------------------
@@ -177,91 +249,153 @@ model CandidateTopicMastery {
 // -------------------------------------------------------------
 
 model PracticeSession {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId         String?
-  topic           CurriculumTopic? @relation(fields: [topicId], references: [id])
-  domain          String // "system-design" | "coding" | "behavioral" | "cloud"
-  topicSlug       String // "consistent-hashing"
-  title           String
-  durationSeconds Int              @default(0)
-  status          String // "ACTIVE" | "COMPLETED" | "ABANDONED"
-  whiteboardUrl   String? // Cloudflare R2 presigned asset key
-  codeSubmission  String?          @db.Text
-  evaluation      EvaluationReport?
-  createdAt       DateTime         @default(now())
+  id                String            @id @default(cuid())
+  candidateId       String            @map("candidate_id")
+  candidate         CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  topicId           String?           @map("topic_id")
+  topic             CurriculumTopic?  @relation(fields: [topicId], references: [id])
+  domain            String            // "system-design" | "coding" | "behavioral" | "cloud"
+  topicSlug         String            @map("topic_slug") // "consistent-hashing"
+  title             String
+  durationSeconds   Int               @default(0) @map("duration_seconds")
+  status            String            // "ACTIVE" | "COMPLETED" | "ABANDONED"
+
+  // System Design & Cloud Workspace Assets
+  whiteboardUrl     String?           @map("whiteboard_url") // Cloudflare R2 presigned asset key
+  diagramJson       Json?             @map("diagram_json") // Serialized canvas nodes/edges
+  architectureNotes String?           @db.Text @map("architecture_notes")
+
+  // Coding & AR Visualizer Workspace Assets
+  codeLanguage      String?           @map("code_language") // "typescript" | "python" | "java" | "cpp"
+  codeSubmission    String?           @db.Text @map("code_submission")
+  testCasesPassed   Int?              @map("test_cases_passed")
+  totalTestCases    Int?              @map("total_test_cases")
+  isArModeUsed      Boolean           @default(false) @map("is_ar_mode_used")
+
+  // Behavioral STAR & Conversational Coach History
+  starResponseJson  Json?             @map("star_response_json") // { situation, task, action, result }
+  chatHistory       Json?             @map("chat_history") // Multi-turn AI coach messages
+
+  evaluation        EvaluationReport?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@index([candidateId, createdAt])
+  @@map("practice_sessions")
 }
 
 model MockInterviewSession {
-  id              String           @id @default(cuid())
-  candidateId     String
-  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  interviewType   String // "system-design" | "technical" | "behavioral"
-  targetRole      String
-  difficulty      String // "senior" | "staff"
-  durationMinutes Int
-  status          String // "CONFIGURING" | "ACTIVE" | "EVALUATING" | "COMPLETED"
-  recordingUrl    String? // R2 key for audio recording .opus
-  transcript      Json? // Array of { speaker: "ai" | "candidate", text: string, timestamp: number }
-  evaluation      EvaluationReport?
-  createdAt       DateTime         @default(now())
+  id                  String            @id @default(cuid())
+  candidateId         String            @map("candidate_id")
+  candidate           CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewType       String            @map("interview_type") // "technical" | "system-design" | "behavioral" | "resume-based" | "mixed"
+  targetRole          String            @map("target_role")
+  difficulty          String            // "standard" | "challenging" | "expert" | "senior" | "staff"
+  durationMinutes     Int               @map("duration_minutes")
+  focusAreas          String[]          @default([]) @map("focus_areas") // Up to 6 selected focus chips
+  status              String            // "CONFIGURING" | "ACTIVE" | "EVALUATING" | "COMPLETED"
+
+  // Live Session Media, Transcript & Interactive Tools
+  recordingUrl        String?           @map("recording_url") // R2 key for audio recording .opus
+  transcript          Json?             // Array of { speaker: "ai" | "candidate", text: string, timestamp: number }
+  whiteboardUrl       String?           @map("whiteboard_url")
+  diagramJson         Json?             @map("diagram_json")
+  codeSubmission      String?           @db.Text @map("code_submission")
+  candidateNotes      String?           @db.Text @map("candidate_notes")
+  clarificationsAsked Int               @default(0) @map("clarifications_asked")
+  toolsUsed           String[]          @default([]) @map("tools_used") // ["Whiteboard", "Diagram", "Code"]
+
+  evaluation          EvaluationReport?
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  @@index([candidateId, createdAt])
+  @@map("mock_interview_sessions")
 }
 
 model EvaluationReport {
-  id              String                @id @default(cuid())
-  candidateId     String?
-  practiceId      String?               @unique
-  practiceSession PracticeSession?      @relation(fields: [practiceId], references: [id])
-  mockId          String?               @unique
-  mockSession     MockInterviewSession? @relation(fields: [mockId], references: [id])
+  id                   String                @id @default(cuid())
+  candidateId          String?               @map("candidate_id")
+  practiceId           String?               @unique @map("practice_id")
+  practiceSession      PracticeSession?      @relation(fields: [practiceId], references: [id], onDelete: Cascade)
+  mockId               String?               @unique @map("mock_id")
+  mockSession          MockInterviewSession? @relation(fields: [mockId], references: [id], onDelete: Cascade)
 
-  overallScore   Float // 0.0 - 100.0
-  verdict        String // "Strong Hire" | "Hire" | "Leaning Hire" | "Needs Practice"
-  readinessDelta Int // e.g. +6%
-  evaluatorNotes String   @db.Text
-  strengths      String[]
-  improvements   String[]
-  rubricScores   RubricScore[]
-  createdAt      DateTime @default(now())
+  title                String?               // e.g. "Mock Evaluation: URL Shortener Service"
+  evaluatorName        String                @default("Sarah") @map("evaluator_name")
+  evaluatorRole        String                @default("AI Staff Infrastructure Engineer") @map("evaluator_role")
+  overallScore         Float                 @map("overall_score") // 0.0 - 100.0
+  verdict              String                // "Strong Hire" | "Hire" | "Leaning Hire" | "Needs Practice"
+  percentileRank       Int?                  @map("percentile_rank") // e.g. 12 for "Top 12%"
+  priorReadinessScore  Int?                  @map("prior_readiness_score")
+  newReadinessScore    Int?                  @map("new_readiness_score")
+  readinessDelta       Int                   @map("readiness_delta") // e.g. +6
+  onsiteRecommendation String?               @map("onsite_recommendation") // e.g. "Ready for Onsite"
+  targetCompanyTier    String?               @map("target_company_tier") // e.g. "Tier 1 Tech / FAANG"
+
+  evaluatorNotes       String                @db.Text @map("evaluator_notes")
+  strengths            String[]
+  improvements         String[]
+  stageMilestones      Json?                 @map("stage_milestones") // Array of { stage, name, time, status, score, highlight }
+  recommendedDrills    Json?                 @map("recommended_drills") // Array of follow-up practice recommendations
+  rubricScores         RubricScore[]
+  createdAt            DateTime              @default(now()) @map("created_at")
+
+  @@index([candidateId, createdAt])
+  @@map("evaluation_reports")
 }
 
 model RubricScore {
   id           String           @id @default(cuid())
-  reportId     String
+  reportId     String           @map("report_id")
   report       EvaluationReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  dimension    String // "technical_depth", "reasoning_tradeoffs", etc.
-  score        Float // 1.0 - 10.0
+  dimension    String           // "technical_depth", "reasoning_tradeoffs", etc.
+  ratingLabel  String?          @map("rating_label") // "Exceptional" | "Strong" | "Good" | "Needs Work"
+  score        Float            // 1.0 - 10.0
   assessment   String           @db.Text
-  missingAtoms String[] // Specific concepts missed
+  missingAtoms String[]         @map("missing_atoms") // Specific concepts missed
+
+  @@index([reportId])
+  @@map("rubric_scores")
 }
+
+// -------------------------------------------------------------
+// 5. Spaced Repetition Queue & Vector Document Embeddings
+// -------------------------------------------------------------
 
 model RevisionItem {
   id             String           @id @default(cuid())
-  candidateId    String
+  candidateId    String           @map("candidate_id")
   candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId        String
+  topicId        String           @map("topic_id")
   topic          CurriculumTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicTitle     String
+  topicTitle     String           @map("topic_title")
   domain         String
-  intervalDays   Float            @default(1.0)
-  easeFactor     Float            @default(2.5)
+  recallStrength Int              @default(50) @map("recall_strength") // 0 - 100%
+  retentionBand  String           @default("NEEDS_REINFORCEMENT") @map("retention_band") // "STRONG" | "GOOD" | "NEEDS_REINFORCEMENT" | "AT_RISK"
+  relevance      String           @default("HIGH") // "HIGH" | "MEDIUM" | "LOW"
+  recommendedMin Int              @default(15) @map("recommended_min")
+  intervalDays   Float            @default(1.0) @map("interval_days")
+  easeFactor     Float            @default(2.5) @map("ease_factor")
   repetitions    Int              @default(0)
-  nextReviewDate DateTime
-  lastReviewedAt DateTime?
-  createdAt      DateTime         @default(now())
+  nextReviewDate DateTime         @map("next_review_date")
+  lastReviewedAt DateTime?        @map("last_reviewed_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
 
   @@index([candidateId, nextReviewDate])
+  @@index([candidateId, retentionBand])
+  @@map("revision_items")
 }
 
 model DocumentEmbedding {
   id          String                      @id @default(cuid())
-  candidateId String
+  candidateId String                      @map("candidate_id")
   candidate   CandidateProfile            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  docType     String // "resume" | "job_description"
+  docType     String                      @map("doc_type") // "resume" | "job_description"
   content     String                      @db.Text
   embedding   Unsupported("vector(1536)")
-  createdAt   DateTime                    @default(now())
+  createdAt   DateTime                    @default(now()) @map("created_at")
 
   @@index([candidateId])
+  @@map("document_embeddings")
 }

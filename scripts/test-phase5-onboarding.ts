@@ -72,16 +72,16 @@ async function runPhase5Tests() {
     assert(embedding.length === 1536, "Embedding must be exactly 1536 dimensions");
     console.log(`  ✓ Generated embedding length: ${embedding.length}`);
 
-    // Raw SQL insert into DocumentEmbedding with pgvector
-    console.log("  Inserting into DocumentEmbedding with ::vector(1536)...");
+    // Raw SQL insert into document_embeddings with pgvector
+    console.log("  Inserting into document_embeddings with ::vector(1536)...");
     await db.$executeRaw`
-      INSERT INTO "DocumentEmbedding" (
-        "id",
-        "candidateId",
-        "docType",
-        "content",
-        "embedding",
-        "createdAt"
+      INSERT INTO document_embeddings (
+        id,
+        candidate_id,
+        doc_type,
+        content,
+        embedding,
+        created_at
       )
       VALUES (
         gen_random_uuid()::text,
@@ -96,9 +96,9 @@ async function runPhase5Tests() {
 
     // Query back using pgvector cosine distance (<=> operator)
     const similarDocs = await db.$queryRaw<Array<{ id: string; content: string; distance: number }>>`
-      SELECT "id", "content", ("embedding" <=> ${JSON.stringify(embedding)}::vector) as distance
-      FROM "DocumentEmbedding"
-      WHERE "candidateId" = ${createdProfileId}
+      SELECT id, content, (embedding <=> ${JSON.stringify(embedding)}::vector) as distance
+      FROM document_embeddings
+      WHERE candidate_id = ${createdProfileId}
       ORDER BY distance ASC
       LIMIT 1;
     `;

@@ -1,6 +1,6 @@
 # Layer 6: Persistence & Storage Layer Architecture
 
-This document specifies the database schemas, relational models, vector extensions, caching strategies, and object storage partitions in **PrepInMinutes**.
+This document specifies the database schemas, relational models, PostgreSQL `snake_case` naming conventions (`@@map` / `@map`), vector extensions, caching strategies, and object storage partitions in **PrepInMinutes**.
 
 ---
 
@@ -11,300 +11,57 @@ PrepInMinutes utilizes a three-tier storage topology to balance ACID transaction
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. Relational & Vector Layer: PostgreSQL + pgvector         │
-│ • User Profiles, Prep Plans, Topics, Sessions, Reports     │
-│ • Resume & Job Description Embedding Chunks                 │
+│ • 17 snake_case tables (users, candidate_profiles, etc.)    │
+│ • Resume, Job Description & Topic 1536-dim Vector Chunks    │
 └─────────────────────────────────────────────────────────────┘
                                ▲
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. In-Memory Cache & Lock Layer: Redis                      │
-│ • Active Session State, Distributed Locks (Redlock)         │
+│ 2. In-Memory Cache & Lock Layer: Upstash Redis              │
+│ • Active Session State, Distributed Locks                   │
 │ • Rate Limiting Counters, Idempotency Caches                │
 └─────────────────────────────────────────────────────────────┘
                                ▲
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. Blob & Object Storage Layer: AWS S3 / Cloudflare R2      │
-│ • Whiteboard PNG Exports, Audio Recordings, PDF Reports     │
+│ 3. Blob & Object Storage Layer: Cloudflare R2 (S3 API)      │
+│ • Whiteboard PNG Exports, Audio Recordings, Resume PDFs     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. PostgreSQL Relational Schema (Prisma ORM)
+## 2. PostgreSQL Naming Convention & 17-Table Catalog
 
-```prisma
-datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
-  extensions = [pgvector(map: "vector")]
-}
-
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
-}
-
-// -------------------------------------------------------------
-// 1. Core Authentication & Candidate Profiles
-// -------------------------------------------------------------
-
-model User {
-  id               String            @id @default(cuid())
-  clerkId          String            @unique
-  email            String            @unique
-  fullName         String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  profile          CandidateProfile?
-}
-
-model CandidateProfile {
-  id               String            @id @default(cuid())
-  userId           String            @unique
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  targetRole       String            // e.g. "Senior Software Engineer"
-  experienceLevel  String            // "0-2", "3-5", "6-9", "10+"
-  targetCompanies  String[]          // ["Google", "Meta", "Stripe"]
-  timelineWeeks    Int               @default(8)
-  readinessScore   Int               @default(45) // 0 - 100%
-  weeklyGoalHours  Float             @default(6.0)
-  completedHours   Float             @default(0.0)
-  streakDays       Int               @default(1)
-
-  plan             PreparationPlan?
-  practiceSessions PracticeSession[]
-  mockSessions     MockInterviewSession[]
-  revisionItems    RevisionItem[]
-  embeddings       DocumentEmbedding[]
-  topicMasteries   CandidateTopicMastery[]
-
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-}
-
-model PreparationPlan {
-  id               String            @id @default(cuid())
-  candidateId      String            @unique
-  candidate        CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  targetRole       String
-  targetSeniority  String
-  timelineWeeks    Int
-  weeklyMilestones Json              // Detailed weekly breakdown of phases and topics
-  domainWeights    Json              // e.g. {"system-design": 0.40, "coding": 0.35, "behavioral": 0.15, "cloud": 0.10}
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-}
-
-// -------------------------------------------------------------
-// 2. Canonical Curriculum & Knowledge Graph (Data Structures, System Design, etc.)
-// -------------------------------------------------------------
-
-model CurriculumDomain {
-  id          String               @id @default(cuid())
-  slug        String               @unique // "system-design", "coding", "behavioral", "cloud"
-  name        String               // "System Design"
-  description String
-  categories  CurriculumCategory[]
-  topics      CurriculumTopic[]
-  createdAt   DateTime             @default(now())
-}
-
-model CurriculumCategory {
-  id          String              @id @default(cuid())
-  domainId    String
-  domain      CurriculumDomain    @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  slug        String              // "partitioning-sharding", "two-pointers"
-  name        String              // "Partitioning & Sharding"
-  description String
-  order       Int                 @default(0)
-  topics      CurriculumTopic[]
-
-  @@unique([domainId, slug])
-}
-
-model CurriculumTopic {
-  id           String                  @id @default(cuid())
-  domainId     String
-  domain       CurriculumDomain        @relation(fields: [domainId], references: [id], onDelete: Cascade)
-  categoryId   String
-  category     CurriculumCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  slug         String                  @unique // "consistent-hashing", "sliding-window"
-  title        String                  // "Consistent Hashing & DHT"
-  description  String
-  durationMin  Int                     @default(15)
-  difficulty   String                  // "EASY" | "MEDIUM" | "HARD"
-  rubricAtoms  String[]                // ["virtual nodes", "hash ring", "rebalancing"]
-  practiceHref String                  // "/practice/session/system-design"
-  iconName     String?
-
-  masteries    CandidateTopicMastery[]
-  questions    CurriculumQuestion[]
-  embeddings   TopicEmbedding[]
-  revisionItems RevisionItem[]
-  practiceSessions PracticeSession[]
-
-  createdAt    DateTime                @default(now())
-}
-
-model CurriculumQuestion {
-  id           String           @id @default(cuid())
-  topicId      String
-  topic        CurriculumTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  title        String
-  prompt       String           @db.Text
-  targetLevel  String           // "senior" | "staff"
-  hints        String[]
-  rubricGuide  String           @db.Text
-  starterCode  Json?            // Language-specific templates
-  testCases    Json?            // Automated verification suites
-  createdAt    DateTime         @default(now())
-}
-
-model TopicEmbedding {
-  id        String                  @id @default(cuid())
-  topicId   String
-  topic     CurriculumTopic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  content   String                  @db.Text
-  embedding Unsupported("vector(1536)")
-  createdAt DateTime                @default(now())
-}
-
-// -------------------------------------------------------------
-// 3. Candidate Understanding & Progress Mastery Tracking
-// -------------------------------------------------------------
-
-model CandidateTopicMastery {
-  id                String           @id @default(cuid())
-  candidateId       String
-  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId           String
-  topic             CurriculumTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-
-  masteryScore      Float            @default(0.0) // 0.0 - 100.0%
-  status            String           @default("NOT_STARTED") // "NOT_STARTED" | "NEEDS_PRACTICE" | "PRACTICED" | "MASTERED"
-  cognitiveStage    String           @default("RECALL") // "RECALL" | "APPLICATION" | "TRADE_OFFS" | "EXPERT"
-  totalAttempts     Int              @default(0)
-  lastPracticedAt   DateTime?
-
-  // Spaced Repetition (SuperMemo SM-2)
-  intervalDays      Float            @default(1.0)
-  easeFactor        Float            @default(2.5)
-  nextReviewDate    DateTime?
-
-  // Dimension Running Averages
-  avgTechnicalDepth Float            @default(0.0)
-  avgTradeoffs      Float            @default(0.0)
-  avgDataModeling   Float            @default(0.0)
-  avgScalability    Float            @default(0.0)
-
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-
-  @@unique([candidateId, topicId])
-  @@index([candidateId, status])
-  @@index([candidateId, nextReviewDate])
-}
-
-// -------------------------------------------------------------
-// 4. Interactive Sessions & Multimodal Evaluation
-// -------------------------------------------------------------
-
-model PracticeSession {
-  id               String            @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId          String?
-  topic            CurriculumTopic?  @relation(fields: [topicId], references: [id])
-  domain           String            // "system-design" | "coding" | "behavioral" | "cloud"
-  topicSlug        String            // "consistent-hashing"
-  title            String
-  durationSeconds  Int               @default(0)
-  status           String            // "ACTIVE" | "COMPLETED" | "ABANDONED"
-  whiteboardUrl    String?           // Cloudflare R2 presigned asset key
-  codeSubmission   String?           @db.Text
-  evaluation       EvaluationReport?
-  createdAt        DateTime          @default(now())
-}
-
-model MockInterviewSession {
-  id               String            @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  interviewType    String            // "system-design" | "technical" | "behavioral"
-  targetRole       String
-  difficulty       String            // "senior" | "staff"
-  durationMinutes  Int
-  status           String            // "CONFIGURING" | "ACTIVE" | "EVALUATING" | "COMPLETED"
-  recordingUrl     String?           // R2 key for audio recording .opus
-  transcript       Json?             // Array of { speaker: "ai" | "candidate", text: string, timestamp: number }
-  evaluation       EvaluationReport?
-  createdAt        DateTime          @default(now())
-}
-
-model EvaluationReport {
-  id               String                @id @default(cuid())
-  candidateId      String?
-  practiceId       String?               @unique
-  practiceSession  PracticeSession?      @relation(fields: [practiceId], references: [id])
-  mockId           String?               @unique
-  mockSession      MockInterviewSession? @relation(fields: [mockId], references: [id])
-
-  overallScore     Float                 // 0.0 - 100.0
-  verdict          String                // "Strong Hire" | "Hire" | "Leaning Hire" | "Needs Practice"
-  readinessDelta   Int                   // e.g. +6%
-  evaluatorNotes   String                @db.Text
-  strengths        String[]
-  improvements     String[]
-  rubricScores     RubricScore[]
-  createdAt        DateTime              @default(now())
-}
-
-model RubricScore {
-  id               String            @id @default(cuid())
-  reportId         String
-  report           EvaluationReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  dimension        String            // "technical_depth", "reasoning_tradeoffs", etc.
-  score            Float             // 1.0 - 10.0
-  assessment       String            @db.Text
-  missingAtoms     String[]          // Specific concepts missed
-}
-
-model RevisionItem {
-  id               String            @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  topicId          String
-  topic            CurriculumTopic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  topicTitle       String
-  domain           String
-  intervalDays     Float             @default(1.0)
-  easeFactor       Float             @default(2.5)
-  repetitions      Int               @default(0)
-  nextReviewDate   DateTime
-  lastReviewedAt   DateTime?
-  createdAt        DateTime          @default(now())
-
-  @@index([candidateId, nextReviewDate])
-}
-
-model DocumentEmbedding {
-  id               String                      @id @default(cuid())
-  candidateId      String
-  candidate        CandidateProfile            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  docType          String                      // "resume" | "job_description"
-  content          String                      @db.Text
-  embedding        Unsupported("vector(1536)")
-  createdAt        DateTime                    @default(now())
-
-  @@index([candidateId])
-}
-```
+| # | Domain Group | Prisma Model (TypeScript) | PostgreSQL Table (`@@map`) | Primary Foreign Keys (`@map`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **1** | **Auth** | `User` | `users` | — (`clerk_id` unique, `email` unique) |
+| **2** | **Candidate** | `CandidateProfile` | `candidate_profiles` | `user_id` → `users.id` |
+| **3** | **Roadmap** | `PreparationPlan` | `preparation_plans` | `candidate_id` → `candidate_profiles.id` |
+| **4** | **Roadmap** | `DailyPlanTask` | `daily_plan_tasks` | `plan_id` → `preparation_plans.id`, `topic_id` → `curriculum_topics.id` |
+| **5** | **Curriculum** | `CurriculumDomain` | `curriculum_domains` | — (`slug` unique) |
+| **6** | **Curriculum** | `CurriculumCategory` | `curriculum_categories` | `domain_id` → `curriculum_domains.id` |
+| **7** | **Curriculum** | `CurriculumTopic` | `curriculum_topics` | `domain_id` → `curriculum_domains.id`, `category_id` → `curriculum_categories.id` |
+| **8** | **Curriculum** | `CurriculumQuestion` | `curriculum_questions` | `topic_id` → `curriculum_topics.id` |
+| **9** | **Vectors** | `TopicEmbedding` | `topic_embeddings` | `topic_id` → `curriculum_topics.id` |
+| **10** | **Vectors** | `DocumentEmbedding` | `document_embeddings` | `candidate_id` → `candidate_profiles.id` |
+| **11** | **Mastery** | `CandidateTopicMastery` | `candidate_topic_masteries` | `candidate_id` → `candidate_profiles.id`, `topic_id` → `curriculum_topics.id` |
+| **12** | **Analytics** | `WeeklyAreaSnapshot` | `weekly_area_snapshots` | `candidate_id` → `candidate_profiles.id` |
+| **13** | **Sessions** | `PracticeSession` | `practice_sessions` | `candidate_id` → `candidate_profiles.id`, `topic_id` → `curriculum_topics.id` |
+| **14** | **Sessions** | `MockInterviewSession` | `mock_interview_sessions` | `candidate_id` → `candidate_profiles.id` |
+| **15** | **Evaluation** | `EvaluationReport` | `evaluation_reports` | `candidate_id`, `practice_id` → `practice_sessions.id`, `mock_id` → `mock_interview_sessions.id` |
+| **16** | **Evaluation** | `RubricScore` | `rubric_scores` | `report_id` → `evaluation_reports.id` |
+| **17** | **Revision** | `RevisionItem` | `revision_items` | `candidate_id` → `candidate_profiles.id`, `topic_id` → `curriculum_topics.id` |
 
 ---
 
-## 3. Redis In-Memory Cache Topology
+## 3. PostgreSQL Relational Schema (`prisma/schema.prisma`)
+
+See [`prisma/schema.prisma`](../../../prisma/schema.prisma) for the complete 17-table definition with `@map` and `@@map` directives.
+
+---
+
+## 4. Redis In-Memory Cache Topology
 
 ### Keyspace Architecture
 
@@ -317,12 +74,14 @@ model DocumentEmbedding {
 
 ---
 
-## 4. Object Storage (S3 / Cloudflare R2)
+## 5. Object Storage (Cloudflare R2)
 
 ### Bucket Directory Structure
 
 ```
-s3://prepinminutes-storage/
+s3://prepinminutes-assets/
+├── resumes/
+│   └── {candidateId}-{timestamp}.pdf
 ├── whiteboards/
 │   └── {candidateId}/{sessionId}_{timestamp}.png
 ├── audio-recordings/
@@ -334,13 +93,4 @@ s3://prepinminutes-storage/
 ### Pre-Signed URL Access Pattern
 
 - Whiteboards and audio recordings are never publicly accessible.
-- The backend generates pre-signed GET URLs with a strict **15-minute expiration window** (`expiresIn: 900`).
-
----
-
-## 5. Developer Implementation & Verification Checklist
-
-- [ ] All database migrations run via `prisma migrate deploy` with zero downtime schema changes.
-- [ ] Foreign keys cascade correctly on `User` deletion to uphold GDPR/CCPA data cleanup.
-- [ ] Vector index on `DocumentEmbedding` uses HNSW (`m = 16, ef_construction = 64`) for fast cosine lookup.
-- [ ] Redis keys specify explicit TTLs to avoid memory leaks.
+- The backend generates pre-signed GET/PUT URLs with a strict **15-minute expiration window** (`expiresIn: 900`).
