@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useUser, useClerk, UserAvatar } from "@clerk/react";
+import Image from "next/image";
+import { useAppAuth } from "@/components/providers/AuthProvider";
 import { toTitleCase } from "@/lib/format";
 import { BrandMark } from "@/components/BrandMark";
 import Link from "next/link";
@@ -87,11 +88,10 @@ function SidebarContent() {
     (item) => item.done,
   ).length;
 
-  const { user } = useUser();
-  const clerk = useClerk();
+  const { user, signOut } = useAppAuth();
   const displayName = user?.fullName
     ? toTitleCase(user.fullName)
-    : user?.primaryEmailAddress?.emailAddress || "Candidate";
+    : user?.email || "Candidate";
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -269,7 +269,19 @@ function SidebarContent() {
             ref={accountMenuRef}
           >
             <div className="flex min-w-0 items-center gap-2.5">
-              <UserAvatar appearance={{ elements: { avatarBox: "size-8" } }} />
+              {user?.avatarUrl ? (
+                <Image
+                  src={user.avatarUrl}
+                  alt={displayName}
+                  width={32}
+                  height={32}
+                  className="size-8 rounded-full object-cover border border-line"
+                />
+              ) : (
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand/10 font-bold text-xs text-brand border border-brand/20">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div className="flex min-w-0 flex-col gap-0.5">
                 <p className="max-w-35 truncate text-[13px] font-semibold text-ink">
                   {displayName}
@@ -289,22 +301,19 @@ function SidebarContent() {
 
             {accountMenuOpen && (
               <div className="absolute bottom-full right-0 mb-2 w-48 overflow-hidden rounded-xl border border-line bg-white py-1.5 shadow-[0_8px_24px_rgba(30,28,26,0.12)]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAccountMenuOpen(false);
-                    clerk.openUserProfile();
-                  }}
+                <Link
+                  href="/dashboard?setup=true"
+                  onClick={() => setAccountMenuOpen(false)}
                   className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] font-medium text-ink hover:bg-cream"
                 >
                   <UserCog className="size-4 text-ink-muted" />
-                  Manage account
-                </button>
+                  Edit Profile
+                </Link>
                 <button
                   type="button"
                   onClick={() => {
                     setAccountMenuOpen(false);
-                    clerk.signOut();
+                    signOut();
                   }}
                   className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] font-medium text-ink hover:bg-cream"
                 >

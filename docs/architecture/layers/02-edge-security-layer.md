@@ -48,47 +48,40 @@ The Edge & Security Gateway sits between external client requests and backend ap
 
 ---
 
-## 3. Edge Authentication & Route Protection
+## 3. Edge Authentication & Single Sign-On (Google SSO & Dynamic Provider Control)
 
-Authentication is powered by Clerk via the Next.js edge middleware wrapper:
+PrepInMinutes supports direct **Google Single Sign-On** (enabled by default) and legacy/optional **Clerk Authentication** (disabled by default), with architecture ready for runtime switching via a future Admin Control Panel:
+
+### 3.1 Google SSO Dual-Flow Architecture
+1. **Flow 1: OAuth 2.0 Authorization Code Redirect Flow**:
+   - `GET /api/auth/google`: Initiates CSRF-signed OAuth redirect to Google (`accounts.google.com`).
+   - `GET /api/auth/google/callback`: Exchanges authorization `code` with Google, upserts `User` in Neon PostgreSQL (`googleId`, `email`, `fullName`, `avatarUrl`), signs an edge-compatible HMAC-SHA256 session JWT (`pim_session`), and redirects to `/dashboard`.
+2. **Flow 2: Google Identity Services (GIS) ID Token Verification**:
+   - `POST /api/auth/google/token`: Verifies Google ID tokens / One-Tap credentials against Google's tokeninfo endpoint, upserts the candidate, and issues a session JWT.
+3. **Session Verification**:
+   - Candidate requests attach `Authorization: Bearer <jwt>` or the `pim_session` HttpOnly cookie.
+   - The edge gateway verifies the signature in sub-1ms using Web Crypto HMAC-SHA256, extracting the candidate ID.
+
+### 3.2 Roadmap: Admin SSO Control Panel (Future Implementation)
+A dedicated Admin Control Panel (`/admin/sso` or within Settings) will allow administrators to:
+- Dynamically toggle between `Google SSO`, `Clerk`, or `Both` at runtime without code changes or redeployments.
+- Select active Google flow modes (`OAuth 2.0 Redirect`, `Google Identity Services ID Token`, or `Both`).
+- Validate OAuth credentials and propagate settings via Upstash Redis (`config:sso:settings`).
 
 ```ts
 // src/middleware.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/login(.*)",
-  "/sign-up(.*)",
-  "/privacy-policy",
-  "/api/webhooks(.*)",
-]);
+const activeAuthProvider = (process.env.NEXT_PUBLIC_AUTH_PROVIDER || "google").toLowerCase();
 
-const isStaticAsset = createRouteMatcher([
-  "/_next(.*)",
-  "/favicon.ico",
-  "/(.*)\\.(png|jpg|jpeg|svg|webp|woff2)",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isStaticAsset(req)) return NextResponse.next();
-
-  if (!isPublicRoute(req)) {
-    const session = await auth();
-    if (!session.userId) {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("redirect_url", req.url);
-      return NextResponse.redirect(loginUrl);
-    }
+export default function middleware(req: NextRequest, event: unknown) {
+  // Default: Google SSO is enabled and Clerk is bypassed
+  if (activeAuthProvider !== "clerk") {
+    return NextResponse.next();
   }
-
-  return NextResponse.next();
-});
-
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+  return clerkHandler(req, event as any);
+}
 ```
 
 ---

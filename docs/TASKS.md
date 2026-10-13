@@ -248,7 +248,32 @@ This section provides complete implementation specifications for backend enginee
   - **Specification**: [`docs/architecture/layers/02-edge-security-layer.md`](./architecture/layers/02-edge-security-layer.md)
   - **Requirements**:
     - Checks `Idempotency-Key` header on `/api/practice/session/submit` and `/api/mock-interview/session/end`.
-    - Returns cached Redis response payload if duplicate request arrives within 24 hours.
+- [ ] **Task 9.4: Admin SSO & User Management Control Panel (ROADMAP / FUTURE IMPLEMENTATION)**
+  - **Target Files**:
+    - Frontend Admin UI: `src/app/admin/sso/page.tsx`, `src/app/admin/users/page.tsx` & `src/components/admin/SsoControlPanel.tsx`
+    - Backend Config API: `prepinminutes-backend/src/routes/auth.ts` (`PUT /api/auth/config`, `GET /api/admin/users`, `POST /api/admin/users/verify`)
+  - **Specification**: [`docs/architecture/layers/02-edge-security-layer.md`](./architecture/layers/02-edge-security-layer.md)
+  - **Current Baseline**: Google SSO is enabled by default (`activeProvider: "google"`, supporting both OAuth 2.0 Redirect and GIS ID Token verification); Clerk is disabled by default. Email verification is active for credentials sign-ups.
+  - **Planned Scope**:
+    - Build a secured Admin Control Panel view (`/admin/sso` or embedded in Settings) with admin role protection.
+    - Interactive controls to switch the active auth provider at runtime: `Google SSO`, `Clerk`, or `Both`.
+    - Selector for Google SSO flow modes: `OAuth 2.0 Redirect Flow`, `Google Identity Services (GIS) ID Token`, or `Both`.
+    - Live health check / credential validator verifying `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and optional Clerk keys.
+    - Candidate User Management: View registered candidates, inspect `emailVerified` status, manually verify candidates, and resend verification OTPs.
+    - Synchronize configuration changes to Upstash Redis (`config:sso:settings`) with instant edge propagation to both the frontend Next.js app and Cloudflare Workers API gateway.
+- [x] **Task 9.5: Email Verification for First-Time Credentials Sign-Up (Completed: October 14, 2026)**
+  - **Target Files**:
+    - Backend Service: `prepinminutes-backend/src/server/auth/email-verification.ts`
+    - Backend Endpoints: `prepinminutes-backend/src/routes/auth.ts` (`POST /api/auth/verify-email`, `POST /api/auth/resend-verification`)
+    - Database Schema: `model User { emailVerified Boolean @default(false) }` in Neon PostgreSQL
+    - Frontend API & Providers: `src/lib/api-client.ts`, `src/components/providers/AuthProvider.tsx`
+    - Frontend UI: `src/app/sign-up/page.tsx` (Two-step OTP verification card), `src/app/login/page.tsx` (Unverified redirect guard)
+    - Test Suite: `prepinminutes-backend/scripts/test-sso-login.ts` (13/13 passing tests)
+  - **Details**:
+    - Credentials sign-up requires 6-digit numeric OTP email validation before session token issuance.
+    - 6-digit OTP codes stored in Upstash Redis with 10-minute (600s) TTL and 60-second resend cooldown.
+    - Unverified logins blocked with HTTP 403 `EMAIL_NOT_VERIFIED` and redirected to OTP verification.
+    - Google SSO candidates remain automatically verified (`emailVerified = true`) since Google validates emails beforehand.
 
 ---
 

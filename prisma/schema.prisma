@@ -17,14 +17,19 @@ generator client {
 // -------------------------------------------------------------
 
 model User {
-  id        String            @id @default(cuid())
-  clerkId   String            @unique @map("clerk_id")
-  email     String            @unique
-  fullName  String?           @map("full_name")
-  avatarUrl String?           @map("avatar_url")
-  createdAt DateTime          @default(now()) @map("created_at")
-  updatedAt DateTime          @updatedAt @map("updated_at")
-  profile   CandidateProfile?
+  id           String            @id @default(cuid())
+  clerkId      String?           @unique @map("clerk_id")
+  googleId     String?           @unique @map("google_id")
+  username     String?           @unique @map("username")
+  passwordHash String?           @map("password_hash")
+  email        String            @unique
+  emailVerified Boolean          @default(false) @map("emailVerified")
+  fullName     String?           @map("full_name")
+  avatarUrl    String?           @map("avatar_url")
+  authProvider String            @default("google") @map("auth_provider") // "google" | "credentials" | "clerk"
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  profile      CandidateProfile?
 
   @@map("users")
 }

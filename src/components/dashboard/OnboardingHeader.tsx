@@ -1,12 +1,14 @@
 "use client";
 
-import { useUser } from "@clerk/react";
+import { useAppAuth } from "@/components/providers/AuthProvider";
 import { toTitleCase } from "@/lib/format";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
 
 export function OnboardingHeader() {
-  const { user } = useUser();
-  const userName = user?.firstName ? toTitleCase(user.firstName) : null;
+  const { user } = useAppAuth();
+  const userName = user?.fullName
+    ? toTitleCase(user.fullName.split(" ")[0])
+    : null;
 
   return (
     <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

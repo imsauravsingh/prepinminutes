@@ -11,11 +11,46 @@ export const API_BASE_URL =
     ? "https://api.prepinminutes.com"
     : "http://localhost:8787");
 
+export const AUTH_TOKEN_STORAGE_KEY = "pim_auth_token";
+export const AUTH_USER_STORAGE_KEY = "pim_auth_user";
+
+export interface AuthenticatedCandidateUser {
+  id: string;
+  username?: string | null;
+  googleId?: string | null;
+  clerkId?: string | null;
+  email: string;
+  emailVerified?: boolean;
+  fullName: string | null;
+  avatarUrl: string | null;
+  authProvider: "google" | "credentials" | "clerk";
+  hasCompletedOnboarding?: boolean;
+}
+
+export interface SsoConfigResponse {
+  success: boolean;
+  activeProvider: "google" | "clerk" | "both";
+  googleEnabled: boolean;
+  clerkEnabled: boolean;
+  googleFlow: "redirect" | "id_token" | "both";
+  googleClientId: string;
+}
+
 export interface RequestOptions {
   clerkId?: string | null;
+  candidateId?: string | null;
   token?: string | null;
   idempotencyKey?: string;
   headers?: Record<string, string>;
+}
+
+function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 function buildHeaders(
@@ -27,12 +62,15 @@ function buildHeaders(
     ...(options.headers || {}),
   };
 
-  if (options.clerkId) {
-    headers["x-candidate-clerk-id"] = options.clerkId;
+  const resolvedId = options.candidateId || options.clerkId;
+  if (resolvedId) {
+    headers["x-candidate-id"] = resolvedId;
+    headers["x-candidate-clerk-id"] = resolvedId;
   }
 
-  if (options.token) {
-    headers["Authorization"] = `Bearer ${options.token}`;
+  const resolvedToken = options.token || getStoredAuthToken();
+  if (resolvedToken) {
+    headers["Authorization"] = `Bearer ${resolvedToken}`;
   }
 
   if (options.idempotencyKey) {
@@ -42,14 +80,34 @@ function buildHeaders(
   return headers;
 }
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  data?: Record<string, unknown>;
+
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    data?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.data = data;
+  }
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
-  const data = await res.json().catch(() => ({}));
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
     const message =
-      (data as { message?: string; error?: string })?.message ||
+      (data as { message?: string })?.message ||
       (data as { error?: string })?.error ||
       `API request failed with status ${res.status}`;
-    throw new Error(message);
+    const code = (data as { error?: string })?.error;
+    throw new ApiError(message, res.status, code, data);
   }
   return data as T;
 }
@@ -98,6 +156,154 @@ export const backendApi = {
       runtime: string;
       timestamp: string;
     }>(res);
+  },
+
+  /**
+   * GET /api/auth/config
+   */
+  async getAuthConfig(): Promise<SsoConfigResponse> {
+    const res = await fetch(`${API_BASE_URL}/api/auth/config`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return handleResponse<SsoConfigResponse>(res);
+  },
+
+  /**
+   * Returns the full backend OAuth 2.0 Redirect initiation URL (`GET /api/auth/google`).
+   */
+  getGoogleOAuthRedirectUrl(redirectPath = "/dashboard"): string {
+    const url = new URL(`${API_BASE_URL}/api/auth/google`);
+    url.searchParams.set("redirect_url", redirectPath);
+    return url.toString();
+  },
+
+  /**
+   * POST /api/auth/google/token
+   * Flow 2: Exchanges a Google Identity Services (GIS) ID token for a PrepInMinutes session JWT.
+   */
+  async verifyGoogleIdToken(idToken: string) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/google/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      token: string;
+      user: AuthenticatedCandidateUser;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/login
+   * Authenticates candidate with identifier (username or email) and password.
+   */
+  async loginWithCredentials(payload: { identifier: string; password: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      token: string;
+      user: AuthenticatedCandidateUser;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/register
+   * Registers a new candidate with username, email, password, and confirmPassword.
+   */
+  async registerWithCredentials(payload: {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      requiresVerification?: boolean;
+      email?: string;
+      message?: string;
+      token?: string;
+      user?: AuthenticatedCandidateUser;
+      devCode?: string;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/verify-email
+   * Verifies candidate's 6-digit OTP code and activates the account.
+   */
+  async verifyEmail(payload: { email: string; code: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      token: string;
+      user: AuthenticatedCandidateUser;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/resend-verification
+   * Requests a fresh 6-digit OTP verification code.
+   */
+  async resendVerification(payload: { email: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      devCode?: string;
+    }>(res);
+  },
+
+  /**
+   * GET /api/auth/me
+   */
+  async getAuthMe(token?: string | null) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      method: "GET",
+      headers: buildHeaders({ token }),
+      credentials: "include",
+    });
+    return handleResponse<{
+      authenticated: boolean;
+      user: AuthenticatedCandidateUser | null;
+      profile: Record<string, unknown> | null;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/logout
+   */
+  async logout() {
+    const res = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "POST",
+      headers: buildHeaders(),
+      credentials: "include",
+    });
+    return handleResponse<{ success: boolean }>(res);
   },
 
   /**

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
-import { useAuth, UserButton } from "@clerk/react";
+import Image from "next/image";
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { useAppAuth } from "@/components/providers/AuthProvider";
 import { BrandMark } from "@/components/BrandMark";
 
 const navLinks = ["How It Works", "Features", "Pricing"];
@@ -10,7 +11,7 @@ const navLinks = ["How It Works", "Features", "Pricing"];
 export function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, user, signOut } = useAppAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -55,12 +56,35 @@ export function NavBar() {
 
         <div className="hidden items-center gap-5 lg:flex">
           {isLoaded && isSignedIn ? (
-            <>
-              <a href="/dashboard" className="text-sm font-semibold text-ink">
-                Dashboard
+            <div className="flex items-center gap-3">
+              <a
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-full border border-line bg-cream/50 px-4 py-2 text-sm font-semibold text-ink hover:bg-cream transition-colors"
+              >
+                {user?.avatarUrl ? (
+                  <Image
+                    src={user.avatarUrl}
+                    alt={user.fullName || "User"}
+                    width={22}
+                    height={22}
+                    className="size-5.5 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex size-5.5 items-center justify-center rounded-full bg-brand font-bold text-[10px] text-white">
+                    {(user?.fullName || user?.email || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span>Dashboard</span>
               </a>
-              <UserButton />
-            </>
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="flex size-9 items-center justify-center rounded-full border border-line text-ink-muted hover:text-ink hover:bg-cream transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="size-4" />
+              </button>
+            </div>
           ) : isLoaded ? (
             <>
               <a href="/login" className="text-sm font-semibold text-ink">
@@ -107,13 +131,22 @@ export function NavBar() {
                 <a
                   href="/dashboard"
                   onClick={() => setMenuOpen(false)}
-                  className="px-3 text-base font-semibold text-ink"
+                  className="flex items-center gap-2 px-3 text-base font-semibold text-ink"
                 >
-                  Dashboard
+                  <LayoutDashboard className="size-4 text-brand" />
+                  <span>Dashboard</span>
                 </a>
-                <div className="px-3">
-                  <UserButton showName />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    signOut();
+                  }}
+                  className="flex items-center gap-2 px-3 text-base font-semibold text-ink-muted hover:text-ink"
+                >
+                  <LogOut className="size-4" />
+                  <span>Sign out</span>
+                </button>
               </>
             ) : isLoaded ? (
               <>
