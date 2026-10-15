@@ -61,6 +61,20 @@ export interface AppAuthContextValue {
   resendVerificationOtp: (
     email: string
   ) => Promise<{ success: boolean; message: string; devCode?: string }>;
+  updateUserProfile: (data: {
+    fullName?: string;
+    username?: string;
+    avatarUrl?: string | null;
+  }) => Promise<{
+    success: boolean;
+    message: string;
+    user: AuthenticatedCandidateUser;
+  }>;
+  changePassword: (data: {
+    currentPassword?: string;
+    newPassword: string;
+    confirmPassword?: string;
+  }) => Promise<{ success: boolean; message: string; hasPassword?: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -366,7 +380,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return backendApi.resendVerification({ email });
   }, []);
 
-  // 9. Sign Out
+  // 9. Update Personal Profile Information
+  const updateUserProfile = useCallback(
+    async (data: {
+      fullName?: string;
+      username?: string;
+      avatarUrl?: string | null;
+    }) => {
+      const res = await backendApi.updateUserProfile(data, token);
+      if (res.success && res.user) {
+        setUser((prev) => ({
+          ...(prev || {}),
+          ...res.user,
+        }));
+        try {
+          const stored = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+          const parsed = stored ? JSON.parse(stored) : {};
+          localStorage.setItem(
+            AUTH_USER_STORAGE_KEY,
+            JSON.stringify({ ...parsed, ...res.user })
+          );
+        } catch {}
+      }
+      return res;
+    },
+    [token]
+  );
+
+  // 10. Set or Change Account Password
+  const changePassword = useCallback(
+    async (data: {
+      currentPassword?: string;
+      newPassword: string;
+      confirmPassword?: string;
+    }) => {
+      const res = await backendApi.changePassword(data, token);
+      if (res.success) {
+        setUser((prev) => (prev ? { ...prev, hasPassword: true } : prev));
+        try {
+          const stored = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            localStorage.setItem(
+              AUTH_USER_STORAGE_KEY,
+              JSON.stringify({ ...parsed, hasPassword: true })
+            );
+          }
+        } catch {}
+      }
+      return res;
+    },
+    [token]
+  );
+
+  // 11. Sign Out
   const signOut = useCallback(async () => {
     try {
       await backendApi.logout();
@@ -398,6 +465,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUpWithCredentials,
       verifyEmailOtp,
       resendVerificationOtp,
+      updateUserProfile,
+      changePassword,
       signOut,
     }),
     [
@@ -414,6 +483,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUpWithCredentials,
       verifyEmailOtp,
       resendVerificationOtp,
+      updateUserProfile,
+      changePassword,
       signOut,
     ]
   );

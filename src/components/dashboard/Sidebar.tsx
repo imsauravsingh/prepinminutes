@@ -302,7 +302,7 @@ function SidebarContent() {
             {accountMenuOpen && (
               <div className="absolute bottom-full right-0 mb-2 w-48 overflow-hidden rounded-xl border border-line bg-white py-1.5 shadow-[0_8px_24px_rgba(30,28,26,0.12)]">
                 <Link
-                  href="/dashboard?setup=true"
+                  href="/profile"
                   onClick={() => setAccountMenuOpen(false)}
                   className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] font-medium text-ink hover:bg-cream"
                 >

@@ -25,6 +25,8 @@ export interface AuthenticatedCandidateUser {
   avatarUrl: string | null;
   authProvider: "google" | "credentials" | "clerk";
   hasCompletedOnboarding?: boolean;
+  createdAt?: string | Date;
+  hasPassword?: boolean;
 }
 
 export interface SsoConfigResponse {
@@ -304,6 +306,56 @@ export const backendApi = {
       credentials: "include",
     });
     return handleResponse<{ success: boolean }>(res);
+  },
+
+  /**
+   * PATCH /api/user/profile
+   * Updates personal profile information (fullName, username, avatarUrl).
+   */
+  async updateUserProfile(
+    payload: {
+      fullName?: string;
+      username?: string;
+      avatarUrl?: string | null;
+    },
+    token?: string | null
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
+      method: "PATCH",
+      headers: buildHeaders({ token }),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      user: AuthenticatedCandidateUser;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/change-password
+   * Sets or updates the candidate's account password.
+   */
+  async changePassword(
+    payload: {
+      currentPassword?: string;
+      newPassword: string;
+      confirmPassword?: string;
+    },
+    token?: string | null
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+      method: "POST",
+      headers: buildHeaders({ token }),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      hasPassword?: boolean;
+    }>(res);
   },
 
   /**
