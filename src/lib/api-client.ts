@@ -116,9 +116,11 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 export interface CandidateProfilePayload {
   targetRole: string;
-  experienceLevel: "0-2" | "3-5" | "6-9" | "10+";
+  experienceLevel: string;
   targetCompanies?: string[];
   timelineWeeks?: number;
+  timelineLabel?: string;
+  jobDescriptionText?: string | null;
   weeklyGoalHours?: number;
 }
 
@@ -421,7 +423,7 @@ export const backendApi = {
   /**
    * GET /api/onboarding/profile
    */
-  async getProfile(options: RequestOptions) {
+  async getProfile(options: RequestOptions = {}) {
     const res = await fetch(`${API_BASE_URL}/api/onboarding/profile`, {
       method: "GET",
       headers: buildHeaders(options),
@@ -429,15 +431,18 @@ export const backendApi = {
     });
     return handleResponse<{
       success: boolean;
-      profile: Record<string, unknown>;
-      plan: Record<string, unknown> | null;
+      profile: Record<string, any> | null;
+      activePlan: Record<string, any> | null;
     }>(res);
   },
 
   /**
    * POST /api/onboarding/profile
    */
-  async saveProfile(payload: CandidateProfilePayload, options: RequestOptions) {
+  async saveProfile(
+    payload: CandidateProfilePayload,
+    options: RequestOptions = {}
+  ) {
     const res = await fetch(`${API_BASE_URL}/api/onboarding/profile`, {
       method: "POST",
       headers: buildHeaders(options),
@@ -446,14 +451,15 @@ export const backendApi = {
     });
     return handleResponse<{
       success: boolean;
-      profile: Record<string, unknown>;
+      profile: Record<string, any>;
+      activePlan: Record<string, any>;
     }>(res);
   },
 
   /**
    * POST /api/onboarding/resume
    */
-  async uploadResume(file: File, options: RequestOptions) {
+  async uploadResume(file: File, options: RequestOptions = {}) {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -465,6 +471,7 @@ export const backendApi = {
     });
     return handleResponse<{
       success: boolean;
+      fileName?: string;
       chunksProcessed: number;
       r2AssetUrl: string | null;
       extractedPreview: string;
@@ -636,6 +643,125 @@ export const backendApi = {
       throw new Error(`Voice synthesis failed with status ${res.status}`);
     }
     return res.arrayBuffer();
+  },
+
+  /**
+   * POST /api/voice/transcribe
+   */
+  async transcribeVoice(
+    audioBlob: Blob,
+    options: RequestOptions = {}
+  ): Promise<{ success: boolean; transcript: string; confidence: number }> {
+    const headers = buildHeaders(options, false);
+    headers["Content-Type"] = audioBlob.type || "audio/webm";
+
+    const res = await fetch(`${API_BASE_URL}/api/voice/transcribe`, {
+      method: "POST",
+      headers,
+      body: audioBlob,
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      transcript: string;
+      confidence: number;
+    }>(res);
+  },
+
+  /**
+   * POST /api/ai-assessment/start
+   */
+  async startAiAssessment(
+    payload: {
+      targetRole?: string;
+      experienceLevel?: string;
+      targetCompanies?: string[];
+      daysRemaining?: number;
+      dailyCommitmentHours?: number;
+      resumeSummary?: string;
+      jobDescription?: string;
+    } = {},
+    options: RequestOptions = {}
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/ai-assessment/start`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      sessionId: string;
+      welcomeMessage: string;
+      careerLevel: string;
+      specialization: string;
+      categories: Array<{ id: string; name: string }>;
+      diagnosticQuestions: Array<{
+        id: string;
+        text: string;
+        category: string;
+        difficulty: string;
+        expectedDepth: string;
+      }>;
+    }>(res);
+  },
+
+  /**
+   * POST /api/ai-assessment/finish
+   */
+  async finishAiAssessment(
+    payload: {
+      sessionId: string;
+      durationSeconds?: number;
+      transcript: Array<{
+        role: "assistant" | "user";
+        text: string;
+        timestamp?: string;
+        durationSeconds?: number;
+      }>;
+      questions?: Array<{
+        id: string;
+        text: string;
+        category: string;
+        difficulty: string;
+        expectedDepth: string;
+      }>;
+      codeSnippets?: Array<{
+        code: string;
+        language: string;
+        notes?: string;
+      }>;
+    },
+    options: RequestOptions = {}
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/ai-assessment/finish`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      overallScore: number;
+      readinessScore: number;
+      readinessDelta: number;
+      verdict: string;
+      evaluatorNotes: string;
+      strengths: string[];
+      blindSpots: string[];
+      questionBreakdown?: Array<{
+        questionNumber: number;
+        category: string;
+        questionPrompt: string;
+        candidateAnswer: string;
+        modelAnswer: string;
+        keyPointsCovered: string[];
+        keyPointsMissed: string[];
+        scorePercentage: number;
+      }>;
+      scoreFormula?: string;
+      plan: Record<string, unknown>;
+    }>(res);
   },
 };
 

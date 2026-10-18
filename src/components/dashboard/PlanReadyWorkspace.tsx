@@ -121,7 +121,7 @@ export function PlanReadyWorkspace() {
             {/* CTA Button & Time Subtext */}
             <div className="flex flex-col gap-2.5 pt-5">
               <Link
-                href="/practice"
+                href="/ai-assessment/session"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-sm sm:text-[15px] font-semibold text-white shadow-[0_4px_16px_rgba(255,108,71,0.28)] transition-all hover:bg-[#fa552b] active:scale-[0.99]"
               >
                 <span>Start AI Assessment</span>

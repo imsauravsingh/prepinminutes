@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Users2,
@@ -14,24 +15,98 @@ import {
   CheckCircle2,
   X,
   FileText,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { backendApi } from "@/lib/api-client";
 
 export function OnboardingFormCard() {
+  const router = useRouter();
+
   // State for form fields
   const [targetRole, setTargetRole] = useState("Senior Software Engineer");
   const [experience, setExperience] = useState("4-5 years");
   const [timeline, setTimeline] = useState("1 month");
   const [company, setCompany] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [existingResumeName, setExistingResumeName] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [showJdModal, setShowJdModal] = useState(false);
   const [tempJd, setTempJd] = useState("");
 
+  // Loading & error states
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgressMsg, setUploadProgressMsg] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 1. Pre-fill with existing candidate profile data if available
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCandidateProfile() {
+      try {
+        const res = await backendApi.getProfile();
+        if (!isMounted) return;
+
+        if (res.profile) {
+          if (res.profile.targetRole) {
+            setTargetRole(String(res.profile.targetRole));
+          }
+          if (res.profile.experienceLevel) {
+            setExperience(String(res.profile.experienceLevel));
+          }
+          if (res.profile.timelineLabel) {
+            setTimeline(String(res.profile.timelineLabel));
+          }
+          if (
+            Array.isArray(res.profile.targetCompanies) &&
+            res.profile.targetCompanies.length > 0
+          ) {
+            setCompany(res.profile.targetCompanies.join(", "));
+          }
+          if (res.profile.jobDescriptionText) {
+            setJobDescription(String(res.profile.jobDescriptionText));
+          }
+          if (res.profile.resumeFileName) {
+            setExistingResumeName(String(res.profile.resumeFileName));
+          }
+        } else if (res.activePlan) {
+          if (res.activePlan.targetRole) {
+            setTargetRole(String(res.activePlan.targetRole));
+          }
+          if (res.activePlan.timelineLabel) {
+            setTimeline(String(res.activePlan.timelineLabel));
+          }
+          if (
+            Array.isArray(res.activePlan.targetCompanies) &&
+            res.activePlan.targetCompanies.length > 0
+          ) {
+            setCompany(res.activePlan.targetCompanies.join(", "));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not pre-load candidate profile:", err);
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
+      }
+    }
+
+    loadCandidateProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResumeFile(e.target.files[0]);
+      setExistingResumeName(null);
     }
   };
 
@@ -40,8 +115,72 @@ export function OnboardingFormCard() {
     setShowJdModal(false);
   };
 
+  // 2. Submit Setup and Persist to Database
+  const handleSubmitSetup = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
+
+    const trimmedRole = targetRole.trim();
+    if (!trimmedRole) {
+      setErrorMessage("Please enter your target role (e.g. Senior Software Engineer).");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setUploadProgressMsg(null);
+
+    try {
+      // Step A: Save Profile & Active Plan Draft
+      setUploadProgressMsg("Saving your setup details...");
+      const targetCompanies = company
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean);
+
+      await backendApi.saveProfile({
+        targetRole: trimmedRole,
+        experienceLevel: experience,
+        timelineLabel: timeline,
+        targetCompanies,
+        jobDescriptionText: jobDescription.trim() || null,
+      });
+
+      // Step B: Upload Resume if a new file was attached
+      if (resumeFile) {
+        setUploadProgressMsg("Processing resume and generating AI embeddings...");
+        try {
+          await backendApi.uploadResume(resumeFile);
+        } catch (resumeErr: unknown) {
+          console.warn("Resume upload failed, but profile saved:", resumeErr);
+        }
+      }
+
+      // Step C: Advance to Step 2 (Plan Ready)
+      router.push("/dashboard/plan-ready");
+    } catch (err: unknown) {
+      console.error("Setup submission failed:", err);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to save your setup. Please try again."
+      );
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex w-full flex-col gap-6 rounded-[20px] sm:rounded-3xl border-[1.5px] border-[#ff6c47] bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgba(255,108,71,0.06)]">
+    <div className="flex w-full flex-col gap-6 rounded-[20px] sm:rounded-3xl border-[1.5px] border-[#ff6c47] bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgba(255,108,71,0.06)] relative">
+      {/* Loading overlay for initial fetch */}
+      {isInitialLoading && (
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-2xs z-10 flex items-center justify-center rounded-[20px] sm:rounded-3xl">
+          <div className="flex items-center gap-2.5 text-ink text-sm font-medium">
+            <Loader2 className="size-5 animate-spin text-brand" />
+            <span>Loading your setup preferences...</span>
+          </div>
+        </div>
+      )}
+
       {/* 1. Header Row */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2.5">
@@ -58,6 +197,14 @@ export function OnboardingFormCard() {
         </p>
       </div>
 
+      {/* Error Banner */}
+      {errorMessage && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700">
+          <AlertCircle className="size-4 shrink-0 text-red-600" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* 2. Required Fields (3-column Grid) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Field 1: Target Role */}
@@ -73,7 +220,8 @@ export function OnboardingFormCard() {
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value)}
               placeholder="e.g. Senior Software Engineer"
-              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-[#b0a898]"
+              disabled={isSubmitting}
+              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-[#b0a898] disabled:opacity-60"
             />
           </div>
           <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
@@ -93,7 +241,8 @@ export function OnboardingFormCard() {
               <select
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
-                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer disabled:opacity-60"
               >
                 <option value="0-1 years">0-1 years (Entry level)</option>
                 <option value="1-3 years">1-3 years (Mid level)</option>
@@ -121,7 +270,8 @@ export function OnboardingFormCard() {
               <select
                 value={timeline}
                 onChange={(e) => setTimeline(e.target.value)}
-                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer disabled:opacity-60"
               >
                 <option value="1-2 weeks">1-2 weeks (Express)</option>
                 <option value="1 month">1 month (Standard)</option>
@@ -154,15 +304,15 @@ export function OnboardingFormCard() {
               type="text"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
+              disabled={isSubmitting}
               placeholder="e.g. Google, Amazon, Microsoft"
-              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-[#b0a898]"
+              className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-[#b0a898] disabled:opacity-60"
             />
           </div>
-          <ChevronDown className="size-3.5 shrink-0 text-[#b0a898] pointer-events-none" />
         </div>
         <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
           Add a target company to get company-specific insights and questions.
-          Or select &quot;I don&apos;t have a target company.&quot;
+          Or leave blank for general preparation.
         </span>
       </div>
 
@@ -207,6 +357,14 @@ export function OnboardingFormCard() {
                 >
                   <X className="size-3.5" />
                 </button>
+              </div>
+            ) : existingResumeName ? (
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981]">
+                <CheckCircle2 className="size-4 text-[#10b981]" />
+                <span className="max-w-[200px] truncate">
+                  {existingResumeName}
+                </span>
+                <span className="text-[10px] text-[#6b6661] font-normal">(Click to replace)</span>
               </div>
             ) : (
               <>
@@ -282,14 +440,23 @@ export function OnboardingFormCard() {
       {/* 5. CTA Area */}
       <div className="flex flex-col gap-3.5 pt-2">
         <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+          <button
+            type="button"
+            onClick={() => handleSubmitSetup()}
+            disabled={isSubmitting}
+            className="flex items-center justify-center gap-2 rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>{uploadProgressMsg || "Saving your plan..."}</span>
+              </>
+            ) : (
+              <span>Create My Preparation Plan →</span>
+            )}
+          </button>
           <Link
             href="/dashboard/plan-ready"
-            className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99]"
-          >
-            Create My Preparation Plan →
-          </Link>
-          <Link
-            href="/preparation-plan"
             className="text-sm font-medium text-[#6b6661] hover:text-ink hover:underline"
           >
             Skip for now
