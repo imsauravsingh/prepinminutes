@@ -281,6 +281,66 @@ export const backendApi = {
   },
 
   /**
+   * POST /api/auth/forgot-password
+   * Dispatches a 6-digit password reset OTP to candidate's email.
+   */
+  async forgotPassword(payload: { email: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      devCode?: string;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/verify-reset-code
+   * Verifies the 6-digit reset code before new password entry.
+   */
+  async verifyResetCode(payload: { email: string; code: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/verify-reset-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      valid: boolean;
+      message: string;
+    }>(res);
+  },
+
+  /**
+   * POST /api/auth/reset-password
+   * Sets new password using verified 6-digit code.
+   */
+  async resetPassword(payload: {
+    email: string;
+    code: string;
+    newPassword: string;
+    confirmPassword?: string;
+  }) {
+    const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      token: string;
+      user: AuthenticatedCandidateUser;
+    }>(res);
+  },
+
+  /**
    * GET /api/auth/me
    */
   async getAuthMe(token?: string | null) {
