@@ -22,6 +22,7 @@ import {
   Unlock,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface Candidate {
   id: string;
@@ -61,6 +62,9 @@ export default function AdminCandidatesPage() {
   });
   const [activeTab, setActiveTab] = useState<"ALL" | "OPTED" | "FREE" | "BLOCKED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -77,7 +81,7 @@ export default function AdminCandidatesPage() {
   const [subMinutesLimit, setSubMinutesLimit] = useState(300);
   const [subExtendDays, setSubExtendDays] = useState(30);
 
-  async function loadCandidates() {
+  async function loadCandidates(page = currentPage, size = pageSize) {
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -92,11 +96,14 @@ export default function AdminCandidatesPage() {
         search: searchQuery || undefined,
         isPlanOpted,
         isBlocked,
+        page,
+        limit: size,
       });
 
       if (res.success) {
         setCandidates(res.candidates);
         setMetrics(res.metrics);
+        setTotalItems(res.total);
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to load candidate directory.");
@@ -106,12 +113,25 @@ export default function AdminCandidatesPage() {
   }
 
   useEffect(() => {
-    loadCandidates();
+    setCurrentPage(1);
+    loadCandidates(1, pageSize);
   }, [activeTab]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
-    loadCandidates();
+    setCurrentPage(1);
+    loadCandidates(1, pageSize);
+  }
+
+  function handlePageChange(newPage: number) {
+    setCurrentPage(newPage);
+    loadCandidates(newPage, pageSize);
+  }
+
+  function handlePageSizeChange(newSize: number) {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    loadCandidates(1, newSize);
   }
 
   async function handleBlockSubmit(e: React.FormEvent) {
@@ -218,7 +238,7 @@ export default function AdminCandidatesPage() {
         </div>
 
         <button
-          onClick={loadCandidates}
+          onClick={() => loadCandidates()}
           className="px-4 py-2 rounded-xl text-xs font-semibold text-[#c9d1d9] bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] transition self-start md:self-auto"
         >
           Refresh Directory
@@ -514,6 +534,19 @@ export default function AdminCandidatesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && candidates.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          pageSizeOptions={[10, 25, 50]}
+          itemLabel="candidates"
+        />
       )}
 
       {/* Modal: Block Candidate */}

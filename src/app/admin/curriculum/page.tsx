@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface Domain {
   slug: string;
@@ -43,6 +44,8 @@ export default function AdminCurriculumPage() {
   const [selectedDomain, setSelectedDomain] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -89,6 +92,10 @@ export default function AdminCurriculumPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDomain, statusFilter, searchQuery]);
 
   function handleNameChange(name: string) {
     setNewCatName(name);
@@ -185,6 +192,8 @@ export default function AdminCurriculumPage() {
       cat.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesDomain && matchesStatus && matchesSearch;
   });
+
+  const paginatedCategories = filteredCategories.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -316,7 +325,7 @@ export default function AdminCurriculumPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCategories.map((cat) => (
+          {paginatedCategories.map((cat) => (
             <div
               key={cat.slug}
               className="p-5 rounded-2xl bg-[#161b22] border border-[#30363d] hover:border-emerald-500/40 transition flex flex-col justify-between space-y-4 group shadow-sm"
@@ -387,6 +396,22 @@ export default function AdminCurriculumPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && filteredCategories.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredCategories.length}
+          pageSize={pageSize}
+          onPageChange={(p) => setCurrentPage(p)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setCurrentPage(1);
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          itemLabel="categories"
+        />
       )}
 
       {/* Modal: Add Category */}

@@ -16,6 +16,7 @@ import {
   Percent,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 export default function AdminSubscriptionsPage() {
   const [promoCodes, setPromoCodes] = useState([
@@ -24,10 +25,15 @@ export default function AdminSubscriptionsPage() {
     { code: "LAUNCH100", discount: "100% OFF", maxUses: 50, used: 50, status: "EXPIRED" },
   ]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const [newCode, setNewCode] = useState("");
   const [newDiscount, setNewDiscount] = useState("20% OFF");
   const [newMaxUses, setNewMaxUses] = useState(100);
   const [showPromoModal, setShowPromoModal] = useState(false);
+
+  const paginatedPromos = promoCodes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   function handleCreatePromo(e: React.FormEvent) {
     e.preventDefault();
@@ -231,7 +237,7 @@ export default function AdminSubscriptionsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#21262d]">
-              {promoCodes.map((promo) => {
+              {paginatedPromos.map((promo) => {
                 const pct = Math.min(100, Math.round((promo.used / promo.maxUses) * 100));
                 return (
                   <tr key={promo.code} className="hover:bg-[#1c2128]/60 transition">
@@ -268,6 +274,17 @@ export default function AdminSubscriptionsPage() {
               })}
             </tbody>
           </table>
+          <AdminPagination
+            currentPage={currentPage}
+            totalItems={promoCodes.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setCurrentPage(1);
+            }}
+            itemLabel="promos"
+          />
         </div>
       </div>
 

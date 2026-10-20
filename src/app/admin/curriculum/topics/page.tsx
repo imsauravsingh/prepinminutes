@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface Topic {
   slug: string;
@@ -57,6 +58,8 @@ export default function AdminTopicsPage() {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -117,6 +120,10 @@ export default function AdminTopicsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, difficultyFilter, statusFilter, searchQuery]);
 
   function handleTitleChange(title: string) {
     setNewTopicTitle(title);
@@ -245,6 +252,8 @@ export default function AdminTopicsPage() {
       t.rubricAtoms.some((atom) => atom.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesDifficulty && matchesStatus && matchesSearch;
   });
+
+  const paginatedTopics = filteredTopics.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -385,7 +394,7 @@ export default function AdminTopicsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredTopics.map((topic) => (
+          {paginatedTopics.map((topic) => (
             <div
               key={topic.slug}
               className="p-5 rounded-2xl bg-[#161b22] border border-[#30363d] hover:border-teal-500/40 transition space-y-3 shadow-sm"
@@ -498,6 +507,22 @@ export default function AdminTopicsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && filteredTopics.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredTopics.length}
+          pageSize={pageSize}
+          onPageChange={(p) => setCurrentPage(p)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setCurrentPage(1);
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          itemLabel="topics"
+        />
       )}
 
       {/* Modal: Add Topic */}

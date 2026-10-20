@@ -18,6 +18,7 @@ import {
   Tag,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface PendingItem {
   itemType: "Category" | "Topic" | "Question";
@@ -40,6 +41,8 @@ interface PendingItem {
 export default function AdminApprovalsPage() {
   const [items, setItems] = useState<PendingItem[]>([]);
   const [activeTab, setActiveTab] = useState<"ALL" | "Category" | "Topic" | "Question">("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -72,6 +75,10 @@ export default function AdminApprovalsPage() {
   useEffect(() => {
     loadPending();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   async function handleApprove(item: PendingItem) {
     if (!confirm(`Approve and push ${item.itemType} "${item.name}" to Live in Neo4j AuraDB?`)) return;
@@ -125,6 +132,8 @@ export default function AdminApprovalsPage() {
     if (activeTab === "ALL") return true;
     return item.itemType === activeTab;
   });
+
+  const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const catCount = items.filter((i) => i.itemType === "Category").length;
   const topicCount = items.filter((i) => i.itemType === "Topic").length;
@@ -250,7 +259,7 @@ export default function AdminApprovalsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredItems.map((item) => (
+          {paginatedItems.map((item) => (
             <div
               key={`${item.itemType}-${item.identifier}`}
               className="p-5 rounded-2xl bg-[#161b22] border border-[#30363d] hover:border-amber-500/40 transition space-y-4 shadow-sm"
@@ -356,6 +365,22 @@ export default function AdminApprovalsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && filteredItems.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredItems.length}
+          pageSize={pageSize}
+          onPageChange={(p) => setCurrentPage(p)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setCurrentPage(1);
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          itemLabel="pending drafts"
+        />
       )}
 
       {/* Modal: Reject with Feedback */}

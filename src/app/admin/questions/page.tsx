@@ -22,6 +22,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface Question {
   id: string;
@@ -55,6 +56,8 @@ export default function AdminQuestionsPage() {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -114,6 +117,10 @@ export default function AdminQuestionsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTopic, difficultyFilter, statusFilter, searchQuery]);
 
   function handleAddHint() {
     const val = newHintInput.trim();
@@ -233,6 +240,8 @@ export default function AdminQuestionsPage() {
       q.id.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTopic && matchesDifficulty && matchesStatus && matchesSearch;
   });
+
+  const paginatedQuestions = filteredQuestions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -373,7 +382,7 @@ export default function AdminQuestionsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredQuestions.map((q) => (
+          {paginatedQuestions.map((q) => (
             <div
               key={q.id}
               className="p-5 rounded-2xl bg-[#161b22] border border-[#30363d] hover:border-orange-500/40 transition space-y-4 shadow-sm"
@@ -482,6 +491,22 @@ export default function AdminQuestionsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && filteredQuestions.length > 0 && (
+        <AdminPagination
+          currentPage={currentPage}
+          totalItems={filteredQuestions.length}
+          pageSize={pageSize}
+          onPageChange={(p) => setCurrentPage(p)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setCurrentPage(1);
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          itemLabel="questions"
+        />
       )}
 
       {/* Modal: Add Question */}

@@ -20,6 +20,7 @@ import {
   FileCheck,
 } from "lucide-react";
 import { backendApi } from "@/lib/api-client";
+import { AdminPagination } from "@/components/admin/AdminPagination";
 
 interface StaffMember {
   id: string;
@@ -61,8 +62,12 @@ interface AuditLog {
 
 export default function AdminTeamPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staffPage, setStaffPage] = useState(1);
+  const [staffPageSize, setStaffPageSize] = useState(10);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [logPage, setLogPage] = useState(1);
+  const [logPageSize, setLogPageSize] = useState(10);
   const [selectedRoleMap, setSelectedRoleMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -374,7 +379,7 @@ export default function AdminTeamPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#21262d]">
-              {staff.map((member) => (
+              {staff.slice((staffPage - 1) * staffPageSize, staffPage * staffPageSize).map((member) => (
                 <tr key={member.id} className="hover:bg-[#1c2128]/60 transition">
                   {/* Identity */}
                   <td className="py-3.5 px-4">
@@ -489,6 +494,17 @@ export default function AdminTeamPage() {
               ))}
             </tbody>
           </table>
+          <AdminPagination
+            currentPage={staffPage}
+            totalItems={staff.length}
+            pageSize={staffPageSize}
+            onPageChange={setStaffPage}
+            onPageSizeChange={(newSize) => {
+              setStaffPageSize(newSize);
+              setStaffPage(1);
+            }}
+            itemLabel="staff members"
+          />
         </div>
       </div>
 
@@ -506,27 +522,44 @@ export default function AdminTeamPage() {
             No administrative audit logs recorded yet.
           </div>
         ) : (
-          <div className="divide-y divide-[#21262d] rounded-2xl border border-[#30363d] bg-[#161b22] max-h-72 overflow-y-auto">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-[#1c2128]/50">
-                <div className="space-y-0.5">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-mono text-emerald-400 font-bold">{log.action}</span>
-                    <span className="text-[#8b949e]">on</span>
-                    <span className="font-mono text-white bg-[#0d1117] px-1.5 py-0.2 rounded border border-[#30363d]">
-                      {log.targetType}:{log.targetId}
-                    </span>
+          <>
+            <div className="divide-y divide-[#21262d] rounded-2xl border border-[#30363d] bg-[#161b22] overflow-hidden">
+              {auditLogs.slice((logPage - 1) * logPageSize, logPage * logPageSize).map((log) => (
+                <div key={log.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-[#1c2128]/50">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-emerald-400 font-bold">{log.action}</span>
+                      <span className="text-[#8b949e]">on</span>
+                      <span className="font-mono text-white bg-[#0d1117] px-1.5 py-0.2 rounded border border-[#30363d]">
+                        {log.targetType}:{log.targetId}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#8b949e]">
+                      By <span className="text-white">{log.performedBy}</span> ({log.performedByName})
+                    </div>
                   </div>
-                  <div className="text-[11px] text-[#8b949e]">
-                    By <span className="text-white">{log.performedBy}</span> ({log.performedByName})
+                  <div className="text-[11px] font-mono text-[#8b949e]">
+                    {new Date(log.createdAt).toLocaleString()}
                   </div>
                 </div>
-                <div className="text-[11px] font-mono text-[#8b949e]">
-                  {new Date(log.createdAt).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {auditLogs.length > 0 && (
+              <AdminPagination
+                currentPage={logPage}
+                totalItems={auditLogs.length}
+                pageSize={logPageSize}
+                onPageChange={(p) => setLogPage(p)}
+                onPageSizeChange={(s) => {
+                  setLogPageSize(s);
+                  setLogPage(1);
+                }}
+                pageSizeOptions={[10, 25, 50]}
+                itemLabel="audit log entries"
+              />
+            )}
+          </>
         )}
       </div>
 
