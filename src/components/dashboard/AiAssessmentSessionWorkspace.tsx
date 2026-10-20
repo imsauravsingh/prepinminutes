@@ -336,12 +336,30 @@ export function AiAssessmentSessionWorkspace() {
       lastCountdownUpdateRef.current = 0;
       setSilenceCountdown(null);
 
-      // Start/Resume MediaRecorder
-      if (mediaRecorderRef.current) {
-        if (mediaRecorderRef.current.state === "paused") {
+      // Start/Resume MediaRecorder cleanly with fresh instance per turn if inactive
+      if (micStreamRef.current) {
+        if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
+          const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+            ? "audio/webm;codecs=opus"
+            : "audio/webm";
+          const recorder = new MediaRecorder(micStreamRef.current, { mimeType });
+          mediaRecorderRef.current = recorder;
+
+          recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              audioChunksRef.current.push(e.data);
+            }
+          };
+
+          recorder.onstop = () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+            audioChunksRef.current = [];
+            handleRecordedAudioBlobRef.current?.(audioBlob);
+          };
+
+          recorder.start();
+        } else if (mediaRecorderRef.current.state === "paused") {
           mediaRecorderRef.current.resume();
-        } else if (mediaRecorderRef.current.state === "inactive") {
-          mediaRecorderRef.current.start(200);
         }
       }
 
@@ -453,7 +471,10 @@ export function AiAssessmentSessionWorkspace() {
           return;
         }
 
-        const res = await backendApi.transcribeVoice(blob);
+        const res = await backendApi.transcribeVoice(blob).catch((err) => {
+          console.warn("Deepgram voice transcription non-fatal warning:", err);
+          return { success: false, transcript: "", confidence: 0 };
+        });
         const transcript = res.transcript?.trim() || "";
 
         if (!transcript) {
