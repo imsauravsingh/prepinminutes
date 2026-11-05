@@ -100,6 +100,17 @@ docs/
     ├── recall-flow.md                         ← Rapid reinforcement drill UI & completion handling
     ├── components.md                          ← Component contracts (KnowledgeHealth, RevisionQueueTable, Cards)
     └── agent-implementation.md                ← Implementation guide for revision and decay engines
+│
+├── domains/                                   ← Master Domain Curricula & Taxonomies
+│   ├── system-design.md                       ← System Design v5.0 Master Catalog (54 Topics, 1,080 Questions)
+│   └── ai-system-design.md                    ← Dedicated AI System Design Catalog (20 Topics, 400 Questions)
+│
+├── GENERIC_KNOWLEDGE_GRAPH_SCHEMA_SPEC.md     ← Multi-Domain Knowledge Graph Metamodel & Fetching Contracts
+├── SYSTEM_DESIGN_CURRICULUM_EXCELLENCE_STANDARD.md ← 8-Layer Depth Standard, Question Archetypes & 100-pt Audit
+├── SYSTEM_DESIGN_CURRICULUM_AND_QUESTION_TAXONOMY_SPEC.md ← Classical vs AI Domain Separation Architecture
+├── DYNAMIC_FREQUENCY_AND_MARKET_TREND_SPEC.md ← Time-Decay Math (T_half=180d) & Dynamic Recalculation Cron
+├── PREPARATION_PLAN_AND_KNOWLEDGE_GRAPH_SPEC.md ← Graph traversal & diagnostic assessment specification
+└── AI_QUESTION_SELECTION_AND_GRAPH_DIAGNOSTIC_SPEC.md ← Adaptive diagnostic questioning & candidate analysis
 ```
 
 ---
