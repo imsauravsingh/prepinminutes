@@ -102,6 +102,7 @@ docs/
     └── agent-implementation.md                ← Implementation guide for revision and decay engines
 │
 ├── domains/                                   ← Master Domain Curricula & Taxonomies
+│   ├── README.md                              ← Master Domain Registry & Implementation Status Matrix
 │   ├── system-design.md                       ← System Design v5.1 Master Catalog (62 Topics, 17 Categories, 1,240 Questions, P0/P1/P2 Tiers)
 │   └── ai-system-design.md                    ← Dedicated AI System Design Catalog (20 Topics, 400 Questions)
 │
