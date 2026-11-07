@@ -31,7 +31,7 @@ flowchart LR
         Categories["(:Category) e.g. Distributed Caching, Dynamic Programming"]
         Topics["(:Topic) with status: DRAFT | IN_REVIEW | PUBLISHED"]
         Questions["(:Question) with rubric atoms, model answers, test cases"]
-        DAG["Relationships: [:PREREQUISITE_FOR], [:CONTAINS], [:TESTED_BY]"]
+        DAG["Relationships: [:PREREQUISITE_OF], [:CONTAINS], [:HAS_TOPIC], [:HAS_QUESTION]"]
     end
 
     AdminUser["Admin UI (/admin/*)"] -->|1. Authenticate & Verify Role| PostgreSQL
@@ -43,7 +43,7 @@ flowchart LR
 | :------------------------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Authentication, RBAC & Passwords**        | **PostgreSQL** | Sensitive credentials, PBKDF2 salt-hash comparison, session JWTs, and transactional user records require strict ACID guarantees and row-level indexing.  |
 | **Audit Logs & Billing State**              | **PostgreSQL** | Payment transactions, subscription validity, promo codes, and immutable admin edit logs require relational foreign keys and relational reporting.        |
-| **Curriculum Taxonomy & Questions**         | **Neo4j**      | Reusable domain categories, topics, prerequisite DAGs (`[:PREREQUISITE_FOR]`), and evaluation benchmark rubrics require high-speed graph traversals.     |
+| **Curriculum Taxonomy & Questions**         | **Neo4j**      | Reusable domain categories, topics, prerequisite DAGs (`[:PREREQUISITE_OF]`), and evaluation benchmark rubrics require high-speed graph traversals.     |
 | **Publication Gating (`status`, `isLive`)** | **Neo4j**      | Allows live graph traversals to instantly filter candidate queries (`WHERE item.status = 'PUBLISHED' AND item.isLive = true`), keeping drafts invisible. |
 
 ---
@@ -213,17 +213,17 @@ Neo4j is the single source of truth for **technical taxonomy, questions, and pre
 
 ```mermaid
 flowchart TD
-    D["(:Domain {slug, name, description})"]
-    C["(:Category {slug, name, description, orderIndex})"]
-    T["(:Topic {slug, title, difficulty, status, isLive})"]
-    Q["(:Question {id, prompt, hints, rubricGuide, status})"]
-    R["(:EvaluationRubric {scoringAtoms, modelAnswer})"]
+    D["(:Domain {slug, name, description, version, topicCount})"]
+    C["(:Category {slug, name, description, sortOrder, pillar})"]
+    T["(:Topic {slug, topicId, title, priority, difficulty, status, isLive})"]
+    Q["(:Question {id, title, prompt, hints, rubricGuide, rubricAtoms, status, isLive})"]
 
     D -->|CONTAINS| C
-    C -->|CONTAINS| T
-    T -->|TESTED_BY| Q
-    Q -->|EVALUATED_BY| R
-    T -->|PREREQUISITE_FOR| T
+    C -->|HAS_TOPIC| T
+    T -->|HAS_QUESTION| Q
+    T -->|PREREQUISITE_OF| T
+    T -.->|USES_COMPONENT| T
+    T -.->|FOUNDED_ON| T
 ```
 
 ### 3.1 Domain-Specific Modeling Nuances

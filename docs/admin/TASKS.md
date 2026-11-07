@@ -222,7 +222,7 @@ flowchart TD
     - Topic list filtered by Category.
     - Form to edit difficulty (Beginner, Intermediate, Advanced), duration (minutes), description.
     - Interactive **Rubric Checklist Atoms Tag Manager** (add/remove concepts like `"consistent hash ring"`, `"XFetch"`).
-    - Prerequisite linking selector (`[:PREREQUISITE_FOR]`).
+    - Prerequisite linking selector (`[:PREREQUISITE_OF]`).
   - **Acceptance Criteria**: Topics and rubric checklist atoms persist directly to Neo4j.
 
 - [ ] **Task 5.4: Master Question Bank Editor**

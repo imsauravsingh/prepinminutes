@@ -6,28 +6,42 @@ This document specifies the database schemas, relational models, PostgreSQL `sna
 
 ## 1. Architectural Scope & Storage Tiers
 
-PrepInMinutes utilizes a three-tier storage topology to balance ACID transactional safety, low-latency in-memory operations, and cost-effective binary asset storage:
+PrepInMinutes utilizes a four-tier polyglot storage topology balancing graph traversals, ACID transactional safety, low-latency caching, and binary asset storage:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. Relational & Vector Layer: PostgreSQL + pgvector         │
-│ • 17 snake_case tables (users, candidate_profiles, etc.)    │
+│ 1. Curriculum Knowledge Graph: Neo4j AuraDB (Cypher 5.x)    │
+│ • Canonical Domains, Categories, Topics, Questions          │
+│ • Prerequisite DAGs ([:PREREQUISITE_OF]), Component Edges  │
+│ • Sub-10ms topological traversal, zero candidate PII        │
+└─────────────────────────────────────────────────────────────┘
+                               ▲
+                               │ (foreign key reference via topic_id, question_id)
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Relational & Vector Layer: PostgreSQL (Neon) + pgvector  │
+│ • Candidate Profiles, Preparation Plans, Daily Plan Tasks   │
+│ • Practice & Mock Sessions, Evaluations, Rubric Scores      │
 │ • Resume, Job Description & Topic 1536-dim Vector Chunks    │
 └─────────────────────────────────────────────────────────────┘
                                ▲
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. In-Memory Cache & Lock Layer: Upstash Redis              │
+│ 3. In-Memory Cache & Lock Layer: Upstash Redis              │
 │ • Active Session State, Distributed Locks                   │
 │ • Rate Limiting Counters, Idempotency Caches                │
 └─────────────────────────────────────────────────────────────┘
                                ▲
                                │
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. Blob & Object Storage Layer: Cloudflare R2 (S3 API)      │
+│ 4. Blob & Object Storage Layer: Cloudflare R2 (S3 API)      │
 │ • Whiteboard PNG Exports, Audio Recordings, Resume PDFs     │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> [!NOTE]
+> **Polyglot Graph + Relational Architecture**:  
+> The curriculum hierarchy and question inventory are canonical in **Neo4j AuraDB**. In PostgreSQL, candidate attempt history, daily plan tasks, topic masteries, and practice sessions reference Neo4j via string identifiers (`topic_id` and `question_id`), ensuring zero duplication of curriculum rubrics and instant graph-backed personalization.
 
 ---
 
