@@ -54,6 +54,8 @@ export default function AdminTopicsPage() {
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [domains, setDomains] = useState<Array<{ slug: string; name: string }>>([]);
+  const [selectedDomain, setSelectedDomain] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -63,6 +65,41 @@ export default function AdminTopicsPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Merge live domains with planned roadmap domains
+  const displayDomains = React.useMemo(() => {
+    const liveMap = new Map(domains.map((d) => [d.slug, d]));
+    const list: Array<{ slug: string; name: string; isLive: boolean }> = [];
+
+    for (const d of domains) {
+      list.push({ slug: d.slug, name: d.name, isLive: true });
+    }
+
+    const planned = [
+      { slug: "low-level-design", name: "Low-Level Design (LLD)" },
+      { slug: "dsa", name: "Data Structures & Algorithms (DSA)" },
+      { slug: "backend-engineering", name: "Backend & Runtime Engineering" },
+      { slug: "frontend-engineering", name: "Frontend & Web Architecture" },
+      { slug: "cloud-devops", name: "Cloud, DevOps & SRE" },
+      { slug: "behavioral-leadership", name: "Behavioral & Leadership" },
+      { slug: "data-engineering", name: "Data Engineering & Big Data" },
+      { slug: "mobile-engineering", name: "Mobile Engineering" },
+    ];
+
+    for (const p of planned) {
+      if (!liveMap.has(p.slug)) {
+        list.push({ slug: p.slug, name: p.name, isLive: false });
+      }
+    }
+
+    return list;
+  }, [domains]);
+
+  // Restrict categories to selected domain when domain filter is active
+  const availableCategories = React.useMemo(() => {
+    if (selectedDomain === "ALL") return categories;
+    return categories.filter((c) => c.domainSlug === selectedDomain);
+  }, [categories, selectedDomain]);
 
   // Add Topic Modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -90,9 +127,10 @@ export default function AdminTopicsPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const [topicsRes, catsRes] = await Promise.all([
+      const [topicsRes, catsRes, domainsRes] = await Promise.all([
         backendApi.getNeo4jTopics(),
         backendApi.getNeo4jCategories(),
+        backendApi.getNeo4jDomains(),
       ]);
 
       if (topicsRes.success) {
@@ -110,6 +148,9 @@ export default function AdminTopicsPage() {
           setNewTopicCategory(catsRes.categories[0].slug);
         }
       }
+      if (domainsRes.success) {
+        setDomains(domainsRes.domains.map((d: any) => ({ slug: d.slug, name: d.name })));
+      }
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to load topics from Neo4j.");
     } finally {
@@ -123,7 +164,7 @@ export default function AdminTopicsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, difficultyFilter, statusFilter, searchQuery]);
+  }, [selectedDomain, selectedCategory, difficultyFilter, statusFilter, searchQuery]);
 
   function handleTitleChange(title: string) {
     setNewTopicTitle(title);
@@ -238,11 +279,12 @@ export default function AdminTopicsPage() {
   }
 
   const filteredTopics = topics.filter((t) => {
+    const matchesDomain = selectedDomain === "ALL" || t.domainSlug === selectedDomain;
     const matchesCategory = selectedCategory === "ALL" || t.categorySlug === selectedCategory;
     const matchesDifficulty = difficultyFilter === "ALL" || t.difficulty === difficultyFilter;
     const matchesStatus =
       statusFilter === "ALL" ||
-      (statusFilter === "LIVE" && t.isLive) ||
+      ((statusFilter === "LIVE" || statusFilter === "PUBLISHED") && (t.isLive || t.status === "PUBLISHED")) ||
       (statusFilter === "DRAFT" && (!t.isLive || t.status === "DRAFT" || t.status === "IN_REVIEW"));
     const matchesSearch =
       !searchQuery ||
@@ -250,7 +292,7 @@ export default function AdminTopicsPage() {
       t.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.rubricAtoms.some((atom) => atom.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesDifficulty && matchesStatus && matchesSearch;
+    return matchesDomain && matchesCategory && matchesDifficulty && matchesStatus && matchesSearch;
   });
 
   const paginatedTopics = filteredTopics.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -329,16 +371,36 @@ export default function AdminTopicsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          {/* Domain Filter */}
+          <div className="flex items-center space-x-1.5">
+            <span className="text-xs text-[#8b949e]">Domain:</span>
+            <select
+              value={selectedDomain}
+              onChange={(e) => {
+                setSelectedDomain(e.target.value);
+                setSelectedCategory("ALL");
+              }}
+              className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-500 max-w-[210px]"
+            >
+              <option value="ALL">All Domains ({categories.length} categories)</option>
+              {displayDomains.map((d) => (
+                <option key={d.slug} value={d.slug}>
+                  {d.name} {d.isLive ? "" : "(Planned · 0 categories)"}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Category Filter */}
           <div className="flex items-center space-x-1.5">
             <span className="text-xs text-[#8b949e]">Category:</span>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-500 max-w-[180px]"
+              className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-500 max-w-[210px]"
             >
-              <option value="ALL">All Categories ({categories.length})</option>
-              {categories.map((c) => (
+              <option value="ALL">All Categories ({availableCategories.length} categories)</option>
+              {availableCategories.map((c) => (
                 <option key={c.slug} value={c.slug}>
                   {c.name}
                 </option>

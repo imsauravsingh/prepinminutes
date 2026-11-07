@@ -64,6 +64,47 @@ export default function AdminCurriculumPage() {
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
 
+  // Merge live Neo4j domains with canonical roadmap domains
+  const displayDomains = React.useMemo(() => {
+    const liveMap = new Map(domains.map((d) => [d.slug, d]));
+    const list: Array<{ slug: string; name: string; categoryCount: number; isLive: boolean }> = [];
+
+    // Add all live domains from Neo4j
+    for (const d of domains) {
+      list.push({
+        slug: d.slug,
+        name: d.name,
+        categoryCount: d.categoryCount,
+        isLive: true,
+      });
+    }
+
+    // Add canonical planned domains if not already live
+    const planned = [
+      { slug: "low-level-design", name: "Low-Level Design (LLD)" },
+      { slug: "dsa", name: "Data Structures & Algorithms (DSA)" },
+      { slug: "backend-engineering", name: "Backend & Runtime Engineering" },
+      { slug: "frontend-engineering", name: "Frontend & Web Architecture" },
+      { slug: "cloud-devops", name: "Cloud, DevOps & SRE" },
+      { slug: "behavioral-leadership", name: "Behavioral & Leadership" },
+      { slug: "data-engineering", name: "Data Engineering & Big Data" },
+      { slug: "mobile-engineering", name: "Mobile Engineering" },
+    ];
+
+    for (const p of planned) {
+      if (!liveMap.has(p.slug)) {
+        list.push({
+          slug: p.slug,
+          name: p.name,
+          categoryCount: 0,
+          isLive: false,
+        });
+      }
+    }
+
+    return list;
+  }, [domains]);
+
   async function loadData() {
     setLoading(true);
     setErrorMsg(null);
@@ -183,7 +224,7 @@ export default function AdminCurriculumPage() {
     const matchesDomain = selectedDomain === "ALL" || cat.domainSlug === selectedDomain;
     const matchesStatus =
       statusFilter === "ALL" ||
-      (statusFilter === "LIVE" && cat.isLive) ||
+      ((statusFilter === "LIVE" || statusFilter === "PUBLISHED") && (cat.isLive || cat.status === "PUBLISHED")) ||
       (statusFilter === "DRAFT" && (!cat.isLive || cat.status === "DRAFT" || cat.status === "IN_REVIEW"));
     const matchesSearch =
       !searchQuery ||
@@ -260,7 +301,7 @@ export default function AdminCurriculumPage() {
               : "bg-[#161b22] text-[#8b949e] hover:text-white border border-[#30363d]"
           }`}
         >
-          All Domains ({categories.length})
+          All Domains ({categories.length} categories)
         </button>
         {domains.map((d) => (
           <button
@@ -274,15 +315,15 @@ export default function AdminCurriculumPage() {
           >
             <span>{d.name}</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#21262d] text-[#8b949e]">
-              {d.categoryCount}
+              {d.categoryCount} categories
             </span>
           </button>
         ))}
       </div>
 
-      {/* Search and Status Filters */}
+      {/* Search and Domain / Status Filters */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl bg-[#161b22] border border-[#30363d]">
-        <div className="relative w-full sm:w-80">
+        <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-2.5 size-4 text-[#8b949e]" />
           <input
             type="text"
@@ -293,18 +334,38 @@ export default function AdminCurriculumPage() {
           />
         </div>
 
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <Filter className="size-3.5 text-[#8b949e]" />
-          <span className="text-xs text-[#8b949e]">Status:</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="LIVE">Live (Published)</option>
-            <option value="DRAFT">Draft / Staging</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Domain Dropdown */}
+          <div className="flex items-center space-x-1.5">
+            <span className="text-xs text-[#8b949e]">Domain:</span>
+            <select
+              value={selectedDomain}
+              onChange={(e) => setSelectedDomain(e.target.value)}
+              className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500 max-w-[280px]"
+            >
+              <option value="ALL">All Domains ({categories.length} categories)</option>
+              {displayDomains.map((d) => (
+                <option key={d.slug} value={d.slug}>
+                  {d.name} {d.isLive ? `(${d.categoryCount} categories)` : "(Planned · 0 categories)"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="flex items-center space-x-1.5">
+            <Filter className="size-3.5 text-[#8b949e]" />
+            <span className="text-xs text-[#8b949e]">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="LIVE">Live (Published)</option>
+              <option value="DRAFT">Draft / Staging</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -441,9 +502,9 @@ export default function AdminCurriculumPage() {
                   onChange={(e) => setNewCatDomain(e.target.value)}
                   className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                 >
-                  {domains.map((d) => (
+                  {displayDomains.map((d) => (
                     <option key={d.slug} value={d.slug}>
-                      {d.name}
+                      {d.name} {d.isLive ? "" : "(Planned)"}
                     </option>
                   ))}
                 </select>
