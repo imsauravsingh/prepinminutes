@@ -104,7 +104,7 @@ docs/
 ├── domains/                                   ← Master Domain Curricula & Taxonomies
 │   ├── README.md                              ← Master Domain Registry & Implementation Status Matrix
 │   ├── system-design.md                       ← System Design v5.1 Master Catalog (62 Topics, 17 Categories, 1,240 Questions, P0/P1/P2 Tiers)
-│   └── ai-system-design.md                    ← Dedicated AI System Design Catalog (20 Topics, 400 Questions)
+│   └── ai-system-design.md                    ← AI System Design v2.0 Master Catalog (28 Topics, 3 Pillars, 560 Questions, P0/P1/P2 Tiers)
 │
 ├── GENERIC_KNOWLEDGE_GRAPH_SCHEMA_SPEC.md     ← Multi-Domain Knowledge Graph Metamodel & Fetching Contracts
 ├── SYSTEM_DESIGN_CURRICULUM_EXCELLENCE_STANDARD.md ← 8-Layer Depth Standard, Question Archetypes & 100-pt Audit
