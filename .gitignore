@@ -53,3 +53,10 @@ next-env.d.ts
 # local binaries
 /bin/
 
+# secrets and credentials
+credentials/
+*.key
+
+
+# credentials
+credentials/
