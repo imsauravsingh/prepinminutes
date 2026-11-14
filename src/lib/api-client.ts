@@ -5,6 +5,13 @@
  * Cloudflare Workers backend service (`prepinminutes-backend` / `api.prepinminutes.com`).
  */
 
+import {
+  CurriculumDomainsResponse,
+  CurriculumHierarchyResponse,
+  TopicDetailResponse,
+  TopicQuestionsResponse,
+} from "@/types/curriculum";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === "production"
@@ -104,11 +111,13 @@ export class ApiError extends Error {
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
+    const errorObj = (data as { error?: any })?.error;
     const message =
       (data as { message?: string })?.message ||
-      (data as { error?: string })?.error ||
+      (typeof errorObj === "string" ? errorObj : errorObj?.message) ||
       `API request failed with status ${res.status}`;
-    const code = (data as { error?: string })?.error;
+    const code =
+      typeof errorObj === "string" ? errorObj : errorObj?.code;
     throw new ApiError(message, res.status, code, data);
   }
   return data as T;
@@ -1576,6 +1585,122 @@ export const backendApi = {
         createdAt: string;
       }>;
     }>(res);
+  },
+
+  // ---------------------------------------------------------------------------
+  // Unified Knowledge Graph Curriculum Endpoints (Phase 3 & Phase 4)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * GET /api/curriculum/domains
+   * Returns list of canonical domains with catalog metadata and aggregated counts.
+   * Supports ETag 304 caching.
+   */
+  async getCurriculumDomains(
+    etag?: string
+  ): Promise<CurriculumDomainsResponse & { etag?: string | null; notModified?: boolean }> {
+    const headers: Record<string, string> = {};
+    if (etag) headers["If-None-Match"] = etag;
+    const res = await fetch(`${API_BASE_URL}/api/curriculum/domains`, {
+      method: "GET",
+      headers,
+    });
+    if (res.status === 304) {
+      return {
+        success: true,
+        domains: [],
+        meta: {
+          curriculumVersion: "",
+          totalDomains: 0,
+          totalCategories: 0,
+          totalTopics: 0,
+          totalQuestions: 0,
+          dataSource: "cache",
+        },
+        etag,
+        notModified: true,
+      };
+    }
+    const newEtag = res.headers.get("ETag");
+    const data = await handleResponse<CurriculumDomainsResponse>(res);
+    return {
+      ...data,
+      etag: newEtag,
+      notModified: false,
+    };
+  },
+
+  /**
+   * GET /api/curriculum/hierarchy/:domainSlug
+   * Returns full 3-tier hierarchy (Domain -> Category -> Topic) with metadata.
+   * Supports ETag 304 caching.
+   */
+  async getCurriculumHierarchy(
+    domainSlug: string,
+    etag?: string
+  ): Promise<CurriculumHierarchyResponse & { etag?: string | null; notModified?: boolean }> {
+    const headers: Record<string, string> = {};
+    if (etag) headers["If-None-Match"] = etag;
+    const res = await fetch(
+      `${API_BASE_URL}/api/curriculum/hierarchy/${encodeURIComponent(domainSlug)}`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+    if (res.status === 304) {
+      return {
+        domainSlug,
+        domainName: "",
+        description: "",
+        version: "",
+        totalCategories: 0,
+        totalTopics: 0,
+        totalQuestions: 0,
+        categories: [],
+        etag,
+        notModified: true,
+      };
+    }
+    const newEtag = res.headers.get("ETag");
+    const data = await handleResponse<CurriculumHierarchyResponse>(res);
+    return {
+      ...data,
+      etag: newEtag,
+      notModified: false,
+    };
+  },
+
+  /**
+   * GET /api/curriculum/topic/:topicSlug
+   * Returns 8-layer deep metadata for a single topic.
+   */
+  async getCurriculumTopicDetail(topicSlug: string): Promise<TopicDetailResponse> {
+    const res = await fetch(
+      `${API_BASE_URL}/api/curriculum/topic/${encodeURIComponent(topicSlug)}`,
+      {
+        method: "GET",
+      }
+    );
+    return handleResponse<TopicDetailResponse>(res);
+  },
+
+  /**
+   * GET /api/curriculum/topic/:topicSlug/questions
+   * Returns rich interview questions linked to this topic with optional filters.
+   */
+  async getCurriculumTopicQuestions(
+    topicSlug: string,
+    params?: { targetLevel?: string; difficulty?: string; limit?: number }
+  ): Promise<TopicQuestionsResponse> {
+    const query = new URLSearchParams();
+    if (params?.targetLevel) query.set("targetLevel", params.targetLevel);
+    if (params?.difficulty) query.set("difficulty", params.difficulty);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    const url = `${API_BASE_URL}/api/curriculum/topic/${encodeURIComponent(topicSlug)}/questions${qs ? `?${qs}` : ""}`;
+    const res = await fetch(url, { method: "GET" });
+    return handleResponse<TopicQuestionsResponse>(res);
   },
 };
 

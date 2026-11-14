@@ -99,34 +99,34 @@ Ensure there are exactly ${profile.timelineWeeks} milestones (one per week). Ret
     const planJson = JSON.parse(response.text || "{}");
 
     // Upsert PreparationPlan bound to candidateProfile
-    const plan = await db.preparationPlan.upsert({
-      where: { candidateId: profile.id },
-      update: {
-        targetRole: profile.targetRole,
-        targetSeniority: profile.experienceLevel,
-        timelineWeeks: profile.timelineWeeks,
-        weeklyMilestones: planJson.weeklyMilestones || [],
-        domainWeights: planJson.domainWeights || {
-          "system-design": 0.35,
-          coding: 0.35,
-          behavioral: 0.15,
-          cloud: 0.15,
-        },
-      },
-      create: {
-        candidateId: profile.id,
-        targetRole: profile.targetRole,
-        targetSeniority: profile.experienceLevel,
-        timelineWeeks: profile.timelineWeeks,
-        weeklyMilestones: planJson.weeklyMilestones || [],
-        domainWeights: planJson.domainWeights || {
-          "system-design": 0.35,
-          coding: 0.35,
-          behavioral: 0.15,
-          cloud: 0.15,
-        },
-      },
+    const existingPlan = await db.preparationPlan.findFirst({
+      where: { candidateId: profile.id, isActive: true },
     });
+
+    const planPayload = {
+      targetRole: profile.targetRole,
+      targetSeniority: profile.experienceLevel,
+      timelineWeeks: profile.timelineWeeks,
+      weeklyMilestones: planJson.weeklyMilestones || [],
+      domainWeights: planJson.domainWeights || {
+        "system-design": 0.35,
+        coding: 0.35,
+        behavioral: 0.15,
+        cloud: 0.15,
+      },
+    };
+
+    const plan = existingPlan
+      ? await db.preparationPlan.update({
+          where: { id: existingPlan.id },
+          data: planPayload,
+        })
+      : await db.preparationPlan.create({
+          data: {
+            candidateId: profile.id,
+            ...planPayload,
+          },
+        });
 
     return NextResponse.json({ success: true, plan });
   } catch (error) {

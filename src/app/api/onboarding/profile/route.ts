@@ -91,7 +91,10 @@ export async function GET(req: NextRequest) {
       include: {
         profile: {
           include: {
-            plan: true,
+            plans: {
+              where: { isActive: true },
+              take: 1,
+            },
           },
         },
       },
@@ -104,10 +107,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const activePlan = user.profile.plans?.[0] || null;
+
     return NextResponse.json({
       success: true,
       profile: user.profile,
-      plan: user.profile.plan,
+      plan: activePlan,
     });
   } catch (error) {
     console.error("Profile fetch error:", error);

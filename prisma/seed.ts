@@ -1067,6 +1067,7 @@ async function main() {
           },
           create: {
             slug: topicData.slug,
+            topicId: (topicData as any).topicId || topicData.slug.toUpperCase().replace(/-/g, "_"),
             title: topicData.title,
             description: topicData.description,
             difficulty: topicData.difficulty,
