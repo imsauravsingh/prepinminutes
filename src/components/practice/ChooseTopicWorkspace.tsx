@@ -35,6 +35,9 @@ import {
   Layout,
   Smartphone,
   BookOpen,
+  Flame,
+  LayoutGrid,
+  ListFilter,
   type LucideIcon,
 } from "lucide-react";
 import { useCurriculum } from "@/hooks/useCurriculum";
@@ -151,18 +154,36 @@ export const DOMAIN_VISUAL_MAP: Record<string, DomainVisualMeta> = {
   },
 };
 
-interface Topic {
+export interface Topic {
   id: string;
+  slug?: string;
+  topicId?: string;
   area: AreaType;
   title: string;
   description: string;
+  pillar?: string;
+  categoryName?: string;
+  categorySlug?: string;
   readiness: number;
   duration: number; // in minutes
   status: StatusType;
-  priority: PriorityType;
+  priority: PriorityType | "P0" | "P1";
+  difficulty?: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
+  trend?: "SURGING" | "HOT" | "STABLE" | "COOLING";
+  rubricAtomsCount?: number;
+  questionsCount?: number;
   isStarred?: boolean;
   practiceHref: string;
   icon: LucideIcon;
+}
+
+export interface CategoryGroup {
+  slug: string;
+  name: string;
+  pillar: string;
+  sortOrder: number;
+  topicsCount: number;
+  topics: Topic[];
 }
 
 const ALL_TOPICS: Topic[] = [
@@ -643,9 +664,12 @@ export function ChooseTopicWorkspace() {
   const [selectedArea, setSelectedArea] = useState<string>("system-design");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedTime, setSelectedTime] = useState<string>("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedPriority, setSelectedPriority] = useState<string>("all");
+  const [selectedTime, setSelectedTime] = useState<string>("all");
   const [sortFilter, setSortFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grouped" | "flat">("grouped");
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [whyTooltipOpen, setWhyTooltipOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -656,6 +680,7 @@ export function ChooseTopicWorkspace() {
   const {
     domains,
     activeDomain,
+    categories,
     allTopics: curriculumTopics,
     isLoading: isCurriculumLoading,
     isValidating,
@@ -749,13 +774,19 @@ export function ChooseTopicWorkspace() {
     if (curriculumTopics && curriculumTopics.length > 0) {
       return curriculumTopics.map((t) => ({
         id: t.slug,
+        slug: t.slug,
+        topicId: t.topicId || t.slug.toUpperCase().slice(0, 6),
         area: selectedArea as AreaType,
         title: t.title,
         description: `Covers ${t.rubricAtomsCount} rubric atoms across ${t.questionsCount} interview questions.`,
         readiness: t.readiness ?? (t.priority === "P0" ? 45 : 60),
         duration: t.durationMin || 15,
         status: (t.status || "Not Practiced") as StatusType,
-        priority: (t.priority === "P0" ? "High" : "Medium") as PriorityType,
+        priority: t.priority,
+        difficulty: t.difficulty,
+        trend: t.trend,
+        rubricAtomsCount: t.rubricAtomsCount,
+        questionsCount: t.questionsCount,
         isStarred: t.isStarred,
         practiceHref: t.practiceHref || getPracticeSessionUrl(selectedArea, t.slug),
         icon: DOMAIN_VISUAL_MAP[selectedArea]?.icon || Database,
@@ -770,12 +801,22 @@ export function ChooseTopicWorkspace() {
   const filterCounts = useMemo(() => {
     return {
       status: {
-        notPracticed: areaTopics.filter((t) => t.status === "Not Practiced")
-          .length,
-        needsPractice: areaTopics.filter((t) => t.status === "Needs Practice")
-          .length,
+        all: areaTopics.length,
+        notPracticed: areaTopics.filter((t) => t.status === "Not Practiced").length,
+        needsPractice: areaTopics.filter((t) => t.status === "Needs Practice").length,
         inProgress: areaTopics.filter((t) => t.status === "In Progress").length,
         practiced: areaTopics.filter((t) => t.status === "Practiced").length,
+        starred: areaTopics.filter((t) => t.isStarred).length,
+      },
+      difficulty: {
+        beginner: areaTopics.filter((t) => t.difficulty === "BEGINNER").length,
+        intermediate: areaTopics.filter((t) => t.difficulty === "INTERMEDIATE").length,
+        advanced: areaTopics.filter((t) => t.difficulty === "ADVANCED").length,
+        expert: areaTopics.filter((t) => t.difficulty === "EXPERT").length,
+      },
+      priority: {
+        p0: areaTopics.filter((t) => t.priority === "P0" || t.priority === "High").length,
+        p1: areaTopics.filter((t) => t.priority === "P1" || t.priority === "Medium").length,
       },
       time: {
         under10: areaTopics.filter((t) => t.duration <= 10).length,
@@ -784,11 +825,6 @@ export function ChooseTopicWorkspace() {
         ).length,
         over20: areaTopics.filter((t) => t.duration >= 20).length,
       },
-      priority: {
-        high: areaTopics.filter((t) => t.priority === "High").length,
-        medium: areaTopics.filter((t) => t.priority === "Medium").length,
-        low: areaTopics.filter((t) => t.priority === "Low").length,
-      },
     };
   }, [areaTopics]);
 
@@ -796,17 +832,47 @@ export function ChooseTopicWorkspace() {
   const filteredTopics = useMemo(() => {
     return areaTopics
       .filter((topic) => {
-        // Search query
+        // Search query (matches title, topicId, description)
         if (searchQuery.trim()) {
-          const query = searchQuery.toLowerCase();
-          const matchTitle = topic.title.toLowerCase().includes(query);
-          const matchDesc = topic.description.toLowerCase().includes(query);
-          if (!matchTitle && !matchDesc) return false;
+          const q = searchQuery.toLowerCase().trim();
+          const matchTitle = topic.title.toLowerCase().includes(q);
+          const matchId = (topic.topicId || "").toLowerCase().includes(q);
+          const matchDesc = topic.description.toLowerCase().includes(q);
+          if (!matchTitle && !matchId && !matchDesc) return false;
         }
 
         // Status
-        if (selectedStatus !== "all" && topic.status !== selectedStatus) {
+        if (selectedStatus === "starred") {
+          if (!topic.isStarred) return false;
+        } else if (selectedStatus !== "all" && topic.status !== selectedStatus) {
           return false;
+        }
+
+        // Difficulty
+        if (
+          selectedDifficulty !== "all" &&
+          (topic.difficulty || "INTERMEDIATE").toUpperCase() !==
+            selectedDifficulty.toUpperCase()
+        ) {
+          return false;
+        }
+
+        // Priority
+        if (selectedPriority !== "all") {
+          if (
+            selectedPriority === "P0" &&
+            topic.priority !== "P0" &&
+            topic.priority !== "High"
+          ) {
+            return false;
+          }
+          if (
+            selectedPriority === "P1" &&
+            topic.priority !== "P1" &&
+            topic.priority !== "Medium"
+          ) {
+            return false;
+          }
         }
 
         // Time
@@ -819,21 +885,18 @@ export function ChooseTopicWorkspace() {
         }
         if (selectedTime === ">=20" && topic.duration < 20) return false;
 
-        // Priority
-        if (selectedPriority !== "all" && topic.priority !== selectedPriority) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
         if (sortFilter === "high") {
-          const priorityOrder: Record<PriorityType, number> = {
+          const pOrder: Record<string, number> = {
+            P0: 0,
             High: 0,
+            P1: 1,
             Medium: 1,
             Low: 2,
           };
-          return priorityOrder[a.priority] - priorityOrder[b.priority];
+          return (pOrder[a.priority] ?? 1) - (pOrder[b.priority] ?? 1);
         }
         if (sortFilter === "readiness-asc") {
           return a.readiness - b.readiness;
@@ -841,18 +904,112 @@ export function ChooseTopicWorkspace() {
         if (sortFilter === "readiness-desc") {
           return b.readiness - a.readiness;
         }
-        return 0;
+        if (sortFilter === "questions-desc") {
+          return (b.questionsCount ?? 20) - (a.questionsCount ?? 20);
+        }
+        // Recommended default: P0 first, then lowest readiness
+        if (
+          (a.priority === "P0" || a.priority === "High") &&
+          b.priority !== "P0" &&
+          b.priority !== "High"
+        ) {
+          return -1;
+        }
+        if (
+          (b.priority === "P0" || b.priority === "High") &&
+          a.priority !== "P0" &&
+          a.priority !== "High"
+        ) {
+          return 1;
+        }
+        return a.readiness - b.readiness;
       });
   }, [
     areaTopics,
     searchQuery,
     selectedStatus,
-    selectedTime,
+    selectedDifficulty,
     selectedPriority,
+    selectedTime,
     sortFilter,
   ]);
 
-  // Pagination State (10 records per page)
+  // Grouped by Category from live curriculum hierarchy
+  const categoryGroups = useMemo<CategoryGroup[]>(() => {
+    if (categories && categories.length > 0) {
+      const filteredSlugs = new Set(filteredTopics.map((t) => t.id));
+      return categories
+        .map((cat) => {
+          const catTopics = cat.topics
+            .filter((t) => filteredSlugs.has(t.slug))
+            .map((t) => {
+              const matchedAreaTopic = filteredTopics.find(
+                (at) => at.id === t.slug
+              );
+              return (
+                matchedAreaTopic || {
+                  id: t.slug,
+                  slug: t.slug,
+                  topicId: t.topicId,
+                  area: selectedArea as AreaType,
+                  title: t.title,
+                  description: `Covers ${t.rubricAtomsCount} rubric atoms across ${t.questionsCount} interview questions.`,
+                  pillar: cat.pillar,
+                  categoryName: cat.name,
+                  categorySlug: cat.slug,
+                  readiness: t.readiness ?? (t.priority === "P0" ? 45 : 60),
+                  duration: t.durationMin || 15,
+                  status: (t.status || "Not Practiced") as StatusType,
+                  priority: t.priority,
+                  difficulty: t.difficulty,
+                  trend: t.trend,
+                  rubricAtomsCount: t.rubricAtomsCount,
+                  questionsCount: t.questionsCount,
+                  isStarred: t.isStarred,
+                  practiceHref:
+                    t.practiceHref ||
+                    getPracticeSessionUrl(selectedArea, t.slug),
+                  icon: DOMAIN_VISUAL_MAP[selectedArea]?.icon || Database,
+                }
+              );
+            });
+
+          return {
+            slug: cat.slug,
+            name: cat.name,
+            pillar: cat.pillar,
+            sortOrder: cat.sortOrder,
+            topicsCount: catTopics.length,
+            topics: catTopics,
+          };
+        })
+        .filter((cat) => cat.topics.length > 0);
+    }
+
+    if (filteredTopics.length > 0) {
+      return [
+        {
+          slug: "core-curriculum",
+          name: `${currentDomainDetail.shortName} Core Curriculum`,
+          pillar: "core",
+          sortOrder: 1,
+          topicsCount: filteredTopics.length,
+          topics: filteredTopics,
+        },
+      ];
+    }
+
+    return [];
+  }, [categories, filteredTopics, selectedArea, currentDomainDetail]);
+
+  const toggleCategoryCollapse = (categorySlug: string) => {
+    setCollapsedCategories((prev) => ({
+      ...prev,
+      [categorySlug]: !prev[categorySlug],
+    }));
+  };
+
+  // Pagination State (10 records per page for flat list)
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
@@ -863,18 +1020,212 @@ export function ChooseTopicWorkspace() {
     selectedArea,
     searchQuery,
     selectedStatus,
-    selectedTime,
+    selectedDifficulty,
     selectedPriority,
+    selectedTime,
     sortFilter,
   ]);
 
   const totalPages = Math.ceil(filteredTopics.length / pageSize);
 
-  // Paginated topics slice
+  // Paginated topics slice for flat view
   const paginatedTopics = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     return filteredTopics.slice(startIndex, startIndex + pageSize);
   }, [filteredTopics, currentPage]);
+
+  const renderStatusBadge = (status: StatusType) => {
+    switch (status) {
+      case "Needs Practice":
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#ef4444] border border-[#fecaca] whitespace-nowrap">
+            <span className="size-1.5 rounded-full bg-[#ef4444]" />
+            <span>Needs Practice</span>
+          </span>
+        );
+      case "In Progress":
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#d97706] border border-[#fde68a] whitespace-nowrap">
+            <span className="size-1.5 rounded-full bg-[#d97706] animate-pulse" />
+            <span>In Progress</span>
+          </span>
+        );
+      case "Practiced":
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#10b981] border border-[#d1fae5] whitespace-nowrap">
+            <Check className="size-3 text-[#10b981] stroke-[2.5]" />
+            <span>Practiced</span>
+          </span>
+        );
+      case "Not Practiced":
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#3b82f6] border border-[#dbeafe] whitespace-nowrap">
+            <span className="size-1.5 rounded-full bg-[#3b82f6]" />
+            <span>Not Practiced</span>
+          </span>
+        );
+    }
+  };
+
+  const renderTopicCard = (topic: Topic) => {
+    const TopicIcon = topic.icon || Database;
+    const isP0 = topic.priority === "P0" || topic.priority === "High";
+
+    return (
+      <div
+        key={topic.id}
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:p-4.5 shadow-2xs hover:border-brand/40 hover:shadow-xs transition-all"
+      >
+        {/* Left Side: Icon + Topic Metadata */}
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          {/* Domain Theme Icon */}
+          <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand mt-0.5 sm:mt-0">
+            <TopicIcon className="size-4.5 sm:size-5" />
+          </div>
+
+          <div className="flex flex-col min-w-0 flex-1 gap-1">
+            {/* Top Tag Row: TopicId + Priority + Difficulty + Trend + Star */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Canonical Topic ID */}
+              {topic.topicId && (
+                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-line text-ink-muted">
+                  {topic.topicId}
+                </span>
+              )}
+
+              {/* Priority Badge */}
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                  isP0
+                    ? "bg-red-500/10 text-red-600 border-red-500/20"
+                    : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                }`}
+              >
+                {isP0 ? "P0 Core" : "P1 Advanced"}
+              </span>
+
+              {/* Difficulty Badge */}
+              {topic.difficulty && (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    topic.difficulty === "BEGINNER"
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : topic.difficulty === "INTERMEDIATE"
+                        ? "bg-blue-500/10 text-blue-600"
+                        : topic.difficulty === "ADVANCED"
+                          ? "bg-purple-500/10 text-purple-600"
+                          : "bg-rose-500/10 text-rose-600 font-extrabold"
+                  }`}
+                >
+                  {topic.difficulty}
+                </span>
+              )}
+
+              {/* Trend Indicator */}
+              {topic.trend === "SURGING" && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-600 bg-orange-500/10 px-1.5 py-0.5 rounded-full">
+                  <Flame className="size-2.5 fill-orange-500 text-orange-500" />
+                  <span>Surging</span>
+                </span>
+              )}
+              {topic.trend === "HOT" && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full">
+                  <TrendingUp className="size-2.5 text-red-500" />
+                  <span>Hot</span>
+                </span>
+              )}
+
+              {/* Interactive Star Button */}
+              <button
+                type="button"
+                onClick={() => toggleStar(topic.slug || topic.id)}
+                title={topic.isStarred ? "Remove from starred" : "Star topic"}
+                className="p-0.5 text-ink-muted hover:text-amber-500 transition-colors cursor-pointer ml-auto sm:ml-0"
+              >
+                <Star
+                  className={`size-3.5 transition-transform active:scale-125 ${
+                    topic.isStarred ? "fill-amber-400 text-amber-400" : "text-ink-muted/50 hover:text-amber-400"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Title & Description */}
+            <div className="flex flex-col gap-0.5">
+              <span className="font-display font-bold text-sm sm:text-base text-ink hover:text-brand transition-colors">
+                {topic.title}
+              </span>
+              <p className="text-xs text-ink-muted line-clamp-1 leading-relaxed">
+                {topic.description}
+              </p>
+            </div>
+
+            {/* Metadata Footer: Rubrics & Questions & Time */}
+            <div className="flex items-center gap-3 text-[11px] text-ink-muted pt-0.5 flex-wrap">
+              {typeof topic.rubricAtomsCount === "number" && (
+                <span className="flex items-center gap-1 font-medium">
+                  <span className="text-brand font-bold">🎯</span>
+                  <span>{topic.rubricAtomsCount} Rubric Atoms</span>
+                </span>
+              )}
+              {typeof topic.questionsCount === "number" && (
+                <>
+                  <span className="text-line">•</span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <BookOpen className="size-3 text-brand" />
+                    <span>{topic.questionsCount} Questions</span>
+                  </span>
+                </>
+              )}
+              <span className="text-line">•</span>
+              <span className="flex items-center gap-1 font-medium">
+                <Clock className="size-3 text-ink-muted" />
+                <span>{topic.duration} min</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Status + Readiness Bar + Practice CTA */}
+        <div className="flex items-center justify-between lg:justify-end gap-3 sm:gap-4 shrink-0 border-t border-line/60 lg:border-t-0 pt-2.5 lg:pt-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Readiness Gauge */}
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-ink-muted uppercase font-bold">Readiness</span>
+                <span className="text-xs font-mono font-bold text-ink">{topic.readiness}%</span>
+              </div>
+              <div className="h-1.5 w-16 sm:w-20 overflow-hidden rounded-full bg-line">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    topic.readiness >= 75
+                      ? "bg-[#10b981]"
+                      : topic.readiness >= 50
+                        ? "bg-[#3b82f6]"
+                        : "bg-brand"
+                  }`}
+                  style={{ width: `${topic.readiness}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Status Badge */}
+            <div className="shrink-0">{renderStatusBadge(topic.status)}</div>
+          </div>
+
+          {/* Practice CTA Button */}
+          <Link
+            href={topic.practiceHref}
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-4 py-2 text-xs font-bold text-ink shadow-2xs hover:border-brand hover:text-white hover:bg-brand transition-all whitespace-nowrap cursor-pointer group/cta"
+          >
+            <span>Practice</span>
+            <ArrowRight className="size-3 group-hover/cta:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1400px] mx-auto pb-12">
@@ -1183,16 +1534,16 @@ export function ChooseTopicWorkspace() {
               </p>
             </div>
 
-            {/* Search Bar & Sort Controls */}
+            {/* Search Bar, View Mode Toggle & Sort Controls */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              {/* Search input */}
+              {/* Search input with canonical ID support */}
               <div className="relative flex-1">
                 <Search className="size-4 text-ink-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search topics by title or keywords..."
+                  placeholder="Search topics by title, ID (e.g. SYS018), or keywords..."
                   className="w-full rounded-xl border border-line bg-white pl-10 pr-9 py-2.5 text-xs text-ink outline-none transition-colors focus:border-brand"
                 />
                 {searchQuery && (
@@ -1207,6 +1558,36 @@ export function ChooseTopicWorkspace() {
                 )}
               </div>
 
+              {/* View Mode Toggle: Grouped by Category vs Flat List */}
+              <div className="flex items-center rounded-xl border border-line bg-white p-1 shrink-0 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grouped")}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                    viewMode === "grouped"
+                      ? "bg-brand text-white shadow-xs"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                  title="Group by Category"
+                >
+                  <LayoutGrid className="size-3.5" />
+                  <span className="hidden xs:inline">By Category</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("flat")}
+                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                    viewMode === "flat"
+                      ? "bg-brand text-white shadow-xs"
+                      : "text-ink-muted hover:text-ink"
+                  }`}
+                  title="Flat List View"
+                >
+                  <ListFilter className="size-3.5" />
+                  <span className="hidden xs:inline">Flat List</span>
+                </button>
+              </div>
+
               {/* Sort Selector */}
               <div className="relative shrink-0">
                 <select
@@ -1216,30 +1597,26 @@ export function ChooseTopicWorkspace() {
                   className="w-full sm:w-auto appearance-none rounded-xl border border-line bg-white pl-3.5 pr-8 py-2.5 text-xs font-semibold text-ink outline-none cursor-pointer hover:bg-cream transition-colors"
                 >
                   <option value="all">Sort: Recommended</option>
-                  <option value="high">Sort: High Priority First</option>
+                  <option value="high">Sort: High Priority (P0 First)</option>
                   <option value="readiness-asc">Sort: Lowest Readiness First</option>
                   <option value="readiness-desc">Sort: Highest Readiness First</option>
+                  <option value="questions-desc">Sort: Most Questions First</option>
                 </select>
                 <ChevronDown className="size-3.5 text-ink-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
-            {/* Filter Section: Directly below Search & above Topic List */}
+            {/* Filter Section: Status Chips + Secondary Dropdowns */}
             <div className="flex flex-col gap-2.5 sm:gap-3 rounded-2xl border border-line bg-white p-3 sm:p-4 shadow-2xs">
               {/* Row 1: Status Filter Chips + Clear All CTA */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
                   {[
-                    { id: "all", label: "All", count: areaTopics.length },
+                    { id: "all", label: "All Topics", count: areaTopics.length },
                     {
                       id: "Needs Practice",
                       label: "Needs Practice",
                       count: filterCounts.status.needsPractice,
-                    },
-                    {
-                      id: "Not Practiced",
-                      label: "Not Practiced",
-                      count: filterCounts.status.notPracticed,
                     },
                     {
                       id: "In Progress",
@@ -1247,9 +1624,19 @@ export function ChooseTopicWorkspace() {
                       count: filterCounts.status.inProgress,
                     },
                     {
+                      id: "Not Practiced",
+                      label: "Not Practiced",
+                      count: filterCounts.status.notPracticed,
+                    },
+                    {
                       id: "Practiced",
                       label: "Practiced",
                       count: filterCounts.status.practiced,
+                    },
+                    {
+                      id: "starred",
+                      label: "★ Starred",
+                      count: filterCounts.status.starred,
                     },
                   ].map((chip) => {
                     const isChipActive = selectedStatus === chip.id;
@@ -1281,15 +1668,17 @@ export function ChooseTopicWorkspace() {
 
                 {/* Clear all filters shortcut */}
                 {(selectedStatus !== "all" ||
-                  selectedTime !== "all" ||
+                  selectedDifficulty !== "all" ||
                   selectedPriority !== "all" ||
+                  selectedTime !== "all" ||
                   searchQuery.trim() !== "") && (
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedStatus("all");
-                      setSelectedTime("all");
+                      setSelectedDifficulty("all");
                       setSelectedPriority("all");
+                      setSelectedTime("all");
                       setSearchQuery("");
                     }}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline transition-colors shrink-0 self-end sm:self-auto cursor-pointer"
@@ -1300,13 +1689,53 @@ export function ChooseTopicWorkspace() {
                 )}
               </div>
 
-              {/* Row 2: Secondary Dropdown Filters (Time & Priority) + Results Counter */}
+              {/* Row 2: Secondary Dropdown Filters (Difficulty, Priority, Time) + Results Counter */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 sm:pt-2.5 border-t border-line/60 text-xs">
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1 shrink-0">
                     <Filter className="size-3 text-ink-muted" />
                     <span className="hidden xs:inline">Filter:</span>
                   </span>
+
+                  {/* Difficulty Pill Select */}
+                  <div className="relative flex-1 sm:flex-initial">
+                    <select
+                      value={selectedDifficulty}
+                      onChange={(e) => setSelectedDifficulty(e.target.value)}
+                      aria-label="Filter by difficulty"
+                      className={`w-full appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                        selectedDifficulty !== "all"
+                          ? "border-brand bg-[#fff0ec] text-brand"
+                          : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
+                      }`}
+                    >
+                      <option value="all">Difficulty: All</option>
+                      <option value="BEGINNER">Beginner ({filterCounts.difficulty.beginner})</option>
+                      <option value="INTERMEDIATE">Intermediate ({filterCounts.difficulty.intermediate})</option>
+                      <option value="ADVANCED">Advanced ({filterCounts.difficulty.advanced})</option>
+                      <option value="EXPERT">Expert ({filterCounts.difficulty.expert})</option>
+                    </select>
+                    <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+
+                  {/* Priority Pill Select */}
+                  <div className="relative flex-1 sm:flex-initial">
+                    <select
+                      value={selectedPriority}
+                      onChange={(e) => setSelectedPriority(e.target.value)}
+                      aria-label="Filter by priority"
+                      className={`w-full appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
+                        selectedPriority !== "all"
+                          ? "border-brand bg-[#fff0ec] text-brand"
+                          : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
+                      }`}
+                    >
+                      <option value="all">Priority: All</option>
+                      <option value="P0">P0 Core ({filterCounts.priority.p0})</option>
+                      <option value="P1">P1 Advanced ({filterCounts.priority.p1})</option>
+                    </select>
+                    <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
 
                   {/* Time Required Pill Select */}
                   <div className="relative flex-1 sm:flex-initial">
@@ -1327,246 +1756,181 @@ export function ChooseTopicWorkspace() {
                     </select>
                     <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
-
-                  {/* Priority Pill Select */}
-                  <div className="relative flex-1 sm:flex-initial">
-                    <select
-                      value={selectedPriority}
-                      onChange={(e) => setSelectedPriority(e.target.value)}
-                      aria-label="Filter by priority"
-                      className={`w-full appearance-none rounded-full border pl-3 pr-7 py-1 text-xs font-semibold outline-none cursor-pointer transition-colors ${
-                        selectedPriority !== "all"
-                          ? "border-brand bg-[#fff0ec] text-brand"
-                          : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
-                      }`}
-                    >
-                      <option value="all">Priority: All</option>
-                      <option value="High">High ({filterCounts.priority.high})</option>
-                      <option value="Medium">Medium ({filterCounts.priority.medium})</option>
-                      <option value="Low">Low ({filterCounts.priority.low})</option>
-                    </select>
-                    <ChevronDown className="size-3 text-ink-muted absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
                 </div>
 
                 {/* Results Count Indicator */}
-                <div className="text-[11px] text-ink-muted flex items-center justify-between sm:justify-start">
+                <div className="text-[11px] text-ink-muted flex items-center justify-between sm:justify-start shrink-0">
                   <span>
                     Showing <span className="font-bold text-ink">{filteredTopics.length}</span> of {areaTopics.length} topics
+                    {viewMode === "grouped" && categoryGroups.length > 0 && (
+                      <span className="ml-1 text-ink-muted font-normal">
+                        ({categoryGroups.length} {categoryGroups.length === 1 ? "category" : "categories"})
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Topic Cards Rows Stack */}
-            <div className="flex flex-col gap-2.5">
-              {filteredTopics.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-white p-12 text-center">
-                  <Search className="size-8 text-ink-muted mb-2 opacity-50" />
-                  <p className="font-display font-bold text-sm text-ink">
-                    No topics found
-                  </p>
-                  <p className="text-xs text-ink-muted mt-1">
-                    Try adjusting your search query or practice filters.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedStatus("all");
-                      setSelectedTime("all");
-                      setSelectedPriority("all");
-                    }}
-                    className="mt-4 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white hover:opacity-90"
-                  >
-                    Reset Filters
-                  </button>
-                </div>
-              ) : (
-                paginatedTopics.map((topic) => {
-                  const TopicIcon = topic.icon;
-
-                  const statusBadge = (
-                    <>
-                      {topic.status === "Needs Practice" && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#fff0ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#ef4444] border border-[#fecaca] whitespace-nowrap">
-                          <span className="size-1.5 rounded-full bg-[#ef4444]" />
-                          <span>Needs Practice</span>
-                        </span>
-                      )}
-                      {topic.status === "Not Practiced" && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#eff6ff] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#3b82f6] border border-[#dbeafe] whitespace-nowrap">
-                          <span className="size-1.5 rounded-full bg-[#3b82f6]" />
-                          <span>Not Practiced</span>
-                        </span>
-                      )}
-                      {topic.status === "Practiced" && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#10b981] border border-[#d1fae5] whitespace-nowrap">
-                          <Check className="size-2.5 sm:size-3 text-[#10b981] stroke-[2.5]" />
-                          <span>Practiced</span>
-                        </span>
-                      )}
-                      {topic.status === "In Progress" && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#fef3c7] px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-[#d97706] border border-[#fde68a] whitespace-nowrap">
-                          <span className="size-1.5 rounded-full bg-[#d97706] animate-pulse" />
-                          <span>In Progress</span>
-                        </span>
-                      )}
-                    </>
-                  );
+            {/* Dynamic Content View: Category-Grouped vs Flat List */}
+            {filteredTopics.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-white p-12 text-center shadow-2xs">
+                <Search className="size-8 text-ink-muted mb-2 opacity-50" />
+                <p className="font-display font-bold text-sm text-ink">
+                  No matching topics found
+                </p>
+                <p className="text-xs text-ink-muted mt-1 max-w-sm">
+                  We couldn't find any topics matching your active search and filter criteria. Try clearing some filters.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedStatus("all");
+                    setSelectedDifficulty("all");
+                    setSelectedPriority("all");
+                    setSelectedTime("all");
+                  }}
+                  className="mt-4 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            ) : viewMode === "grouped" ? (
+              /* Grouped by Category View */
+              <div className="flex flex-col gap-6">
+                {categoryGroups.map((cat) => {
+                  const isCollapsed = !!collapsedCategories[cat.slug];
 
                   return (
                     <div
-                      key={topic.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs hover:border-[#b0a898]/40 hover:shadow-xs transition-all"
+                      key={cat.slug}
+                      className="flex flex-col gap-3 rounded-2xl border border-line/80 bg-white/70 p-4 sm:p-5 shadow-2xs backdrop-blur-xs transition-all hover:border-line"
                     >
-                      {/* Left: Icon + Title & Description + Mobile Status Badge */}
-                      <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                        <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
-                          <TopicIcon className="size-4.5 sm:size-5" />
-                        </div>
-
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <div className="flex items-center justify-between sm:justify-start gap-1.5">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className="font-display font-bold text-xs sm:text-sm text-ink truncate">
-                                {topic.title}
-                              </span>
-                              {topic.isStarred && (
-                                <Star className="size-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                              )}
-                            </div>
-
-                            {/* Mobile-only Top Status Badge */}
-                            <div className="sm:hidden shrink-0">
-                              {statusBadge}
-                            </div>
+                      {/* Category Header Row */}
+                      <div className="flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleCategoryCollapse(cat.slug)}
+                          className="flex items-center gap-2.5 text-left group/btn cursor-pointer min-w-0"
+                          aria-expanded={!isCollapsed}
+                          aria-label={`${isCollapsed ? "Expand" : "Collapse"} ${cat.name}`}
+                        >
+                          <div className="flex size-7 items-center justify-center rounded-lg border border-line bg-white text-ink-muted group-hover/btn:text-ink group-hover/btn:border-brand/40 transition-colors shrink-0">
+                            {isCollapsed ? (
+                              <ChevronRight className="size-4" />
+                            ) : (
+                              <ChevronDown className="size-4" />
+                            )}
                           </div>
+                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                            <h3 className="font-display text-sm sm:text-base font-bold text-ink group-hover/btn:text-brand transition-colors truncate">
+                              {cat.name}
+                            </h3>
+                            {cat.pillar && (
+                              <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] font-semibold text-ink-muted uppercase tracking-wider shrink-0 border border-line/60">
+                                {cat.pillar}
+                              </span>
+                            )}
+                          </div>
+                        </button>
 
-                          <span className="text-xs text-ink-muted line-clamp-1 mt-0.5 sm:mt-0">
-                            {topic.description}
+                        {/* Category Topics Count */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-[11px] font-bold text-brand">
+                            {cat.topics.length} {cat.topics.length === 1 ? "topic" : "topics"}
                           </span>
                         </div>
                       </div>
 
-                      {/* Right Meta Stack: Readiness + Duration + Desktop Status Badge + Action CTA */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 border-t border-line/60 sm:border-t-0 pt-2.5 sm:pt-0">
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          {/* Readiness & Mini Progress Bar */}
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="text-xs font-bold text-ink w-7 sm:w-8 text-right font-mono">
-                              {topic.readiness}%
-                            </span>
-                            <div className="h-1.5 w-10 sm:w-14 overflow-hidden rounded-full bg-line">
-                              <div
-                                className={`h-full rounded-full ${
-                                  topic.readiness >= 70
-                                    ? "bg-[#10b981]"
-                                    : topic.readiness >= 45
-                                      ? "bg-[#f59e0b]"
-                                      : "bg-brand"
-                                }`}
-                                style={{ width: `${topic.readiness}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Duration */}
-                          <div className="flex items-center gap-1 text-xs text-ink-muted">
-                            <Clock className="size-3.5 text-ink-muted shrink-0" />
-                            <span>{topic.duration} min</span>
-                          </div>
-
-                          {/* Status Badge (Desktop only in right stack) */}
-                          <div className="hidden sm:flex sm:w-24 sm:justify-center">
-                            {statusBadge}
-                          </div>
+                      {/* Category Topics Grid / Stack */}
+                      {!isCollapsed && (
+                        <div className="flex flex-col gap-2.5 pt-1">
+                          {cat.topics.map((topic) => renderTopicCard(topic))}
                         </div>
-
-                        {/* Practice Button */}
-                        <Link
-                          href={topic.practiceHref}
-                          className="flex items-center justify-center gap-1 rounded-full border border-line bg-white px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:border-brand hover:text-brand hover:bg-[#fff9f7] transition-all whitespace-nowrap ml-auto sm:ml-0"
-                        >
-                          <span>Practice</span>
-                          <ArrowRight className="size-3" />
-                        </Link>
-                      </div>
+                      )}
                     </div>
                   );
-                })
-              )}
-            </div>
-
-            {/* Pagination Controls (shown when more than 10 records) */}
-            {filteredTopics.length > pageSize && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs mt-1">
-                {/* Topic Count Text */}
-                <div className="text-xs text-ink-muted text-center sm:text-left">
-                  Showing{" "}
-                  <span className="font-bold text-ink">
-                    {(currentPage - 1) * pageSize + 1}
-                  </span>
-                  –
-                  <span className="font-bold text-ink">
-                    {Math.min(currentPage * pageSize, filteredTopics.length)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-bold text-ink">
-                    {filteredTopics.length}
-                  </span>{" "}
-                  topics
+                })}
+              </div>
+            ) : (
+              /* Flat List View with Pagination */
+              <div className="flex flex-col gap-3.5">
+                <div className="flex flex-col gap-2.5">
+                  {paginatedTopics.map((topic) => renderTopicCard(topic))}
                 </div>
 
-                {/* Pagination Buttons */}
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  {/* Previous Button */}
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                    aria-label="Previous page"
-                  >
-                    <ChevronLeft className="size-3.5" />
-                    <span className="hidden sm:inline">Previous</span>
-                  </button>
+                {/* Pagination Controls */}
+                {filteredTopics.length > pageSize && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-line bg-white p-3.5 sm:px-5 sm:py-3.5 shadow-2xs mt-1">
+                    {/* Topic Count Text */}
+                    <div className="text-xs text-ink-muted text-center sm:text-left">
+                      Showing{" "}
+                      <span className="font-bold text-ink">
+                        {(currentPage - 1) * pageSize + 1}
+                      </span>
+                      –
+                      <span className="font-bold text-ink">
+                        {Math.min(currentPage * pageSize, filteredTopics.length)}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-bold text-ink">
+                        {filteredTopics.length}
+                      </span>{" "}
+                      topics
+                    </div>
 
-                  {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                      const isCurrent = pageNum === currentPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          type="button"
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`flex size-7.5 sm:size-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
-                            isCurrent
-                              ? "bg-brand text-white shadow-xs"
-                              : "border border-line bg-white text-ink hover:bg-cream"
-                          }`}
-                          aria-label={`Page ${pageNum}`}
-                          aria-current={isCurrent ? "page" : undefined}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                    {/* Pagination Buttons */}
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      {/* Previous Button */}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="size-3.5" />
+                        <span className="hidden sm:inline">Previous</span>
+                      </button>
+
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                          const isCurrent = pageNum === currentPage;
+                          return (
+                            <button
+                              key={pageNum}
+                              type="button"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`flex size-7.5 sm:size-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
+                                isCurrent
+                                  ? "bg-brand text-white shadow-xs"
+                                  : "border border-line bg-white text-ink hover:bg-cream"
+                              }`}
+                              aria-label={`Page ${pageNum}`}
+                              aria-current={isCurrent ? "page" : undefined}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Next Button */}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                        aria-label="Next page"
+                      >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="size-3.5" />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Next Button */}
-                  <button
-                    type="button"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-cream disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                    aria-label="Next page"
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <ChevronRight className="size-3.5" />
-                  </button>
-                </div>
+                )}
               </div>
             )}
           </div>
