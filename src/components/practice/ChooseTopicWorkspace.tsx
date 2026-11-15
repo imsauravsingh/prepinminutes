@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   User,
@@ -29,16 +29,127 @@ import {
   HelpCircle,
   SlidersHorizontal,
   X,
+  Cpu,
+  Binary,
+  Server,
+  Layout,
+  Smartphone,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
+import { useCurriculum } from "@/hooks/useCurriculum";
+import { getPracticeSessionUrl } from "@/lib/practice-router";
 
-type AreaType = "system-design" | "cloud" | "coding" | "behavioral";
+type AreaType =
+  | "system-design"
+  | "ai-system-design"
+  | "low-level-design"
+  | "dsa"
+  | "backend-engineering"
+  | "frontend-engineering"
+  | "cloud-devops"
+  | "behavioral-leadership"
+  | "data-engineering"
+  | "mobile-engineering"
+  | string;
 type StatusType =
   | "Needs Practice"
   | "Not Practiced"
   | "Practiced"
   | "In Progress";
 type PriorityType = "High" | "Medium" | "Low";
+
+export interface DomainVisualMeta {
+  shortName: string;
+  icon: LucideIcon;
+  badgeBg: string;
+  badgeColor: string;
+  activeRing: string;
+  activeBorder: string;
+}
+
+export const DOMAIN_VISUAL_MAP: Record<string, DomainVisualMeta> = {
+  "system-design": {
+    shortName: "System Design",
+    icon: Network,
+    badgeBg: "bg-blue-500/10",
+    badgeColor: "text-blue-600",
+    activeRing: "ring-blue-500",
+    activeBorder: "border-blue-500",
+  },
+  "ai-system-design": {
+    shortName: "AI System Design",
+    icon: Cpu,
+    badgeBg: "bg-purple-500/10",
+    badgeColor: "text-purple-600",
+    activeRing: "ring-purple-500",
+    activeBorder: "border-purple-500",
+  },
+  "low-level-design": {
+    shortName: "Low-Level Design",
+    icon: Boxes,
+    badgeBg: "bg-emerald-500/10",
+    badgeColor: "text-emerald-600",
+    activeRing: "ring-emerald-500",
+    activeBorder: "border-emerald-500",
+  },
+  "dsa": {
+    shortName: "DSA & Algorithms",
+    icon: Binary,
+    badgeBg: "bg-amber-500/10",
+    badgeColor: "text-amber-600",
+    activeRing: "ring-amber-500",
+    activeBorder: "border-amber-500",
+  },
+  "backend-engineering": {
+    shortName: "Backend",
+    icon: Server,
+    badgeBg: "bg-cyan-500/10",
+    badgeColor: "text-cyan-600",
+    activeRing: "ring-cyan-500",
+    activeBorder: "border-cyan-500",
+  },
+  "frontend-engineering": {
+    shortName: "Frontend",
+    icon: Layout,
+    badgeBg: "bg-rose-500/10",
+    badgeColor: "text-rose-600",
+    activeRing: "ring-rose-500",
+    activeBorder: "border-rose-500",
+  },
+  "cloud-devops": {
+    shortName: "Cloud & DevOps",
+    icon: Cloud,
+    badgeBg: "bg-indigo-500/10",
+    badgeColor: "text-indigo-600",
+    activeRing: "ring-indigo-500",
+    activeBorder: "border-indigo-500",
+  },
+  "behavioral-leadership": {
+    shortName: "Behavioral",
+    icon: Users,
+    badgeBg: "bg-orange-500/10",
+    badgeColor: "text-orange-600",
+    activeRing: "ring-orange-500",
+    activeBorder: "border-orange-500",
+  },
+  "data-engineering": {
+    shortName: "Data Engineering",
+    icon: Database,
+    badgeBg: "bg-teal-500/10",
+    badgeColor: "text-teal-600",
+    activeRing: "ring-teal-500",
+    activeBorder: "border-teal-500",
+  },
+  "mobile-engineering": {
+    shortName: "Mobile",
+    icon: Smartphone,
+    badgeBg: "bg-violet-500/10",
+    badgeColor: "text-violet-600",
+    activeRing: "ring-violet-500",
+    activeBorder: "border-violet-500",
+  },
+};
 
 interface Topic {
   id: string;
@@ -528,55 +639,8 @@ const ALL_TOPICS: Topic[] = [
   },
 ];
 
-const AREAS_CONFIG: {
-  id: AreaType;
-  name: string;
-  readiness: number;
-  topicCount: number;
-  icon: LucideIcon;
-  iconBg: string;
-  iconColor: string;
-}[] = [
-  {
-    id: "system-design",
-    name: "System Design",
-    readiness: 32,
-    topicCount: 21,
-    icon: Database,
-    iconBg: "bg-[#fff0ec]",
-    iconColor: "text-brand",
-  },
-  {
-    id: "cloud",
-    name: "AWS & Cloud",
-    readiness: 67,
-    topicCount: 5,
-    icon: Cloud,
-    iconBg: "bg-[#eff6ff]",
-    iconColor: "text-[#2563eb]",
-  },
-  {
-    id: "coding",
-    name: "Coding Patterns",
-    readiness: 78,
-    topicCount: 8,
-    icon: CodeXml,
-    iconBg: "bg-[#edf7f4]",
-    iconColor: "text-[#0b8a8f]",
-  },
-  {
-    id: "behavioral",
-    name: "Behavioral",
-    readiness: 91,
-    topicCount: 4,
-    icon: Users,
-    iconBg: "bg-[#f5f3ff]",
-    iconColor: "text-[#8b5cf6]",
-  },
-];
-
 export function ChooseTopicWorkspace() {
-  const [selectedArea, setSelectedArea] = useState<AreaType>("system-design");
+  const [selectedArea, setSelectedArea] = useState<string>("system-design");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedTime, setSelectedTime] = useState<string>("all");
@@ -584,15 +648,123 @@ export function ChooseTopicWorkspace() {
   const [sortFilter, setSortFilter] = useState<string>("all");
   const [whyTooltipOpen, setWhyTooltipOpen] = useState(false);
 
-  // Selected area info
-  const currentAreaInfo = useMemo(() => {
-    return AREAS_CONFIG.find((a) => a.id === selectedArea) || AREAS_CONFIG[0];
-  }, [selectedArea]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Topics belonging to current area
-  const areaTopics = useMemo(() => {
-    return ALL_TOPICS.filter((t) => t.area === selectedArea);
-  }, [selectedArea]);
+  // SWR Curriculum Hook (Phase 3 & Phase 4 Edge Cache)
+  const {
+    domains,
+    activeDomain,
+    allTopics: curriculumTopics,
+    isLoading: isCurriculumLoading,
+    isValidating,
+    toggleStar,
+  } = useCurriculum(selectedArea);
+
+  // Scroll button visibility
+  const updateScrollButtons = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    updateScrollButtons();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateScrollButtons, { passive: true });
+    window.addEventListener("resize", updateScrollButtons);
+    return () => {
+      el.removeEventListener("scroll", updateScrollButtons);
+      window.removeEventListener("resize", updateScrollButtons);
+    };
+  }, [updateScrollButtons, domains]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const scrollAmount = 300;
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  // Display domains with dynamic counts or baseline canonical fallbacks
+  const displayDomains = useMemo(() => {
+    if (domains && domains.length > 0) {
+      return domains.map((d) => ({
+        slug: d.slug,
+        name: d.name,
+        shortName: d.shortName || DOMAIN_VISUAL_MAP[d.slug]?.shortName || d.name,
+        description: d.description,
+        topicsCount: d.topicsCount,
+        categoriesCount: d.categoriesCount,
+        version: d.version,
+        readiness:
+          d.slug === "system-design"
+            ? 42
+            : d.slug === "cloud-devops"
+              ? 67
+              : d.slug === "dsa"
+                ? 78
+                : d.slug === "behavioral-leadership"
+                  ? 91
+                  : 55,
+      }));
+    }
+    return Object.entries(DOMAIN_VISUAL_MAP).map(([slug, meta]) => ({
+      slug,
+      name: meta.shortName,
+      shortName: meta.shortName,
+      description: `Comprehensive interview preparation for ${meta.shortName}`,
+      topicsCount: slug === "system-design" ? 62 : slug === "cloud-devops" ? 50 : 35,
+      categoriesCount: 12,
+      version: "1.0",
+      readiness: 50,
+    }));
+  }, [domains]);
+
+  // Current active domain detail
+  const currentDomainDetail = useMemo(() => {
+    return (
+      displayDomains.find((d) => d.slug === selectedArea) ||
+      displayDomains[0]
+    );
+  }, [displayDomains, selectedArea]);
+
+  // Selected area info (backward compatibility for legacy references)
+  const currentAreaInfo = useMemo(() => {
+    return {
+      id: currentDomainDetail.slug,
+      name: currentDomainDetail.shortName,
+      readiness: currentDomainDetail.readiness,
+      topicCount: currentDomainDetail.topicsCount,
+    };
+  }, [currentDomainDetail]);
+
+  // Topics belonging to current area (dynamically from live curriculum or fallback)
+  const areaTopics = useMemo<Topic[]>(() => {
+    if (curriculumTopics && curriculumTopics.length > 0) {
+      return curriculumTopics.map((t) => ({
+        id: t.slug,
+        area: selectedArea as AreaType,
+        title: t.title,
+        description: `Covers ${t.rubricAtomsCount} rubric atoms across ${t.questionsCount} interview questions.`,
+        readiness: t.readiness ?? (t.priority === "P0" ? 45 : 60),
+        duration: t.durationMin || 15,
+        status: (t.status || "Not Practiced") as StatusType,
+        priority: (t.priority === "P0" ? "High" : "Medium") as PriorityType,
+        isStarred: t.isStarred,
+        practiceHref: t.practiceHref || getPracticeSessionUrl(selectedArea, t.slug),
+        icon: DOMAIN_VISUAL_MAP[selectedArea]?.icon || Database,
+      }));
+    }
+    const matched = ALL_TOPICS.filter((t) => t.area === selectedArea);
+    if (matched.length > 0) return matched;
+    return ALL_TOPICS.filter((t) => t.area === "system-design");
+  }, [curriculumTopics, selectedArea]);
 
   // Counts for filter checkboxes based on current area
   const filterCounts = useMemo(() => {
@@ -787,93 +959,217 @@ export function ChooseTopicWorkspace() {
       <div className="flex flex-col lg:flex-row items-start gap-6 sm:gap-7 w-full">
         {/* LEFT COLUMN: Choose by Area + Topics Table */}
         <div className="flex flex-1 flex-col gap-6 sm:gap-7 w-full min-w-0">
-          {/* Section: Choose by Area */}
+          {/* Section: 10-Domain Responsive Track (TASK-P4-02) */}
           <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
-                Choose by Area
-              </h2>
-              <p className="text-xs text-ink-muted">
-                Select an area to explore and practice specific interview
-                topics.
-              </p>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-base sm:text-lg font-extrabold text-ink">
+                    Choose Domain ({displayDomains.length})
+                  </h2>
+                  {isValidating && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand animate-pulse">
+                      Syncing...
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-ink-muted">
+                  Select a canonical engineering domain to explore topics and interview questions.
+                </p>
+              </div>
+
+              {/* Scroll Navigation Chevrons (Desktop & Tablet) */}
+              <div className="hidden sm:flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleScroll("left")}
+                  disabled={!canScrollLeft}
+                  aria-label="Scroll left"
+                  className={`flex size-8 items-center justify-center rounded-xl border transition-all ${
+                    canScrollLeft
+                      ? "border-line bg-white text-ink hover:border-brand hover:text-brand shadow-2xs cursor-pointer"
+                      : "border-line/40 bg-cream/20 text-ink-muted/30 cursor-not-allowed"
+                  }`}
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleScroll("right")}
+                  disabled={!canScrollRight}
+                  aria-label="Scroll right"
+                  className={`flex size-8 items-center justify-center rounded-xl border transition-all ${
+                    canScrollRight
+                      ? "border-line bg-white text-ink hover:border-brand hover:text-brand shadow-2xs cursor-pointer"
+                      : "border-line/40 bg-cream/20 text-ink-muted/30 cursor-not-allowed"
+                  }`}
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
             </div>
 
-            {/* 4 Clean Area Selection Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
-              {AREAS_CONFIG.map((area) => {
-                const isSelected = selectedArea === area.id;
-                const IconComponent = area.icon;
-
-                return (
-                  <button
-                    key={area.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedArea(area.id);
-                      setSelectedStatus("all");
-                      setSelectedTime("all");
-                      setSelectedPriority("all");
-                    }}
-                    className={`group flex flex-col justify-between rounded-2xl border p-3 sm:p-4 text-left transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "border-brand bg-white shadow-xs ring-1 ring-brand"
-                        : "border-line bg-white hover:border-line-strong hover:bg-cream/40"
-                    }`}
+            {/* Zero-CLS Skeleton Loading State */}
+            {isCurriculumLoading && domains.length === 0 ? (
+              <div className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-2 pt-0.5 px-0.5 no-scrollbar">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex min-w-[210px] sm:min-w-[230px] max-w-[260px] shrink-0 flex-col justify-between rounded-2xl border border-line bg-white p-3.5 shadow-2xs animate-pulse"
                   >
-                    {/* Top Row: Icon + Topics Count Badge */}
-                    <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                      <div
-                        className={`flex size-8.5 sm:size-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                          isSelected
-                            ? "bg-brand text-white shadow-xs"
-                            : `${area.iconBg} ${area.iconColor}`
-                        }`}
-                      >
-                        <IconComponent className="size-4 sm:size-5" />
-                      </div>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition-colors shrink-0 ${
-                          isSelected
-                            ? "bg-brand/10 text-brand font-bold"
-                            : "bg-line text-ink-muted"
-                        }`}
-                      >
-                        {area.topicCount} topics
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="size-9 sm:size-10 rounded-xl bg-line-subtle" />
+                      <div className="h-5 w-16 rounded-full bg-line-subtle" />
                     </div>
+                    <div className="mt-3 flex flex-col gap-2">
+                      <div className="h-4 w-28 rounded bg-line-subtle" />
+                      <div className="h-2 w-full rounded-full bg-line-subtle mt-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Horizontally Scrollable 10-Domain Pill Track */
+              <div
+                ref={scrollRef}
+                className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto scroll-smooth pb-2 pt-0.5 px-0.5 no-scrollbar"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {displayDomains.map((domain) => {
+                  const isSelected = selectedArea === domain.slug;
+                  const visualMeta = DOMAIN_VISUAL_MAP[domain.slug] || {
+                    shortName: domain.shortName || domain.name,
+                    icon: Database,
+                    badgeBg: "bg-blue-500/10",
+                    badgeColor: "text-blue-600",
+                    activeRing: "ring-blue-500",
+                    activeBorder: "border-blue-500",
+                  };
+                  const IconComponent = visualMeta.icon;
 
-                    {/* Middle: Area Name */}
-                    <div className="mt-2.5 sm:mt-3">
-                      <span className="font-display text-xs sm:text-sm font-bold text-ink block group-hover:text-brand transition-colors truncate">
-                        {area.name}
-                      </span>
-
-                      {/* Bottom: Readiness Percentage & Progress Bar */}
-                      <div className="mt-2 flex items-center justify-between text-[10px] sm:text-[11px] text-ink-muted">
-                        <span>Readiness</span>
-                        <span className="font-mono font-bold text-ink">
-                          {area.readiness}%
+                  return (
+                    <button
+                      key={domain.slug}
+                      id={`domain-pill-${domain.slug}`}
+                      type="button"
+                      onClick={(e) => {
+                        setSelectedArea(domain.slug);
+                        setSelectedStatus("all");
+                        setSelectedTime("all");
+                        setSelectedPriority("all");
+                        (e.currentTarget as HTMLElement).scrollIntoView({
+                          behavior: "smooth",
+                          inline: "center",
+                          block: "nearest",
+                        });
+                      }}
+                      className={`group flex min-w-[210px] sm:min-w-[230px] max-w-[260px] shrink-0 flex-col justify-between rounded-2xl border p-3 sm:p-3.5 text-left transition-all duration-200 cursor-pointer ${
+                        isSelected
+                          ? `border-brand bg-white shadow-xs ring-2 ring-brand/20 ${visualMeta.activeBorder}`
+                          : "border-line bg-white hover:border-line-strong hover:bg-cream/40"
+                      }`}
+                    >
+                      {/* Top Row: Icon + Topics Count Badge */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div
+                          className={`flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                            isSelected
+                              ? "bg-brand text-white shadow-xs"
+                              : `${visualMeta.badgeBg} ${visualMeta.badgeColor}`
+                          }`}
+                        >
+                          <IconComponent className="size-4 sm:size-5" />
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold transition-colors shrink-0 ${
+                            isSelected
+                              ? "bg-brand/10 text-brand font-bold"
+                              : "bg-line text-ink-muted"
+                          }`}
+                        >
+                          {domain.topicsCount} topics
                         </span>
                       </div>
-                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-line">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            area.readiness >= 75
-                              ? "bg-[#10b981]"
-                              : area.readiness >= 50
-                                ? "bg-[#3b82f6]"
-                                : "bg-brand"
+
+                      {/* Middle: Domain Name */}
+                      <div className="mt-2.5">
+                        <span
+                          className={`font-display text-xs sm:text-sm font-bold block transition-colors truncate ${
+                            isSelected ? "text-brand" : "text-ink group-hover:text-brand"
                           }`}
-                          style={{ width: `${area.readiness}%` }}
-                        />
+                        >
+                          {visualMeta.shortName}
+                        </span>
+
+                        {/* Bottom: Readiness Percentage & Progress Bar */}
+                        <div className="mt-2 flex items-center justify-between text-[10px] sm:text-[11px] text-ink-muted">
+                          <span>Readiness</span>
+                          <span className="font-mono font-bold text-ink">
+                            {domain.readiness ?? 50}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-line">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              (domain.readiness ?? 50) >= 75
+                                ? "bg-[#10b981]"
+                                : (domain.readiness ?? 50) >= 50
+                                  ? "bg-[#3b82f6]"
+                                  : "bg-brand"
+                            }`}
+                            style={{ width: `${domain.readiness ?? 50}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
+
+          {/* Active Domain Header Summary Banner (TASK-P4-02) */}
+          {currentDomainDetail && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-gradient-to-r from-white via-white to-cream/40 p-4 sm:p-5 shadow-2xs">
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`p-2.5 rounded-xl shrink-0 ${
+                    DOMAIN_VISUAL_MAP[currentDomainDetail.slug]?.badgeBg || "bg-brand/10"
+                  } ${DOMAIN_VISUAL_MAP[currentDomainDetail.slug]?.badgeColor || "text-brand"}`}
+                >
+                  {(() => {
+                    const VisualIcon =
+                      DOMAIN_VISUAL_MAP[currentDomainDetail.slug]?.icon || Database;
+                    return <VisualIcon className="size-5 sm:size-6" />;
+                  })()}
+                </div>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="font-display text-base sm:text-lg font-bold text-ink">
+                      {currentDomainDetail.name}
+                    </h2>
+                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-extrabold text-brand uppercase tracking-wider">
+                      v{currentDomainDetail.version || "1.0"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-muted max-w-2xl leading-relaxed">
+                    {currentDomainDetail.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                <div className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs">
+                  <Layers className="size-3.5 text-ink-muted" />
+                  <span>{currentDomainDetail.categoriesCount} Categories</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink shadow-2xs">
+                  <BookOpen className="size-3.5 text-brand" />
+                  <span>{currentDomainDetail.topicsCount} Topics</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Section: Dynamic Topic List */}
           <div className="flex flex-col gap-3.5">
