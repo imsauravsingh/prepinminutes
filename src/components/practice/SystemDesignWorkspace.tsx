@@ -180,7 +180,7 @@ export function SystemDesignWorkspace() {
         }
       }
     } catch (err) {
-      console.error("Sarah AI turn error:", err);
+      console.error("AiInterviewAgent turn error:", err);
       setMessages((prev) => [
         ...prev,
         {

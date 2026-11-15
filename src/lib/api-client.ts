@@ -1705,7 +1705,7 @@ export const backendApi = {
 
   /**
    * POST /api/practice/session/turn
-   * Submits candidate response turn and receives Sarah AI's calibrated response,
+   * Submits candidate response turn and receives AiInterviewAgent's calibrated response,
    * rubric atom coverage, and targeted follow-up probes.
    */
   async submitPracticeSessionTurn(payload: {
@@ -1714,6 +1714,12 @@ export const backendApi = {
     candidateMessage: string;
     transcriptHistory?: Array<{ sender: "ai" | "user"; content: string }>;
     candidateTargetLevel?: string;
+    agentConfig?: {
+      agentName?: string;
+      roleTitle?: string;
+      companyContext?: string;
+      strictness?: "lenient" | "standard" | "bar-raiser";
+    };
   }): Promise<{
     success: boolean;
     replyText: string;
@@ -1724,6 +1730,10 @@ export const backendApi = {
     interviewPhase: string;
     nextSuggestedProbe?: string;
     evaluatorNotes?: string;
+    agentInfo?: {
+      name: string;
+      role: string;
+    };
   }> {
     const res = await fetch(`${API_BASE_URL}/api/practice/session/turn`, {
       method: "POST",
