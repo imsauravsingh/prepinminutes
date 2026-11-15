@@ -19,8 +19,11 @@ import {
   CheckCircle2,
   X,
   Send,
+  Target,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
+import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
 
 // Heights for the 24 waveform bars
 const WAVEFORM_HEIGHTS = [
@@ -29,8 +32,23 @@ const WAVEFORM_HEIGHTS = [
 ];
 
 export function CloudWorkspace() {
-  // Timer: starts at 02:25 (145 seconds) and counts up towards 30:00
-  const [secondsElapsed, setSecondsElapsed] = useState(145);
+  // Curriculum Topic & Dynamic Question Loader
+  const {
+    topic,
+    domain,
+    category,
+    questions,
+    activeQuestion,
+    activeQuestionIndex,
+    totalQuestions,
+    selectQuestion,
+    nextQuestion,
+    previousQuestion,
+    isLoading,
+  } = useCurriculumTopic({ defaultTopicSlug: "kubernetes-architecture" });
+
+  // Timer: starts at 00:00 and counts up towards 30:00
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   // Text input mode toggle
@@ -46,15 +64,7 @@ export function CloudWorkspace() {
   >(null);
   const [notesContent, setNotesContent] = useState("");
   const [codeContent, setCodeContent] = useState(
-    `# Terraform AWS Multi-Region VPC & EKS
-module "vpc_us_east_1" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
-  name    = "prod-us-east-1"
-  cidr    = "10.0.0.0/16"
-  azs     = ["us-east-1a", "us-east-1b", "us-east-1c"]
-}
-`,
+    `# Terraform Cloud & Infrastructure Spec\nmodule "vpc_primary" {\n  source = "terraform-aws-modules/vpc/aws"\n  cidr   = "10.0.0.0/16"\n}\n`
   );
 
   // End Session modal state
@@ -63,32 +73,37 @@ module "vpc_us_east_1" {
   // Messages list
   const [messages, setMessages] = useState<
     { sender: "ai" | "user"; content: string; details?: string[] }[]
-  >([
-    {
-      sender: "ai",
-      content:
-        "Design a resilient, multi-region cloud infrastructure for an e-commerce platform handling 50,000 requests per second with 99.99% SLA. How would you design the VPC topology, traffic routing, and deployment strategy?",
-      details: [
-        "Before you start, feel free to ask any clarifying questions regarding regions, compliance, or failover semantics.",
-      ],
-    },
-    {
-      sender: "user",
-      content:
-        "Sure, I'd like to clarify a few key requirements: Are we operating active-active across regions or active-passive with warm standby? Also, what are our cross-region data replication latency bounds and compliance constraints?",
-    },
-    {
-      sender: "ai",
-      content: "Great questions. Here are the operating parameters:",
-      details: [
-        "1. Setup: Active-Active across us-east-1 and eu-central-1 with Route 53 latency-based routing.",
-        "2. RPO target: < 1 second for orders; RTO < 1 minute automatic failover.",
-        "3. Compliance: GDPR requires EU user data to remain strictly in the EU region.",
-        "4. Services: Containerized microservices running on managed Kubernetes (EKS).",
-        "You can now walk me through your VPC topology and data layer design.",
-      ],
-    },
-  ]);
+  >([]);
+
+  // Update AI Interviewer initial prompt when active question changes
+  useEffect(() => {
+    if (activeQuestion) {
+      setMessages([
+        {
+          sender: "ai",
+          content: activeQuestion.prompt,
+          details:
+            activeQuestion.hints && activeQuestion.hints.length > 0
+              ? [
+                  "Infrastructure & Resiliency Guidelines:",
+                  ...activeQuestion.hints.map((h, i) => `${i + 1}. ${h}`),
+                ]
+              : [
+                  "Before you start, feel free to ask any clarifying questions regarding scale, SLA, or compliance constraints.",
+                ],
+        },
+      ]);
+    }
+  }, [activeQuestion]);
+
+  // Update initial IaC template when topic changes
+  useEffect(() => {
+    if (topic) {
+      setCodeContent(
+        `# Infrastructure as Code (Terraform) for ${topic.title}\n# Domain: ${domain?.name || "Cloud & DevOps"} | Category: ${category?.name || "Cloud Infrastructure"}\n\nmodule "primary_infra" {\n  source = "terraform-aws-modules/vpc/aws"\n  cidr   = "10.0.0.0/16"\n}\n`
+      );
+    }
+  }, [topic, domain, category]);
 
   // Elapsed timer tick
   useEffect(() => {
@@ -225,24 +240,34 @@ module "vpc_us_east_1" {
 
   return (
     <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4] p-4 sm:p-6 lg:p-7 gap-7">
-      {/* 1. Header Row matching System Design */}
+      {/* 1. Header Row */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Practice Header & Progress Track */}
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-bold text-brand">3 / 4</span>
+              <span className="font-bold text-brand">
+                {activeQuestionIndex + 1} / {totalQuestions}
+              </span>
               <span className="text-[#b0a898]">•</span>
-              <span className="font-semibold text-ink">Cloud Infrastructure</span>
+              <span className="font-semibold text-ink">
+                {topic?.title || "Cloud & DevOps"}
+              </span>
             </div>
-            <span className="text-sm text-ink-muted">~19 min remaining</span>
+            <span className="text-sm text-ink-muted">
+              ~{topic?.durationMin || 20} min session
+            </span>
           </div>
 
-          {/* Progress bar track (Step 3 of 4 ~ 75% completed) */}
+          {/* Progress bar track */}
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4efe8]">
             <div
               className="h-full bg-brand transition-all duration-300"
-              style={{ width: "75%" }}
+              style={{
+                width: `${Math.round(
+                  ((activeQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+                )}%`,
+              }}
             />
           </div>
         </div>
@@ -267,6 +292,19 @@ module "vpc_us_east_1" {
           </button>
         </div>
       </div>
+
+      {/* Interactive Question Selector Bar */}
+      <PracticeQuestionSelector
+        topic={topic}
+        questions={questions}
+        activeQuestion={activeQuestion}
+        activeQuestionIndex={activeQuestionIndex}
+        totalQuestions={totalQuestions}
+        onSelectQuestion={selectQuestion}
+        onNextQuestion={nextQuestion}
+        onPreviousQuestion={previousQuestion}
+        domainName={domain?.name}
+      />
 
       {/* 2. Main Workspace: Whiteboard View vs Live Conversation View */}
       {isWhiteboardOpen ? (
@@ -456,30 +494,30 @@ module "vpc_us_east_1" {
               </div>
             </div>
 
-            {/* Card 2: Tips */}
+            {/* Card 2: Rubric Criteria & Guidelines */}
             <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
-                <Lightbulb className="size-4 text-amber-500" />
+                <Target className="size-4 text-brand" />
                 <h2 className="font-display font-bold text-sm text-ink">
-                  Cloud Tips
+                  Rubric Criteria
                 </h2>
               </div>
-              <div className="flex flex-col gap-2.5">
-                {[
-                  "Start with clarifying questions & SLA/SLO",
-                  "Separate public ingress from private subnets",
-                  "Address multi-region replication & failover",
-                  "Ensure zero-trust security & IAM boundaries",
-                  "Discuss cost optimization & FinOps trade-offs",
-                ].map((tip, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs">
-                    <CheckCircle2 className="size-4 shrink-0 text-[#10b981]" />
-                    <span className="text-ink font-medium leading-tight">
-                      {tip}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {activeQuestion.rubricAtoms.map((atom, idx) => (
+                    <div key={idx} className="flex items-start gap-2.5 text-xs">
+                      <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
+                      <span className="text-ink font-medium leading-tight">
+                        {atom}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 text-xs text-ink-muted">
+                  <p>{activeQuestion.rubricGuide}</p>
+                </div>
+              )}
             </div>
 
             {/* Card 3: Today's Progress */}
@@ -488,7 +526,7 @@ module "vpc_us_east_1" {
                 Today&apos;s Progress
               </h2>
               <div className="flex items-center gap-4">
-                {/* Circular Progress Ring (3/4 completed ~ 75%) */}
+                {/* Circular Progress Ring */}
                 <div className="relative flex size-14 shrink-0 items-center justify-center">
                   <svg className="size-full -rotate-90" viewBox="0 0 56 56">
                     <circle
@@ -506,23 +544,26 @@ module "vpc_us_east_1" {
                       stroke="#2563eb"
                       strokeWidth="4"
                       strokeDasharray={138}
-                      strokeDashoffset={35} // ~75% progress
+                      strokeDashoffset={
+                        138 -
+                        (138 * (activeQuestionIndex + 1)) / Math.max(1, totalQuestions)
+                      }
                       strokeLinecap="round"
                       fill="none"
                     />
                   </svg>
                   <span className="absolute text-xs font-bold text-ink">
-                    3/4
+                    {activeQuestionIndex + 1}/{totalQuestions}
                   </span>
                 </div>
 
                 {/* Progress Meta */}
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold text-sm text-ink">
-                    Cloud Infrastructure
+                  <span className="font-bold text-sm text-ink truncate max-w-[170px]">
+                    {topic?.title || "Cloud Infrastructure"}
                   </span>
                   <span className="text-xs text-ink-muted">
-                    Question 3 of 4
+                    Question {activeQuestionIndex + 1} of {totalQuestions}
                   </span>
                 </div>
               </div>

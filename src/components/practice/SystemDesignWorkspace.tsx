@@ -19,8 +19,12 @@ import {
   CheckCircle2,
   X,
   Send,
+  BookOpen,
+  Target,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
+import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
 
 // Heights for the 24 waveform bars matching Figma node 190:4
 const WAVEFORM_HEIGHTS = [
@@ -29,8 +33,23 @@ const WAVEFORM_HEIGHTS = [
 ];
 
 export function SystemDesignWorkspace() {
-  // Timer: starts at 02:34 (154 seconds) and counts up towards 30:00
-  const [secondsElapsed, setSecondsElapsed] = useState(154);
+  // Curriculum Topic & Dynamic Question Loader
+  const {
+    topic,
+    domain,
+    category,
+    questions,
+    activeQuestion,
+    activeQuestionIndex,
+    totalQuestions,
+    selectQuestion,
+    nextQuestion,
+    previousQuestion,
+    isLoading,
+  } = useCurriculumTopic({ defaultTopicSlug: "distributed-caching" });
+
+  // Timer: starts at 00:00 and counts up towards 30:00
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   // Text input mode toggle
@@ -46,7 +65,7 @@ export function SystemDesignWorkspace() {
   >(null);
   const [notesContent, setNotesContent] = useState("");
   const [codeContent, setCodeContent] = useState(
-    "// Outline key services and endpoints\nPOST /api/v1/shorten\nGET /:shortUrl -> 301 Redirect\n",
+    "// Outline key services, caching layers and endpoints\nPOST /api/v1/resource\nGET /:id -> Cache lookup / Database query\n"
   );
 
   // Settings / End Session modal state
@@ -55,30 +74,37 @@ export function SystemDesignWorkspace() {
   // Messages list to support sending a new user message
   const [messages, setMessages] = useState<
     { sender: "ai" | "user"; content: string; details?: string[] }[]
-  >([
-    {
-      sender: "ai",
-      content:
-        "Design a URL shortener system that can handle 100 million URLs and 200 million redirects per day. How would you design it?",
-      details: ["Before you start, feel free to ask any clarifying questions."],
-    },
-    {
-      sender: "user",
-      content:
-        "Sure. I have a few clarifying questions. What should be the expected URL length, do we need custom aliases, and are there any geo or analytics requirements?",
-    },
-    {
-      sender: "ai",
-      content: "Good questions. Let me clarify:",
-      details: [
-        "1. The short URL can be 6–8 characters long.",
-        "2. Support custom aliases such as /myblog.",
-        "3. Basic analytics like total clicks and unique clicks are required.",
-        "4. Assume a global user base with low latency requirements.",
-        "You can now walk me through your approach.",
-      ],
-    },
-  ]);
+  >([]);
+
+  // Update AI Interviewer initial prompt when active question changes
+  useEffect(() => {
+    if (activeQuestion) {
+      setMessages([
+        {
+          sender: "ai",
+          content: activeQuestion.prompt,
+          details:
+            activeQuestion.hints && activeQuestion.hints.length > 0
+              ? [
+                  "Scoping & Clarification Guidelines:",
+                  ...activeQuestion.hints.map((h, i) => `${i + 1}. ${h}`),
+                ]
+              : [
+                  "Before you start, feel free to ask any clarifying questions or state your scale assumptions.",
+                ],
+        },
+      ]);
+    }
+  }, [activeQuestion]);
+
+  // Update initial code template when topic changes
+  useEffect(() => {
+    if (topic) {
+      setCodeContent(
+        `// Outline key services and architectural interfaces for ${topic.title}\n// Domain: ${domain?.name || "System Design"} | Category: ${category?.name || "Architecture"}\n\nPOST /api/v1/resource\nGET /api/v1/resource/:id\n`
+      );
+    }
+  }, [topic, domain, category]);
 
   // Elapsed timer tick
   useEffect(() => {
@@ -221,18 +247,28 @@ export function SystemDesignWorkspace() {
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-bold text-brand">2 / 4</span>
+              <span className="font-bold text-brand">
+                {activeQuestionIndex + 1} / {totalQuestions}
+              </span>
               <span className="text-[#b0a898]">•</span>
-              <span className="font-semibold text-ink">System Design</span>
+              <span className="font-semibold text-ink">
+                {topic?.title || "System Design"}
+              </span>
             </div>
-            <span className="text-sm text-ink-muted">~29 min remaining</span>
+            <span className="text-sm text-ink-muted">
+              ~{topic?.durationMin || 25} min session
+            </span>
           </div>
 
-          {/* Progress bar track (Step 2 of 4 ~ 50% completed) */}
+          {/* Progress bar track */}
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4efe8]">
             <div
               className="h-full bg-brand transition-all duration-300"
-              style={{ width: "50%" }}
+              style={{
+                width: `${Math.round(
+                  ((activeQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+                )}%`,
+              }}
             />
           </div>
         </div>
@@ -257,6 +293,19 @@ export function SystemDesignWorkspace() {
           </button>
         </div>
       </div>
+
+      {/* Interactive Question Selector Bar */}
+      <PracticeQuestionSelector
+        topic={topic}
+        questions={questions}
+        activeQuestion={activeQuestion}
+        activeQuestionIndex={activeQuestionIndex}
+        totalQuestions={totalQuestions}
+        onSelectQuestion={selectQuestion}
+        onNextQuestion={nextQuestion}
+        onPreviousQuestion={previousQuestion}
+        domainName={domain?.name}
+      />
 
       {/* 2. Main Workspace: Whiteboard View vs Live Conversation View */}
       {isWhiteboardOpen ? (
@@ -457,30 +506,31 @@ export function SystemDesignWorkspace() {
               </div>
             </div>
 
-            {/* Card 2: Tips */}
+            {/* Card 2: Rubric Guide & Key Criteria */}
             <div className="flex flex-col gap-3.5 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
-                <Lightbulb className="size-4 text-amber-500" />
+                <Target className="size-4 text-brand" />
                 <h2 className="font-display font-bold text-sm text-ink">
-                  Tips
+                  Rubric Criteria
                 </h2>
               </div>
-              <div className="flex flex-col gap-2.5">
-                {[
-                  "Start with clarifying questions",
-                  "Discuss high-level architecture first",
-                  "Explain key components and trade-offs",
-                  "Consider scalability, reliability and cost",
-                  "Communicate your thinking clearly",
-                ].map((tip, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs">
-                    <CheckCircle2 className="size-4 shrink-0 text-[#10b981]" />
-                    <span className="text-ink font-medium leading-tight">
-                      {tip}
-                    </span>
-                  </div>
-                ))}
-              </div>
+
+              {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  {activeQuestion.rubricAtoms.map((atom, idx) => (
+                    <div key={idx} className="flex items-start gap-2.5 text-xs">
+                      <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
+                      <span className="text-ink font-medium leading-tight">
+                        {atom}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5 text-xs text-ink-muted">
+                  <p>{activeQuestion.rubricGuide}</p>
+                </div>
+              )}
             </div>
 
             {/* Card 3: Today's Progress */}
@@ -489,7 +539,7 @@ export function SystemDesignWorkspace() {
                 Today&apos;s Progress
               </h2>
               <div className="flex items-center gap-4">
-                {/* Circular Progress Ring (2/4 completed ~ 50%) */}
+                {/* Circular Progress Ring */}
                 <div className="relative flex size-14 shrink-0 items-center justify-center">
                   <svg className="size-full -rotate-90" viewBox="0 0 56 56">
                     <circle
@@ -507,23 +557,26 @@ export function SystemDesignWorkspace() {
                       stroke="#7c3aed"
                       strokeWidth="4"
                       strokeDasharray={138}
-                      strokeDashoffset={69} // ~50% progress
+                      strokeDashoffset={
+                        138 -
+                        (138 * (activeQuestionIndex + 1)) / Math.max(1, totalQuestions)
+                      }
                       strokeLinecap="round"
                       fill="none"
                     />
                   </svg>
                   <span className="absolute text-xs font-bold text-ink">
-                    2/4
+                    {activeQuestionIndex + 1}/{totalQuestions}
                   </span>
                 </div>
 
                 {/* Progress Meta */}
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold text-sm text-ink">
-                    System Design
+                  <span className="font-bold text-sm text-ink truncate max-w-[170px]">
+                    {topic?.title || "System Design"}
                   </span>
                   <span className="text-xs text-ink-muted">
-                    Question 2 of 4
+                    Question {activeQuestionIndex + 1} of {totalQuestions}
                   </span>
                 </div>
               </div>

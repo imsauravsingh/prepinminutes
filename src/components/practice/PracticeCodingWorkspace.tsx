@@ -22,7 +22,10 @@ import {
   CodeXml,
   Loader2,
   Sparkles,
+  Target,
 } from "lucide-react";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
+import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
 
 const ARSolutionExplorer = dynamic(
   () =>
@@ -33,13 +36,13 @@ const ARSolutionExplorer = dynamic(
 );
 
 const INITIAL_CODE_JS = `// Write your solution here
-function maxSubarraySum(arr, k) {
+function solution() {
   // your code here
 
 }`;
 
 const INITIAL_CODE_PY = `# Write your solution here
-def max_subarray_sum(arr, k):
+def solution():
     # your code here
     pass`;
 
@@ -47,6 +50,21 @@ const ARRAY_DATA = [2, 1, 5, 1, 3, 2];
 const K_VALUE = 3;
 
 export function PracticeCodingWorkspace() {
+  // Curriculum Topic & Dynamic Question Loader
+  const {
+    topic,
+    domain,
+    category,
+    questions,
+    activeQuestion,
+    activeQuestionIndex,
+    totalQuestions,
+    selectQuestion,
+    nextQuestion,
+    previousQuestion,
+    isLoading,
+  } = useCurriculumTopic({ defaultTopicSlug: "dynamic-programming-patterns" });
+
   // Navigation & Tabs
   const [leftTab, setLeftTab] = useState<
     "problem" | "solution" | "interview" | "takeaways"
@@ -200,11 +218,15 @@ export function PracticeCodingWorkspace() {
     <div className="flex w-full flex-col min-h-screen bg-[#fbf9f4]">
       {/* 1. Top Header Bar */}
       <header className="flex h-14 w-full items-center justify-between border-b border-[#f4efe8] bg-white px-4 sm:px-7">
-        {/* Left: 1 / 4 • Data Structures */}
+        {/* Left: Dynamic Progress • Domain */}
         <div className="flex items-center gap-2 text-[13px]">
-          <span className="font-bold text-brand">1 / 4</span>
+          <span className="font-bold text-brand">
+            {activeQuestionIndex + 1} / {totalQuestions}
+          </span>
           <span className="text-[#b0a898]">•</span>
-          <span className="font-semibold text-ink">Data Structures</span>
+          <span className="font-semibold text-ink">
+            {domain?.name || "Coding & Algorithms"}
+          </span>
         </div>
 
         {/* Right: Timer & End Practice button */}
@@ -222,11 +244,30 @@ export function PracticeCodingWorkspace() {
         </div>
       </header>
 
-      {/* 2. Progress Bar Track (full width, 4px height, ~37% fill) */}
+      {/* 2. Progress Bar Track (dynamic fill) */}
       <div className="h-1 w-full bg-[#f4efe8]">
         <div
           className="h-full bg-brand transition-all duration-300"
-          style={{ width: "37.7%" }}
+          style={{
+            width: `${Math.round(
+              ((activeQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+            )}%`,
+          }}
+        />
+      </div>
+
+      {/* Interactive Question Selector Bar */}
+      <div className="p-3 sm:px-7 sm:py-2.5 border-b border-[#f4efe8]">
+        <PracticeQuestionSelector
+          topic={topic}
+          questions={questions}
+          activeQuestion={activeQuestion}
+          activeQuestionIndex={activeQuestionIndex}
+          totalQuestions={totalQuestions}
+          onSelectQuestion={selectQuestion}
+          onNextQuestion={nextQuestion}
+          onPreviousQuestion={previousQuestion}
+          domainName={domain?.name}
         />
       </div>
 
@@ -274,19 +315,29 @@ export function PracticeCodingWorkspace() {
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded bg-[#fff0ec] px-2 py-0.5 text-xs font-bold text-brand">
-                  Data Structures
+                  {domain?.name || "Data Structures"}
                 </span>
                 <span className="rounded bg-[#faf6f0] px-2 py-0.5 text-xs font-semibold text-ink-muted">
-                  Sliding Window
+                  {category?.name || "Algorithms"}
                 </span>
                 <span className="rounded bg-[#edf5ec] px-2 py-0.5 text-xs font-semibold text-[#10b981]">
-                  Medium
+                  {activeQuestion.difficulty}
                 </span>
+                {activeQuestion.learningLevel && (
+                  <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-line text-ink-muted">
+                    {activeQuestion.learningLevel}
+                  </span>
+                )}
+                {activeQuestion.archetype && (
+                  <span className="rounded bg-cream px-2 py-0.5 text-[10px] font-bold text-ink-muted uppercase tracking-wider border border-line/60">
+                    {activeQuestion.archetype}
+                  </span>
+                )}
               </div>
 
               {/* Title */}
               <h1 className="font-display text-2xl font-extrabold text-ink sm:text-[26px]">
-                Find Maximum Sum Subarray of Size K
+                {activeQuestion.title}
               </h1>
             </div>
 
@@ -396,34 +447,36 @@ export function PracticeCodingWorkspace() {
                 {isProblemOpen && (
                   <div className="mt-3.5 flex flex-col gap-3.5 pt-1">
                     <p className="text-[13px] leading-relaxed text-ink">
-                      Given an array of integers and a number K, find the
-                      maximum sum of a contiguous subarray of size K.
+                      {activeQuestion.prompt}
                     </p>
 
-                    {/* Example Box */}
-                    <div className="flex flex-col gap-2 rounded-xl bg-[#faf6f0] p-4 text-xs font-mono text-ink-muted">
-                      <span className="font-sans font-bold text-ink">
-                        Example
-                      </span>
-                      <div className="leading-relaxed whitespace-pre-line text-ink">
-                        Input: arr = [2, 1, 5, 1, 3, 2], K = 3{"\n"}
-                        Output: 9{"\n"}
-                        <span className="text-ink-muted">
-                          Explanation: Subarray [5, 1, 3] has the maximum sum.
+                    {/* Rubric Criteria & Objectives */}
+                    {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 && (
+                      <div className="flex flex-col gap-2 rounded-xl bg-[#faf6f0] p-4 text-xs text-ink">
+                        <span className="font-sans font-bold text-ink flex items-center gap-1.5">
+                          <Target className="size-3.5 text-brand" />
+                          <span>Key Implementation Objectives</span>
                         </span>
+                        <div className="flex flex-col gap-1.5 pt-1">
+                          {activeQuestion.rubricAtoms.map((atom, i) => (
+                            <div key={i} className="flex items-start gap-2 text-ink-muted">
+                              <span className="text-brand font-bold">•</span>
+                              <span className="text-ink">{atom}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Constraints */}
-                    <div className="flex flex-col gap-1 text-xs">
-                      <span className="font-bold text-ink">Constraints</span>
-                      <span className="text-ink-muted">
-                        • 1 ≤ K ≤ len(arr) ≤ 10⁵
-                      </span>
-                      <span className="text-ink-muted">
-                        • -10⁴ ≤ arr[i] ≤ 10⁴
-                      </span>
-                    </div>
+                    {/* Expected Guidelines & Trade-offs */}
+                    {activeQuestion.rubricGuide && (
+                      <div className="flex flex-col gap-1 text-xs">
+                        <span className="font-bold text-ink">Evaluation Guide</span>
+                        <p className="text-ink-muted leading-relaxed">
+                          {activeQuestion.rubricGuide}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

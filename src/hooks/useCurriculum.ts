@@ -340,3 +340,5 @@ export function useCurriculum(activeDomainSlug = "system-design") {
     refetch: refetchAll,
   };
 }
+
+export { useCurriculumTopic } from "./useCurriculumTopic";

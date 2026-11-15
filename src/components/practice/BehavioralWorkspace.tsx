@@ -21,7 +21,10 @@ import {
   ChevronRight,
   X,
   Settings,
+  Target,
 } from "lucide-react";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
+import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
 
 // Static Waveform Heights matching Figma Node 214:4
 const WAVEFORM_BARS = [
@@ -38,38 +41,33 @@ interface ChatMessage {
   showClarifyTip?: boolean;
 }
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: "msg-1",
-    sender: "ai",
-    text: "Tell me about a time you disagreed with a team member.",
-    secondaryText:
-      "Take your time to think. You can structure your answer using STAR.",
-    showClarifyTip: true,
-  },
-  {
-    id: "msg-2",
-    sender: "user",
-    text: "Can you clarify what kind of disagreement you are most interested in? Technical, product, or working style?",
-  },
-  {
-    id: "msg-3",
-    sender: "ai",
-    badge: "Good question!",
-    text: "I'm interested in a technical disagreement where you had a different opinion on the approach or solution. Please go ahead and walk me through the situation.",
-  },
-];
-
 export function BehavioralWorkspace() {
   const router = useRouter();
 
-  // Timer: Start at 45 seconds (matching Figma "00:45 / 07:00")
-  const [elapsedSeconds, setElapsedSeconds] = useState(45);
+  // Curriculum Topic & Dynamic Question Loader
+  const {
+    topic,
+    domain,
+    category,
+    questions,
+    activeQuestion,
+    activeQuestionIndex,
+    totalQuestions,
+    selectQuestion,
+    nextQuestion,
+    previousQuestion,
+    isLoading,
+  } = useCurriculumTopic({
+    defaultTopicSlug: "conflict-resolution-disagreement",
+  });
+
+  // Timer: Start at 0 seconds
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMicMuted, setIsMicMuted] = useState(false);
 
   // Chat & text input
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [textInput, setTextInput] = useState("");
   const [isTextInput, setIsTextInput] = useState(false);
 
@@ -79,6 +77,24 @@ export function BehavioralWorkspace() {
     "notes" | "star" | "sample" | "pointers" | null
   >(null);
   const [notes, setNotes] = useState("");
+
+  // Update AI initial message when active question changes
+  useEffect(() => {
+    if (activeQuestion) {
+      setMessages([
+        {
+          id: `msg-${activeQuestion.id}`,
+          sender: "ai",
+          text: activeQuestion.prompt,
+          secondaryText:
+            activeQuestion.hints && activeQuestion.hints.length > 0
+              ? `Key Focus: ${activeQuestion.hints[0]}`
+              : "Take your time to think. Structure your response using the STAR method (Situation, Task, Action, Result).",
+          showClarifyTip: true,
+        },
+      ]);
+    }
+  }, [activeQuestion]);
 
   // Elapsed timer ticker
   useEffect(() => {
@@ -136,16 +152,29 @@ export function BehavioralWorkspace() {
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-bold text-brand">4 / 4</span>
+              <span className="font-bold text-brand">
+                {activeQuestionIndex + 1} / {totalQuestions}
+              </span>
               <span className="text-[#b0a898]">•</span>
-              <span className="font-semibold text-ink">Behavioral</span>
+              <span className="font-semibold text-ink">
+                {topic?.title || "Behavioral & Leadership"}
+              </span>
             </div>
-            <span className="text-sm text-ink-muted">~7 min remaining</span>
+            <span className="text-sm text-ink-muted">
+              ~{topic?.durationMin || 15} min session
+            </span>
           </div>
 
-          {/* Progress bar track (Step 4 of 4 ~ 100% completed) */}
+          {/* Progress bar track */}
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4efe8]">
-            <div className="h-full w-full bg-brand transition-all duration-300" />
+            <div
+              className="h-full bg-brand transition-all duration-300"
+              style={{
+                width: `${Math.round(
+                  ((activeQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+                )}%`,
+              }}
+            />
           </div>
         </div>
 
@@ -170,22 +199,39 @@ export function BehavioralWorkspace() {
         </div>
       </div>
 
+      {/* Interactive Question Selector Bar */}
+      <PracticeQuestionSelector
+        topic={topic}
+        questions={questions}
+        activeQuestion={activeQuestion}
+        activeQuestionIndex={activeQuestionIndex}
+        totalQuestions={totalQuestions}
+        onSelectQuestion={selectQuestion}
+        onNextQuestion={nextQuestion}
+        onPreviousQuestion={previousQuestion}
+        domainName={domain?.name}
+      />
+
       {/* 2. Question Header Row */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span className="rounded bg-[#fff0ec] px-2 py-0.5 text-xs font-bold text-brand">
-            Behavioral
+            {domain?.name || "Behavioral"}
           </span>
           <span className="text-sm font-semibold text-ink-muted">
-            Leadership &amp; Conflict
+            {category?.name || "Leadership & Communication"}
           </span>
+          {activeQuestion.difficulty && (
+            <span className="rounded bg-cream px-2 py-0.5 text-[10px] font-bold text-ink uppercase tracking-wider border border-line/60">
+              {activeQuestion.difficulty}
+            </span>
+          )}
         </div>
         <h1 className="font-display text-xl font-extrabold text-ink tracking-tight sm:text-2xl lg:text-[28px]">
-          Tell me about a time you disagreed with a team member.
+          {activeQuestion.title}
         </h1>
         <p className="text-sm leading-relaxed text-ink-muted sm:text-[15px]">
-          This is a common behavioral interview question at Google. Use the STAR
-          method (Situation, Task, Action, Result) to structure your answer.
+          {activeQuestion.prompt}
         </p>
       </div>
 
@@ -440,34 +486,31 @@ export function BehavioralWorkspace() {
             </div>
           </div>
 
-          {/* Card 2: Tips for Behavioral Interviews */}
+          {/* Card 2: Rubric Criteria & Competencies */}
           <div className="flex flex-col gap-4 rounded-2xl border border-[#ede6db] bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
-              <Lightbulb className="size-4 text-[#ff6c47]" />
+              <Target className="size-4 text-brand" />
               <h3 className="text-sm font-bold text-[#1e1c1a]">
-                Tips for Behavioral Interviews
+                Evaluation Rubric
               </h3>
             </div>
 
-            <div className="flex flex-col gap-3">
-              {[
-                "Use the STAR method (Situation, Task, Action, Result)",
-                "Be specific and give real examples",
-                "Focus on your actions and decision making",
-                "Highlight what you learned",
-                "Keep your answer concise and structured",
-                "Be honest and authentic",
-              ].map((tip, idx) => (
-                <div key={idx} className="flex items-start gap-2.5">
-                  <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-[#edf7f4] text-[#0b8a8f] mt-0.5">
-                    <Check className="size-2.5 stroke-[3]" />
+            {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
+              <div className="flex flex-col gap-2.5">
+                {activeQuestion.rubricAtoms.map((atom, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-xs">
+                    <Check className="size-3.5 shrink-0 text-[#10b981] mt-0.5" />
+                    <span className="text-[#1e1c1a] font-medium leading-tight">
+                      {atom}
+                    </span>
                   </div>
-                  <span className="text-xs leading-snug text-[#6b6661]">
-                    {tip}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 text-xs text-[#6b6661]">
+                <p>{activeQuestion.rubricGuide}</p>
+              </div>
+            )}
           </div>
 
           {/* Card 3: Today's Progress */}
@@ -478,17 +521,17 @@ export function BehavioralWorkspace() {
 
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                {/* 4/4 Circle Gauge */}
+                {/* Dynamic Circle Gauge */}
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[#7c3aed] text-xs font-bold text-[#7c3aed]">
-                  4/4
+                  {activeQuestionIndex + 1}/{totalQuestions}
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-[#1e1c1a]">
-                    Behavioral
+                  <span className="text-sm font-bold text-[#1e1c1a] truncate max-w-[160px]">
+                    {topic?.title || "Behavioral"}
                   </span>
                   <span className="text-xs text-[#6b6661]">
-                    Question 4 of 4
+                    Question {activeQuestionIndex + 1} of {totalQuestions}
                   </span>
                 </div>
               </div>
