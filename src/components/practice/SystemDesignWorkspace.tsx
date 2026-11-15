@@ -21,10 +21,12 @@ import {
   Send,
   BookOpen,
   Target,
+  Loader2,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
 import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
 import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
+import { backendApi } from "@/lib/api-client";
 
 // Heights for the 24 waveform bars matching Figma node 190:4
 const WAVEFORM_HEIGHTS = [
@@ -75,10 +77,13 @@ export function SystemDesignWorkspace() {
   const [messages, setMessages] = useState<
     { sender: "ai" | "user"; content: string; details?: string[] }[]
   >([]);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const [coveredAtoms, setCoveredAtoms] = useState<string[]>([]);
 
   // Update AI Interviewer initial prompt when active question changes
   useEffect(() => {
     if (activeQuestion) {
+      setCoveredAtoms([]);
       setMessages([
         {
           sender: "ai",
@@ -129,14 +134,64 @@ export function SystemDesignWorkspace() {
     setShowEndModal(true);
   };
 
-  const handleSendText = (e: React.FormEvent) => {
+  const handleSendText = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!textMessage.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", content: textMessage.trim() },
-    ]);
+    const candidateInput = textMessage.trim();
+    if (!candidateInput || isAiThinking) return;
+
+    const newMessages = [
+      ...messages,
+      { sender: "user" as const, content: candidateInput },
+    ];
+    setMessages(newMessages);
     setTextMessage("");
+    setIsAiThinking(true);
+
+    try {
+      const turnResult = await backendApi.submitPracticeSessionTurn({
+        topicSlug: topic?.slug || "distributed-caching",
+        questionId: activeQuestion?.id,
+        candidateMessage: candidateInput,
+        transcriptHistory: newMessages.map((m) => ({
+          sender: m.sender,
+          content: m.content,
+        })),
+        candidateTargetLevel: "L3",
+      });
+
+      if (turnResult?.replyText) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "ai",
+            content: turnResult.replyText,
+            details: turnResult.nextSuggestedProbe
+              ? [`Follow-up focus: ${turnResult.nextSuggestedProbe}`]
+              : undefined,
+          },
+        ]);
+        if (
+          turnResult.coveredRubricAtoms &&
+          turnResult.coveredRubricAtoms.length > 0
+        ) {
+          setCoveredAtoms((prev) =>
+            Array.from(new Set([...prev, ...turnResult.coveredRubricAtoms]))
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Sarah AI turn error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          content:
+            "That's a sound architectural approach. How does your design handle failover and data consistency if the primary node goes offline?",
+        },
+      ]);
+    } finally {
+      setIsAiThinking(false);
+    }
   };
 
   const renderAudioDock = () => (
@@ -517,14 +572,39 @@ export function SystemDesignWorkspace() {
 
               {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
                 <div className="flex flex-col gap-2.5">
-                  {activeQuestion.rubricAtoms.map((atom, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5 text-xs">
-                      <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
-                      <span className="text-ink font-medium leading-tight">
-                        {atom}
-                      </span>
-                    </div>
-                  ))}
+                  {activeQuestion.rubricAtoms.map((atom, idx) => {
+                    const isCovered = coveredAtoms.some(
+                      (ca) =>
+                        ca.toLowerCase().includes(atom.toLowerCase()) ||
+                        atom.toLowerCase().includes(ca.toLowerCase())
+                    );
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-start gap-2.5 text-xs p-1.5 rounded-lg transition-colors ${
+                          isCovered
+                            ? "bg-emerald-500/10 border border-emerald-500/20"
+                            : "hover:bg-cream/40"
+                        }`}
+                      >
+                        {isCovered ? (
+                          <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
+                        ) : (
+                          <div className="size-2 rounded-full bg-line mt-1.5 shrink-0 ml-1" />
+                        )}
+                        <span
+                          className={`leading-tight ${
+                            isCovered
+                              ? "font-bold text-ink"
+                              : "text-ink-muted font-normal"
+                          }`}
+                        >
+                          {atom}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2.5 text-xs text-ink-muted">

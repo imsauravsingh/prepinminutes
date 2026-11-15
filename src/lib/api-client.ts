@@ -1702,5 +1702,35 @@ export const backendApi = {
     const res = await fetch(url, { method: "GET" });
     return handleResponse<TopicQuestionsResponse>(res);
   },
+
+  /**
+   * POST /api/practice/session/turn
+   * Submits candidate response turn and receives Sarah AI's calibrated response,
+   * rubric atom coverage, and targeted follow-up probes.
+   */
+  async submitPracticeSessionTurn(payload: {
+    topicSlug: string;
+    questionId?: string;
+    candidateMessage: string;
+    transcriptHistory?: Array<{ sender: "ai" | "user"; content: string }>;
+    candidateTargetLevel?: string;
+  }): Promise<{
+    success: boolean;
+    replyText: string;
+    coveredRubricAtoms: string[];
+    remainingRubricAtoms: string[];
+    detectedAntiPatterns: string[];
+    currentMasteryScore: number;
+    interviewPhase: string;
+    nextSuggestedProbe?: string;
+    evaluatorNotes?: string;
+  }> {
+    const res = await fetch(`${API_BASE_URL}/api/practice/session/turn`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return handleResponse(res);
+  },
 };
 
