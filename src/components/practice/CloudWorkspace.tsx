@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Settings,
   Cloud,
   User,
   Info,
-  Pause,
-  Play,
-  Square,
-  Mic,
   LayoutGrid,
   Network,
   FileCode,
@@ -18,18 +15,15 @@ import {
   Lightbulb,
   CheckCircle2,
   X,
-  Send,
   Target,
+  Loader2,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
 import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
 import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
-
-// Heights for the 24 waveform bars
-const WAVEFORM_HEIGHTS = [
-  12, 18, 24, 16, 10, 8, 14, 20, 26, 15, 9, 13, 22, 17, 11, 25, 20, 14, 8, 12,
-  18, 24, 10, 6,
-];
+import { backendApi } from "@/lib/api-client";
+import { useAiVoiceInterviewer } from "@/hooks/useAiVoiceInterviewer";
+import { AiVoiceInterviewerDock } from "@/components/voice/AiVoiceInterviewerDock";
 
 export function CloudWorkspace() {
   // Curriculum Topic & Dynamic Question Loader
@@ -47,13 +41,17 @@ export function CloudWorkspace() {
     isLoading,
   } = useCurriculumTopic({ defaultTopicSlug: "kubernetes-architecture" });
 
+  // Reusable Autonomous AI Voice Interviewer hook
+  const voice = useAiVoiceInterviewer({
+    topicSlug: topic?.slug || "kubernetes-architecture",
+    questionId: activeQuestion?.id,
+    initialPrompt: activeQuestion?.prompt,
+    initialHints: activeQuestion?.hints,
+    candidateRole: "Cloud / DevOps Engineer",
+  });
+
   // Timer: starts at 00:00 and counts up towards 30:00
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Text input mode toggle
-  const [isTextInput, setIsTextInput] = useState(false);
-  const [textMessage, setTextMessage] = useState("");
 
   // Whiteboard modal state
   const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
@@ -69,32 +67,8 @@ export function CloudWorkspace() {
 
   // End Session modal state
   const [showEndModal, setShowEndModal] = useState(false);
-
-  // Messages list
-  const [messages, setMessages] = useState<
-    { sender: "ai" | "user"; content: string; details?: string[] }[]
-  >([]);
-
-  // Update AI Interviewer initial prompt when active question changes
-  useEffect(() => {
-    if (activeQuestion) {
-      setMessages([
-        {
-          sender: "ai",
-          content: activeQuestion.prompt,
-          details:
-            activeQuestion.hints && activeQuestion.hints.length > 0
-              ? [
-                  "Infrastructure & Resiliency Guidelines:",
-                  ...activeQuestion.hints.map((h, i) => `${i + 1}. ${h}`),
-                ]
-              : [
-                  "Before you start, feel free to ask any clarifying questions regarding scale, SLA, or compliance constraints.",
-                ],
-        },
-      ]);
-    }
-  }, [activeQuestion]);
+  const [isEndingSession, setIsEndingSession] = useState(false);
+  const router = useRouter();
 
   // Update initial IaC template when topic changes
   useEffect(() => {
@@ -105,14 +79,14 @@ export function CloudWorkspace() {
     }
   }, [topic, domain, category]);
 
-  // Elapsed timer tick
+  // Elapsed timer tick (pauses when voice is paused)
   useEffect(() => {
-    if (isPaused) return;
+    if (voice.isPaused) return;
     const interval = setInterval(() => {
       setSecondsElapsed((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [voice.isPaused]);
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -121,121 +95,83 @@ export function CloudWorkspace() {
   };
 
   const handleTogglePause = () => {
-    setIsPaused((prev) => !prev);
+    voice.togglePause();
   };
 
   const handleStopSession = () => {
     setShowEndModal(true);
   };
 
-  const handleSendText = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!textMessage.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", content: textMessage.trim() },
-    ]);
-    setTextMessage("");
+  const handleEndSession = async () => {
+    try {
+      setIsEndingSession(true);
+      voice.stopAndReleaseAudio();
+      const idempotencyKey = `cloud_${topic?.slug || "infra"}_${activeQuestion?.id || "q1"}_${Date.now()}`;
+
+      let whiteboardData: any = null;
+      if (typeof window !== "undefined") {
+        try {
+          const wbKey = `pim_wb_${topic?.slug || "default"}_${activeQuestion?.id || "q1"}`;
+          const raw = localStorage.getItem(wbKey);
+          if (raw) whiteboardData = JSON.parse(raw);
+        } catch {
+          // ignore parsing error
+        }
+      }
+
+      const result = await backendApi.submitPracticeSession(
+        {
+          domain: domain?.slug || "cloud-devops",
+          topicSlug: topic?.slug || "kubernetes-architecture",
+          questionId: activeQuestion?.id || "q1",
+          title: activeQuestion?.title || topic?.title || "Cloud Infrastructure Session",
+          codeSubmission: codeContent || undefined,
+          candidateNotes: notesContent || undefined,
+          whiteboardData,
+          transcriptHistory: voice.messages.map((m) => ({
+            sender: m.sender,
+            content: m.content,
+          })),
+          coveredRubricAtoms: voice.coveredRubricAtoms,
+          durationSeconds: secondsElapsed,
+        },
+        { idempotencyKey }
+      );
+
+      if (result && result.reportId) {
+        router.push(`/practice/session/cloud/evaluation?id=${result.reportId}`);
+      } else {
+        router.push("/practice/session/cloud/evaluation");
+      }
+    } catch (err) {
+      console.warn("Session submit fallback triggered:", err);
+      router.push("/practice/session/cloud/evaluation");
+    } finally {
+      setIsEndingSession(false);
+    }
   };
 
   const renderAudioDock = () => (
-    <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-[#2563eb] bg-[#eff6ff] p-5 shadow-sm text-center">
-      {/* Listening / Paused status label */}
-      <span className="text-xs font-bold uppercase tracking-wider text-[#2563eb]">
-        {isPaused ? "Paused" : "Listening..."}
-      </span>
-
-      {/* Audio Waveform visualization (24 animated bars) */}
-      <div className="flex h-7 items-center justify-center gap-1">
-        {WAVEFORM_HEIGHTS.map((height, idx) => (
-          <div
-            key={idx}
-            className="w-[3px] rounded-full bg-[#2563eb] transition-all duration-200"
-            style={{
-              height: isPaused ? "4px" : `${height}px`,
-              opacity: isPaused ? 0.4 : 1,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Controls row */}
-      <div className="flex items-center gap-4 pt-1">
-        {/* Pause / Resume button */}
-        <button
-          type="button"
-          onClick={handleTogglePause}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-[#2563eb] bg-white px-4 text-xs font-semibold text-[#2563eb] shadow-sm transition-colors hover:bg-[#dbeafe]"
-        >
-          {isPaused ? (
-            <>
-              <Play className="size-3.5 fill-[#2563eb]" />
-              <span>Resume</span>
-            </>
-          ) : (
-            <>
-              <Pause className="size-3.5 fill-[#2563eb]" />
-              <span>Pause</span>
-            </>
-          )}
-        </button>
-
-        {/* Central Mic circle */}
-        <button
-          type="button"
-          onClick={handleTogglePause}
-          className="flex size-14 items-center justify-center rounded-full bg-[#2563eb] text-white shadow-[0_4px_16px_rgba(37,99,235,0.35)] transition-transform active:scale-95 hover:bg-[#1d4ed8]"
-          aria-label="Toggle microphone"
-        >
-          <Mic className="size-6" />
-        </button>
-
-        {/* Stop button -> finishes and evaluates */}
-        <button
-          type="button"
-          onClick={handleStopSession}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-red-500 bg-white px-4 text-xs font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50"
-        >
-          <Square className="size-3 fill-red-500" />
-          <span>Stop</span>
-        </button>
-      </div>
-
-      {/* Text Mode Toggle */}
-      <div className="text-xs text-ink-muted">
-        Speak naturally. You can also{" "}
-        <button
-          type="button"
-          onClick={() => setIsTextInput(!isTextInput)}
-          className="font-semibold text-[#2563eb] underline hover:text-[#1d4ed8]"
-        >
-          {isTextInput ? "hide text input" : "switch to text input"}
-        </button>
-        .
-      </div>
-
-      {/* Inline Text Input Form */}
-      {isTextInput && (
-        <form
-          onSubmit={handleSendText}
-          className="mt-2 flex w-full items-center gap-2"
-        >
-          <input
-            type="text"
-            value={textMessage}
-            onChange={(e) => setTextMessage(e.target.value)}
-            placeholder="Type your cloud architecture response..."
-            className="flex-1 rounded-xl border border-[#ede6db] bg-white px-4 py-2.5 text-xs text-ink outline-none focus:border-[#2563eb]"
-          />
-          <button
-            type="submit"
-            className="flex size-9 items-center justify-center rounded-xl bg-[#2563eb] text-white transition-opacity hover:opacity-95"
-          >
-            <Send className="size-4" />
-          </button>
-        </form>
-      )}
-    </div>
+    <AiVoiceInterviewerDock
+      turnState={voice.turnState}
+      isCallActive={voice.isCallActive}
+      isPaused={voice.isPaused}
+      isMuted={voice.isMuted}
+      waveformBars={voice.waveformBars}
+      silenceCountdown={voice.silenceCountdown}
+      isTextInput={voice.isTextInput}
+      textMessage={voice.textMessage}
+      interviewerName="Sarah"
+      onStartSession={voice.startSession}
+      onTogglePause={voice.togglePause}
+      onToggleMute={voice.toggleMute}
+      onBargeIn={voice.handleBargeIn}
+      onFinalizeTurn={voice.finalizeCandidateSpokenTurn}
+      onStopSession={handleStopSession}
+      onToggleTextInput={() => voice.setIsTextInput(!voice.isTextInput)}
+      onTextMessageChange={voice.setTextMessage}
+      onSendTextMessage={voice.sendTextMessage}
+    />
   );
 
   return (
@@ -356,7 +292,7 @@ export function CloudWorkspace() {
 
               {/* Chat History Bubbles */}
               <div className="flex flex-col gap-4">
-                {messages.map((msg, i) => (
+                {voice.messages.map((msg, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div
                       className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -397,6 +333,18 @@ export function CloudWorkspace() {
                     </div>
                   </div>
                 ))}
+
+                {(voice.isProcessing || voice.turnState === "PROCESSING") && (
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff] text-[#2563eb]">
+                      <Cloud className="size-4" />
+                    </div>
+                    <div className="flex items-center gap-2 rounded-2xl bg-[#faf6f0] p-4 text-xs font-medium text-ink-muted">
+                      <Loader2 className="size-3.5 animate-spin text-[#2563eb]" />
+                      <span>Sarah is formulating follow-up probes...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -472,14 +420,39 @@ export function CloudWorkspace() {
               </div>
               {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
                 <div className="flex flex-col gap-2.5">
-                  {activeQuestion.rubricAtoms.map((atom, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5 text-xs">
-                      <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
-                      <span className="text-ink font-medium leading-tight">
-                        {atom}
-                      </span>
-                    </div>
-                  ))}
+                  {activeQuestion.rubricAtoms.map((atom, idx) => {
+                    const isCovered = voice.coveredRubricAtoms.some(
+                      (ca) =>
+                        ca.toLowerCase().includes(atom.toLowerCase()) ||
+                        atom.toLowerCase().includes(ca.toLowerCase())
+                    );
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-start gap-2.5 text-xs p-1.5 rounded-lg transition-colors ${
+                          isCovered
+                            ? "bg-emerald-500/10 border border-emerald-500/20"
+                            : "hover:bg-cream/40"
+                        }`}
+                      >
+                        {isCovered ? (
+                          <CheckCircle2 className="size-4 shrink-0 text-[#10b981] mt-0.5" />
+                        ) : (
+                          <div className="size-2 rounded-full bg-line mt-1.5 shrink-0 ml-1" />
+                        )}
+                        <span
+                          className={`leading-tight ${
+                            isCovered
+                              ? "font-bold text-ink"
+                              : "text-ink-muted font-normal"
+                          }`}
+                        >
+                          {atom}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2 text-xs text-ink-muted">
@@ -623,12 +596,21 @@ export function CloudWorkspace() {
               >
                 Continue Session
               </button>
-              <Link
-                href="/practice/session/cloud/evaluation"
-                className="rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600"
+              <button
+                type="button"
+                disabled={isEndingSession}
+                onClick={handleEndSession}
+                className="flex items-center gap-1.5 rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
               >
-                End Now
-              </Link>
+                {isEndingSession ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Evaluating...</span>
+                  </>
+                ) : (
+                  <span>End Now</span>
+                )}
+              </button>
             </div>
           </div>
         </div>
