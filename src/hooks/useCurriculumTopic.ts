@@ -37,19 +37,21 @@ function writeLocalStorage<T>(key: string, value: T): void {
 }
 
 export function generateDefaultTopicData(topicSlug: string): TopicDetailResponse {
-  const formattedTitle = topicSlug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  const cleanTitle = topicSlug
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 
   const defaultQuestion: BaseQuestionNode = {
-    id: `q_${topicSlug.replace(/-/g, "_")}_01`,
-    title: `${formattedTitle} Architectural Scenario`,
+    id: `q_${cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_01`,
+    title: `${cleanTitle} Architectural Scenario`,
     difficulty: "INTERMEDIATE",
     learningLevel: "L2",
     archetype: "deep-dive",
-    prompt: `Analyze and design a resilient architecture for ${formattedTitle}. Walk through requirements scoping, component trade-offs, bottleneck identification, and failure recovery.`,
-    rubricGuide: `Candidate should demonstrate understanding of ${formattedTitle}, component boundaries, scalability bottlenecks, and high-availability mitigations.`,
+    prompt: `Analyze and design a resilient architecture for ${cleanTitle}. Walk through requirements scoping, component trade-offs, bottleneck identification, and failure recovery.`,
+    rubricGuide: `Candidate should demonstrate understanding of ${cleanTitle}, component boundaries, scalability bottlenecks, and high-availability mitigations.`,
     rubricAtoms: [
       "Requirements and constraints scoping",
       "Component decomposition and data flow",
@@ -75,16 +77,16 @@ export function generateDefaultTopicData(topicSlug: string): TopicDetailResponse
   };
 
   const defaultTopic: BaseTopicNode = {
-    slug: topicSlug,
-    topicId: topicSlug.toUpperCase().slice(0, 6),
-    title: formattedTitle,
+    slug: topicSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    topicId: cleanTitle.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || "TOPIC",
+    title: cleanTitle,
     priority: "P0",
     difficulty: "INTERMEDIATE",
     durationMin: 20,
     frequency: 0.85,
     weight: 0.85,
     trend: "HOT",
-    description: `Core interview topics covering ${formattedTitle} concepts and real-world trade-offs.`,
+    description: `Core interview topics covering ${cleanTitle} concepts and real-world trade-offs.`,
     rubricAtoms: defaultQuestion.rubricAtoms,
   };
 
@@ -121,12 +123,19 @@ export function useCurriculumTopic(options?: UseCurriculumTopicOptions) {
   const router = useRouter();
 
   const activeTopicSlug = useMemo(() => {
-    return (
+    const rawParam =
       options?.topicSlug ||
       searchParams?.get("topic") ||
+      searchParams?.get("topicSlug") ||
+      searchParams?.get("slug") ||
       options?.defaultTopicSlug ||
-      "distributed-caching"
-    );
+      "distributed-caching";
+
+    try {
+      return decodeURIComponent(rawParam).trim();
+    } catch {
+      return rawParam.trim();
+    }
   }, [options?.topicSlug, searchParams, options?.defaultTopicSlug]);
 
   const urlQuestionId = useMemo(() => {

@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { backendApi, EvaluationReportDetail } from "@/lib/api-client";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
 import {
   Check,
   ArrowUp,
@@ -22,11 +25,47 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 
 export function MockSystemDesignEvaluationWorkspace() {
+  const searchParams = useSearchParams();
+  const reportIdParam = searchParams.get("id");
+  const topicParam = searchParams.get("topic") || searchParams.get("focus") || "";
+  const roleParam = searchParams.get("role") || "";
+
+  const [liveReport, setLiveReport] = useState<EvaluationReportDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  const { topic } = useCurriculumTopic({
+    defaultTopicSlug: topicParam || "load-balancing-strategies",
+  });
+
+  useEffect(() => {
+    if (!reportIdParam) return;
+    let isMounted = true;
+    setIsLoading(true);
+
+    backendApi
+      .getEvaluationReport(reportIdParam)
+      .then((res) => {
+        if (isMounted && res.success && res.report) {
+          setLiveReport(res.report);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load mock evaluation report:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reportIdParam]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -152,6 +191,81 @@ export function MockSystemDesignEvaluationWorkspace() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
+        <Loader2 className="size-8 text-brand animate-spin" />
+        <span className="text-sm font-semibold text-ink-muted">Loading Mock Evaluation Report...</span>
+      </div>
+    );
+  }
+
+  const displayTitle = liveReport?.title || (topic ? `Mock Evaluation: ${topic.title}` : (topicParam ? `Mock Evaluation: ${topicParam}` : "Mock Evaluation: Load Balancing & System Design"));
+  const displayRole = roleParam || "Senior Software Engineer";
+  const displayDomain = liveReport?.practiceSession?.domain || topic?.pillar || "System Design Mock";
+  const displayScore = liveReport ? Math.round(liveReport.overallScore) : 84;
+  const displayVerdict = liveReport?.verdict || "Strong Hire";
+  const displayPrior = liveReport?.priorReadinessScore ?? 68;
+  const displayNew = liveReport?.newReadinessScore ?? 74;
+  const displayDelta = liveReport?.readinessDelta ?? 6;
+  const displayPercentile = liveReport?.percentileRank ? `Top ${100 - liveReport.percentileRank}%` : "Top 12%";
+  const displayEvaluator = liveReport ? `${liveReport.evaluatorName} (${liveReport.evaluatorRole})` : "Sarah (AI Staff Infrastructure Engineer)";
+  const displayNotes = liveReport?.evaluatorNotes || "The candidate demonstrated strong system design maturity for a Senior Software Engineer. Successfully structured the 45-minute discussion, clarified essential SLAs before proposing components, and designed a robust Redis caching layer for the 10:1 read-heavy workload. Key opportunity for Staff-level performance is expanding on distributed unique ID collision handling and mitigating cache stampede risks.";
+
+  const dynamicCriteria =
+    liveReport?.rubricScores && liveReport.rubricScores.length > 0
+      ? liveReport.rubricScores.map((scoreItem) => {
+          const scoreOutOf10 = Math.min(10, Math.max(1, scoreItem.score));
+          const percent = Math.round(scoreOutOf10 * 10);
+          const rating =
+            scoreOutOf10 >= 8.5
+              ? "Strong"
+              : scoreOutOf10 >= 7.0
+              ? "Good"
+              : scoreOutOf10 >= 5.5
+              ? "Satisfactory"
+              : "Needs Practice";
+
+          let icon = CodeXml;
+          let color = "text-[#2563eb]";
+          let bg = "bg-[#eff6ff]";
+
+          const dim = scoreItem.dimension.toLowerCase();
+          if (dim.includes("tradeoff") || dim.includes("reasoning")) {
+            icon = Lightbulb;
+            color = "text-[#7c3aed]";
+            bg = "bg-[#f5f3ff]";
+          } else if (dim.includes("scale") || dim.includes("fail") || dim.includes("resilience")) {
+            icon = ShieldCheck;
+            color = "text-[#10b981]";
+            bg = "bg-[#edf5ec]";
+          } else if (dim.includes("comm") || dim.includes("structure")) {
+            icon = Users;
+            color = "text-[#0b8a8f]";
+            bg = "bg-[#edf7f4]";
+          } else if (dim.includes("edge") || dim.includes("robust")) {
+            icon = Target;
+            color = "text-[#ff6c47]";
+            bg = "bg-[#fff0ec]";
+          }
+
+          const formattedTitle = scoreItem.dimension
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          return {
+            title: formattedTitle,
+            score: `${scoreOutOf10.toFixed(1)} / 10`,
+            rating,
+            percent,
+            icon,
+            color,
+            bg,
+            feedback: scoreItem.assessment || "Evaluated by AI grading pipeline against role rubrics.",
+          };
+        })
+      : evaluationCriteria;
+
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1300px] mx-auto pb-16">
       {/* 1. Header & Navigation Row */}
@@ -182,18 +296,17 @@ export function MockSystemDesignEvaluationWorkspace() {
           <div className="flex flex-col gap-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md bg-[#edf7f4] px-2.5 py-0.5 text-xs font-bold text-[#0b8a8f]">
-                System Design Mock
+                {displayDomain}
               </span>
               <span className="rounded-md bg-brand/10 px-2.5 py-0.5 text-xs font-bold text-brand">
-                Senior Software Engineer
+                {displayRole}
               </span>
             </div>
             <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold text-ink tracking-tight break-words">
-              Mock Evaluation: URL Shortener Service
+              {displayTitle}
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted">
-              Conducted on September 27, 2026 • 43m 18s duration • Evaluator:
-              Sarah (AI Staff Infrastructure Engineer)
+              Conducted recently • Evaluator: {displayEvaluator}
             </p>
           </div>
 
@@ -253,14 +366,14 @@ export function MockSystemDesignEvaluationWorkspace() {
                     stroke="#ff5520"
                     strokeWidth="6"
                     strokeDasharray={213}
-                    strokeDashoffset={213 - (213 * 84) / 100}
+                    strokeDashoffset={213 - (213 * displayScore) / 100}
                     strokeLinecap="round"
                     fill="none"
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="font-display text-lg sm:text-2xl font-black text-ink">
-                    84
+                    {displayScore}
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-ink-muted uppercase font-bold">
                     / 100
@@ -272,14 +385,14 @@ export function MockSystemDesignEvaluationWorkspace() {
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span className="flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-extrabold text-[#10b981]">
                     <Check className="size-3 stroke-[3]" />
-                    Strong Hire
+                    {displayVerdict}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-ink-muted">
-                    Percentile: Top 12%
+                    Percentile: {displayPercentile}
                   </span>
                 </div>
                 <h2 className="font-display text-sm sm:text-base lg:text-lg font-bold text-ink leading-snug">
-                  Senior SWE Architectural Readiness
+                  {displayRole} Architectural Readiness
                 </h2>
               </div>
             </div>
@@ -294,11 +407,11 @@ export function MockSystemDesignEvaluationWorkspace() {
                   Readiness Impact
                 </span>
                 <div className="flex items-center gap-1 text-xs font-bold text-ink">
-                  <span className="text-ink-muted font-medium">68%</span>
+                  <span className="text-ink-muted font-medium">{displayPrior}%</span>
                   <span>→</span>
-                  <span className="text-[#10b981]">74%</span>
+                  <span className="text-[#10b981]">{displayNew}%</span>
                   <span className="text-[11px] font-semibold text-[#10b981]">
-                    (+6%)
+                    (+{displayDelta}%)
                   </span>
                 </div>
               </div>
@@ -312,13 +425,7 @@ export function MockSystemDesignEvaluationWorkspace() {
               <span>AI Evaluator Assessment</span>
             </div>
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              &quot;The candidate demonstrated strong system design maturity for
-              a Senior Software Engineer. Successfully structured the 45-minute
-              discussion, clarified essential SLAs before proposing components,
-              and designed a robust Redis caching layer for the 10:1 read-heavy
-              workload. Key opportunity for Staff-level performance is expanding
-              on distributed unique ID collision handling (e.g., Snowflake vs
-              Range Ticket Servers) and mitigating cache stampede risks.&quot;
+              &quot;{displayNotes}&quot;
             </p>
           </div>
         </div>
@@ -377,13 +484,13 @@ export function MockSystemDesignEvaluationWorkspace() {
             Evaluation Dimensions & Scoring Breakdown
           </h2>
           <p className="text-xs sm:text-sm text-ink-muted">
-            Detailed rubric scoring assessed across the 6 core interview
+            Detailed rubric scoring assessed across the core interview
             dimensions.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {evaluationCriteria.map((item) => {
+          {dynamicCriteria.map((item) => {
             const Icon = item.icon;
             return (
               <div

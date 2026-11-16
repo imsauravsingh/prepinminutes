@@ -1,20 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
 export function BriefingBottomBar() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isStarting, setIsStarting] = useState(false);
 
   const handleStartInterview = () => {
     if (isStarting) return;
     setIsStarting(true);
+    const queryString = searchParams.toString();
+    const targetUrl = queryString
+      ? `/mock-interview/interview-session?${queryString}`
+      : "/mock-interview/interview-session";
+
     setTimeout(() => {
-      router.push("/mock-interview/interview-session");
-    }, 450);
+      router.push(targetUrl);
+    }, 300);
   };
 
   return (

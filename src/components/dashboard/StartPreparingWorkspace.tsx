@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
+import { backendApi } from "@/lib/api-client";
 import {
   Briefcase,
   TrendingUp,
@@ -21,6 +23,8 @@ import {
   BarChart3,
   ChevronRight,
   Settings,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
 
 interface StartPreparingWorkspaceProps {
@@ -30,10 +34,58 @@ interface StartPreparingWorkspaceProps {
 export function StartPreparingWorkspace({
   onEditSetup,
 }: StartPreparingWorkspaceProps) {
-  // Circular progress calculation for 12%
+  const [profile, setProfile] = useState<Record<string, any> | null>(null);
+  const [activePlan, setActivePlan] = useState<Record<string, any> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    backendApi
+      .getProfile()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.profile) setProfile(res.profile);
+        if (res.activePlan) setActivePlan(res.activePlan);
+      })
+      .catch((err) => console.warn("Failed to load profile in dashboard:", err))
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleResetProfile = async () => {
+    setIsResetting(true);
+    try {
+      await backendApi.resetProfile();
+      setShowResetModal(false);
+      if (onEditSetup) {
+        onEditSetup();
+      } else {
+        window.location.href = "/dashboard?setup=true";
+      }
+    } catch (err) {
+      console.error("Failed to reset profile:", err);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const displayRole = profile?.targetRole || activePlan?.targetRole || "Senior Software Engineer";
+  const displayExperience = profile?.experienceLevel || "4-5 years";
+  const displayTimeline = profile?.timelineLabel || activePlan?.timelineLabel || "1 month";
+  const targetCompanies = profile?.targetCompanies || activePlan?.targetCompanies || [];
+  const displayCompany = Array.isArray(targetCompanies) && targetCompanies.length > 0 ? targetCompanies[0] : "Google";
+
+  // Circular progress calculation from live active plan readiness score
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
-  const progressPercent = 12;
+  const progressPercent = Math.min(100, Math.max(5, Math.round(activePlan?.readinessScore ?? 18)));
   const strokeDashoffset =
     circumference - (circumference * progressPercent) / 100;
 
@@ -74,7 +126,7 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Target Role</span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                Senior Software Engineer
+                {displayRole}
               </span>
             </div>
           </div>
@@ -87,7 +139,7 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Experience</span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                15+ years
+                {displayExperience}
               </span>
             </div>
           </div>
@@ -100,7 +152,7 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Timeline</span>
               <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                2 weeks
+                {displayTimeline}
               </span>
             </div>
           </div>
@@ -113,51 +165,44 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Target Company</span>
               <div className="flex items-center gap-1.5">
-                <svg className="size-4 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
                 <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                  Google
+                  {displayCompany}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Edit Button */}
-        {onEditSetup ? (
+        {/* Action Buttons: Edit & Reset Profile */}
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+          {onEditSetup ? (
+            <button
+              type="button"
+              onClick={onEditSetup}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream text-xs cursor-pointer"
+            >
+              <Pencil className="size-3 text-ink-muted" />
+              <span>Edit Details</span>
+            </button>
+          ) : (
+            <Link
+              href="/dashboard?setup=true"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream text-xs cursor-pointer"
+            >
+              <Pencil className="size-3 text-ink-muted" />
+              <span>Edit Details</span>
+            </Link>
+          )}
+
           <button
             type="button"
-            onClick={onEditSetup}
-            className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream shrink-0 text-xs"
+            onClick={() => setShowResetModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#ede6db] bg-[#fbf9f4] px-3.5 py-1.5 font-semibold text-ink shadow-2xs hover:bg-[#fff0ec] hover:text-brand hover:border-brand/40 text-xs transition-colors cursor-pointer"
           >
-            <Pencil className="size-3 text-ink-muted" />
-            <span>Edit Details</span>
+            <RotateCcw className="size-3 text-ink-muted" />
+            <span>Reset Profile</span>
           </button>
-        ) : (
-          <Link
-            href="/dashboard?setup=true"
-            className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream shrink-0 text-xs"
-          >
-            <Pencil className="size-3 text-ink-muted" />
-            <span>Edit Details</span>
-          </Link>
-        )}
+        </div>
       </div>
 
       {/* 3. Middle Two-Column Grid: Today's Preparation (Left) + Your Progress (Right) */}
@@ -214,7 +259,7 @@ export function StartPreparingWorkspace({
                   10 min
                 </span>
                 <Link
-                  href="/practice/session/system-design"
+                  href="/practice/session/system-design?topic=Load%20Balancing%20Strategies"
                   className="rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#fa552b] transition-colors"
                 >
                   Start →
@@ -243,7 +288,7 @@ export function StartPreparingWorkspace({
                   10 min
                 </span>
                 <Link
-                  href="/practice/session/coding"
+                  href="/practice/session/coding?topic=two-pointers"
                   className="rounded-full border border-line bg-white px-4 py-1.5 text-xs font-semibold text-ink shadow-xs hover:bg-cream transition-colors"
                 >
                   Start →
@@ -337,7 +382,7 @@ export function StartPreparingWorkspace({
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="font-display text-xl font-extrabold text-ink">
-                  12%
+                  {progressPercent}%
                 </span>
               </div>
             </div>
@@ -723,6 +768,51 @@ export function StartPreparingWorkspace({
           Continue to My Preparation Plan →
         </Link>
       </div>
+
+      {/* Reset Profile Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in">
+          <div className="flex w-full max-w-md flex-col rounded-2xl border border-[#ede6db] bg-white p-6 shadow-xl gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                <RotateCcw className="size-5" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="font-display font-bold text-base text-ink">
+                  Reset Profile & Re-evaluate?
+                </h3>
+                <span className="text-xs text-ink-muted">
+                  Clear current plan and re-evaluate
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs text-ink-muted leading-relaxed">
+              Are you sure you want to reset your candidate profile? Your current active preparation plan will be archived, and you can reconfigure your target role, experience level, or fresher forte from the start.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                disabled={isResetting}
+                className="rounded-full border border-[#ede6db] px-4 py-2 text-xs font-semibold text-ink hover:bg-[#faf6f0] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetProfile}
+                disabled={isResetting}
+                className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+              >
+                {isResetting && <Loader2 className="size-3.5 animate-spin" />}
+                <span>Yes, Reset Profile</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

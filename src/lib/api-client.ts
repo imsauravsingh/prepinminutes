@@ -220,6 +220,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 export interface CandidateProfilePayload {
   targetRole: string;
   experienceLevel: string;
+  fresherForte?: string | null;
   targetCompanies?: string[];
   timelineWeeks?: number;
   timelineLabel?: string;
@@ -614,6 +615,60 @@ export const backendApi = {
   },
 
   /**
+   * POST /api/onboarding/profile/reset
+   * Resets the candidate profile and archives active draft preparation plan.
+   */
+  async resetProfile(options: RequestOptions = {}) {
+    const res = await fetch(`${API_BASE_URL}/api/onboarding/profile/reset`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      message: string;
+    }>(res);
+  },
+
+  /**
+   * GET /api/platform/config
+   * Fetches public platform configuration and admin flags.
+   */
+  async getPlatformConfig(options: RequestOptions = {}) {
+    const res = await fetch(`${API_BASE_URL}/api/platform/config`, {
+      method: "GET",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      config: Record<string, any>;
+      enableNextStepFlow: boolean;
+    }>(res);
+  },
+
+  /**
+   * POST /api/admin/settings
+   * Updates platform setting toggles (e.g. enableNextStepFlow).
+   */
+  async updatePlatformConfig(
+    payload: { enableNextStepFlow?: boolean; [key: string]: any },
+    options: RequestOptions = {},
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      enableNextStepFlow?: boolean;
+      message?: string;
+    }>(res);
+  },
+
+  /**
    * POST /api/onboarding/resume
    */
   async uploadResume(file: File, options: RequestOptions = {}) {
@@ -638,7 +693,7 @@ export const backendApi = {
   /**
    * POST /api/plan/generate
    */
-  async generatePreparationPlan(options: RequestOptions) {
+  async generatePreparationPlan(options: RequestOptions = {}) {
     const res = await fetch(`${API_BASE_URL}/api/plan/generate`, {
       method: "POST",
       headers: buildHeaders(options),
@@ -648,6 +703,10 @@ export const backendApi = {
       success: boolean;
       plan: Record<string, unknown>;
     }>(res);
+  },
+
+  async generatePlan(options: RequestOptions = {}) {
+    return this.generatePreparationPlan(options);
   },
 
   /**

@@ -356,60 +356,7 @@ export function CloudWorkspace() {
 
               {/* Chat History Bubbles */}
               <div className="flex flex-col gap-4">
-                {/* Message 1: Initial AI prompt */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff] text-[#2563eb]">
-                    <Cloud className="size-4" />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-4 text-sm leading-relaxed text-ink">
-                    <p className="font-medium">
-                      Design a resilient, multi-region cloud infrastructure for an e-commerce platform handling 50,000 requests per second with 99.99% SLA. How would you design the VPC topology, traffic routing, and deployment strategy?
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      Before you start, feel free to ask any clarifying questions regarding regions, compliance, or failover semantics.
-                    </p>
-                    <div className="flex items-center gap-1.5 pt-1 text-xs font-medium text-[#2563eb]">
-                      <Info className="size-3.5 shrink-0" />
-                      <span>
-                        Clarifying RPO/RTO and data residency constraints is critical in cloud interviews
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message 2: Candidate clarification */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0ec] text-brand">
-                    <User className="size-4" />
-                  </div>
-                  <div className="flex flex-1 rounded-2xl bg-[#f5f3ff] p-4 text-sm leading-relaxed text-ink">
-                    <p>
-                      Sure, I&apos;d like to clarify a few key requirements: Are we operating active-active across regions or active-passive with warm standby? Also, what are our cross-region data replication latency bounds and compliance constraints?
-                    </p>
-                  </div>
-                </div>
-
-                {/* Message 3: AI response & guidance */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff] text-[#2563eb]">
-                    <Cloud className="size-4" />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-4 text-sm leading-relaxed text-ink">
-                    <p className="font-bold">Great questions. Here are the operating parameters:</p>
-                    <ol className="flex flex-col gap-1 text-ink/90 text-xs sm:text-sm">
-                      <li>1. Setup: Active-Active across us-east-1 and eu-central-1 with Route 53 latency-based routing.</li>
-                      <li>2. RPO target: &lt; 1 second for orders; RTO &lt; 1 minute automatic failover.</li>
-                      <li>3. Compliance: GDPR requires EU user data to remain strictly in the EU region.</li>
-                      <li>4. Services: Containerized microservices running on managed Kubernetes (EKS).</li>
-                    </ol>
-                    <p className="pt-1 text-xs text-ink-muted">
-                      You can now walk me through your VPC topology and data layer design.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Extra user sent messages if typed */}
-                {messages.slice(3).map((msg, i) => (
+                {messages.map((msg, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div
                       className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -425,11 +372,28 @@ export function CloudWorkspace() {
                       )}
                     </div>
                     <div
-                      className={`flex flex-1 rounded-2xl p-4 text-sm leading-relaxed text-ink ${
+                      className={`flex flex-1 flex-col gap-2 rounded-2xl p-4 text-sm leading-relaxed text-ink ${
                         msg.sender === "user" ? "bg-[#f5f3ff]" : "bg-[#faf6f0]"
                       }`}
                     >
-                      <p>{msg.content}</p>
+                      <p className="font-medium whitespace-pre-wrap">{msg.content}</p>
+                      {msg.details && msg.details.length > 0 && (
+                        <div className="flex flex-col gap-1.5 pt-1 text-xs text-ink-muted">
+                          {msg.details.map((detail, dIdx) => (
+                            <p key={dIdx} className="leading-relaxed">
+                              {detail}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      {msg.sender === "ai" && i === 0 && (
+                        <div className="flex items-center gap-1.5 pt-1 text-xs font-medium text-[#2563eb]">
+                          <Info className="size-3.5 shrink-0" />
+                          <span>
+                            Clarifying RPO/RTO and infrastructure constraints helps you in real interviews
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

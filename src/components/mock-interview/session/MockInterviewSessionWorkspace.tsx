@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Settings,
   Cpu,
@@ -21,8 +22,10 @@ import {
   Send,
   Radio,
   Zap,
+  Loader2,
 } from "lucide-react";
 import { WhiteboardModal } from "@/components/practice/WhiteboardModal";
+import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
 import { backendApi } from "@/lib/api-client";
 
 // Heights for the 24 waveform bars
@@ -34,9 +37,22 @@ const WAVEFORM_HEIGHTS = [
 const TOTAL_SESSION_SECONDS = 45 * 60; // 45 minutes
 
 export function MockInterviewSessionWorkspace() {
-  // Timer: starts at 02:34 (154 seconds) and counts up towards 45:00
-  const [secondsElapsed, setSecondsElapsed] = useState(154);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const interviewType = searchParams.get("type") || "system-design";
+  const targetRole = searchParams.get("role") || "Senior Software Engineer";
+  const difficulty = searchParams.get("difficulty") || "standard";
+  const topicQuery = searchParams.get("topic") || searchParams.get("focus") || "Load Balancing Strategies";
+
+  const { topic, activeQuestion } = useCurriculumTopic({
+    defaultTopicSlug: topicQuery,
+  });
+
+  // Timer: starts at 00:00 and counts up
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Voice Turn & Barge-In Interruption State
   const [turnState, setTurnState] = useState<
@@ -77,41 +93,39 @@ export function MockInterviewSessionWorkspace() {
   >(null);
   const [notesContent, setNotesContent] = useState("");
   const [codeContent, setCodeContent] = useState(
-    "// Outline key services and endpoints\nPOST /api/v1/shorten\nGET /:shortUrl -> 301 Redirect\n",
+    "// Outline key services and architectural interfaces\nPOST /api/v1/resource\nGET /api/v1/resource/:id\n",
   );
 
   // End Session modal state
   const [showEndModal, setShowEndModal] = useState(false);
 
-  // Messages list to support sending a new user message
+  // Messages list initialized dynamically
   const [messages, setMessages] = useState<
     { sender: "ai" | "user"; content: string; details?: string[] }[]
-  >([
-    {
-      sender: "ai",
-      content:
-        "Welcome to your System Design Mock Interview for the Senior Software Engineer role. Today we'll design a URL shortener system capable of handling 100 million URLs and 200 million redirects per day. How would you approach designing it?",
-      details: [
-        "Before jumping into architecture, feel free to ask any clarifying questions about scale, requirements, or constraints.",
-      ],
-    },
-    {
-      sender: "user",
-      content:
-        "Thank you. Before proposing the architecture, I have a few clarifying questions: What is the expected short URL length, do we support custom aliases, and what are the read/write latency and durability requirements?",
-    },
-    {
-      sender: "ai",
-      content: "Great questions. Here are the system requirements:",
-      details: [
-        "1. Short URLs should be 7 characters long using Base62 encoding.",
-        "2. Custom vanity aliases (e.g. /my-promo) should be supported.",
-        "3. Read latency must be under 15ms globally with 99.99% availability.",
-        "4. URLs should expire after 2 years by default unless marked persistent.",
-        "You can now walk me through your high-level architecture and data model.",
-      ],
-    },
-  ]);
+  >([]);
+
+  useEffect(() => {
+    if (activeQuestion && topic) {
+      setMessages([
+        {
+          sender: "ai",
+          content: `Welcome to your ${topic.title} Mock Interview for the ${targetRole} position. ${activeQuestion.prompt}`,
+          details:
+            activeQuestion.hints && activeQuestion.hints.length > 0
+              ? [
+                  "Scoping & Clarification Guidelines:",
+                  ...activeQuestion.hints.map((h, i) => `${i + 1}. ${h}`),
+                ]
+              : [
+                  "Before jumping into your design, feel free to ask any clarifying questions about scale, requirements, or constraints.",
+                ],
+        },
+      ]);
+      setCodeContent(
+        `// Architectural interfaces for ${topic.title}\n// Candidate Target: ${targetRole} | Difficulty: ${difficulty}\n\nPOST /api/v1/resource\nGET /api/v1/resource/:id\n`
+      );
+    }
+  }, [activeQuestion, topic, targetRole, difficulty]);
 
   // Elapsed timer tick
   useEffect(() => {
@@ -134,6 +148,40 @@ export function MockInterviewSessionWorkspace() {
 
   const handleStopSession = () => {
     setShowEndModal(true);
+  };
+
+  const handleEndNowAndEvaluate = async () => {
+    setIsSubmitting(true);
+    try {
+      const transcriptText = messages
+        .map((m) => `${m.sender.toUpperCase()}: ${m.content}`)
+        .join("\n\n");
+      const res = await backendApi.submitPracticeSession({
+        domain: interviewType,
+        topicSlug: topic?.slug || topicQuery || "system-design",
+        candidateNotes: transcriptText,
+        durationSeconds: secondsElapsed,
+        transcriptHistory: messages.map((m) => ({
+          sender: m.sender,
+          content: m.content,
+        })),
+      });
+      if (res.success && res.reportId) {
+        router.push(
+          `/mock-interview/system-design/evaluation?id=${res.reportId}&topic=${encodeURIComponent(
+            topic?.title || topicQuery || ""
+          )}`
+        );
+        return;
+      }
+    } catch (err) {
+      console.warn("Failed to submit mock session to backend:", err);
+    }
+    router.push(
+      `/mock-interview/system-design/evaluation?topic=${encodeURIComponent(
+        topic?.title || topicQuery || ""
+      )}&role=${encodeURIComponent(targetRole)}`
+    );
   };
 
   const handleSendText = (e: React.FormEvent) => {
@@ -397,7 +445,7 @@ export function MockInterviewSessionWorkspace() {
                       </span>
                     </div>
                     <span className="text-[11px] sm:text-xs text-ink-muted truncate">
-                      Senior SWE · System Design
+                      {targetRole} · {topic?.title || topicQuery || "System Design"}
                     </span>
                   </div>
                 </div>
@@ -414,74 +462,7 @@ export function MockInterviewSessionWorkspace() {
 
               {/* Chat History Bubbles */}
               <div className="flex flex-col gap-3.5 sm:gap-4">
-                {/* Message 1: Initial AI prompt */}
-                <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
-                    <Cpu className="size-4" />
-                  </div>
-                  <div className="flex flex-1 min-w-0 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
-                    <p className="font-medium">
-                      Design a URL shortener system that can handle 100 million
-                      URLs and 200 million redirects per day. How would you
-                      design it?
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      Before you start, feel free to ask any clarifying
-                      questions.
-                    </p>
-                    <div className="flex items-center gap-1.5 pt-1 text-xs font-medium text-[#7c3aed]">
-                      <Info className="size-3.5 shrink-0" />
-                      <span>
-                        Clarifying questions help you in real interviews
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message 2: Candidate clarification */}
-                <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0ec] text-brand">
-                    <User className="size-4" />
-                  </div>
-                  <div className="flex flex-1 min-w-0 rounded-2xl bg-[#f5f3ff] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
-                    <p>
-                      Sure. I have a few clarifying questions. What should be
-                      the expected URL length, do we need custom aliases, and
-                      are there any geo or analytics requirements?
-                    </p>
-                  </div>
-                </div>
-
-                {/* Message 3: AI response & guidance */}
-                <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
-                    <Cpu className="size-4" />
-                  </div>
-                  <div className="flex flex-1 min-w-0 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words">
-                    <p className="font-bold">Good questions. Let me clarify:</p>
-                    <ol className="flex flex-col gap-1 text-ink/90 text-xs sm:text-sm">
-                      <li>
-                        1. The short URL can be 6–8 characters long using
-                        Base62.
-                      </li>
-                      <li>2. Support custom vanity aliases such as /myblog.</li>
-                      <li>
-                        3. Basic analytics like total clicks and unique clicks
-                        are required.
-                      </li>
-                      <li>
-                        4. Assume a global user base with low latency
-                        requirements.
-                      </li>
-                    </ol>
-                    <p className="pt-1 text-xs text-ink-muted">
-                      You can now walk me through your high-level approach.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Extra user sent messages if typed */}
-                {messages.slice(3).map((msg, i) => (
+                {messages.map((msg, i) => (
                   <div key={i} className="flex items-start gap-2.5 sm:gap-3">
                     <div
                       className={`flex size-7 sm:size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -497,11 +478,20 @@ export function MockInterviewSessionWorkspace() {
                       )}
                     </div>
                     <div
-                      className={`flex flex-1 min-w-0 rounded-2xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words ${
+                      className={`flex flex-1 min-w-0 flex-col gap-2 rounded-2xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-ink break-words ${
                         msg.sender === "user" ? "bg-[#f5f3ff]" : "bg-[#faf6f0]"
                       }`}
                     >
-                      <p>{msg.content}</p>
+                      <p className="font-medium whitespace-pre-wrap">{msg.content}</p>
+                      {msg.details && msg.details.length > 0 && (
+                        <div className="flex flex-col gap-1 text-ink/90 pt-1 text-xs">
+                          {msg.details.map((detail, di) => (
+                            <div key={di} className="leading-snug">
+                              {detail}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -730,12 +720,15 @@ export function MockInterviewSessionWorkspace() {
               >
                 Continue Interview
               </button>
-              <Link
-                href="/mock-interview/system-design/evaluation"
-                className="w-full sm:w-auto rounded-full bg-red-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-600 cursor-pointer text-center"
+              <button
+                type="button"
+                onClick={handleEndNowAndEvaluate}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-red-500 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50 cursor-pointer text-center"
               >
-                End Now & View Report
-              </Link>
+                {isSubmitting && <Loader2 className="size-3.5 animate-spin" />}
+                <span>End Now & View Report</span>
+              </button>
             </div>
           </div>
         </div>

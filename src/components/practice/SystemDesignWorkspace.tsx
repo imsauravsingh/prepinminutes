@@ -549,71 +549,7 @@ export function SystemDesignWorkspace() {
 
               {/* Chat History Bubbles */}
               <div className="flex flex-col gap-4">
-                {/* Message 1: Initial AI prompt */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
-                    <Cpu className="size-4" />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-4 text-sm leading-relaxed text-ink">
-                    <p className="font-medium">
-                      Design a URL shortener system that can handle 100 million
-                      URLs and 200 million redirects per day. How would you
-                      design it?
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      Before you start, feel free to ask any clarifying
-                      questions.
-                    </p>
-                    <div className="flex items-center gap-1.5 pt-1 text-xs font-medium text-[#7c3aed]">
-                      <Info className="size-3.5 shrink-0" />
-                      <span>
-                        Clarifying questions help you in real interviews
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Message 2: Candidate clarification */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#fff0ec] text-brand">
-                    <User className="size-4" />
-                  </div>
-                  <div className="flex flex-1 rounded-2xl bg-[#f5f3ff] p-4 text-sm leading-relaxed text-ink">
-                    <p>
-                      Sure. I have a few clarifying questions. What should be
-                      the expected URL length, do we need custom aliases, and
-                      are there any geo or analytics requirements?
-                    </p>
-                  </div>
-                </div>
-
-                {/* Message 3: AI response & guidance */}
-                <div className="flex items-start gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
-                    <Cpu className="size-4" />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-[#faf6f0] p-4 text-sm leading-relaxed text-ink">
-                    <p className="font-bold">Good questions. Let me clarify:</p>
-                    <ol className="flex flex-col gap-1 text-ink/90 text-xs sm:text-sm">
-                      <li>1. The short URL can be 6–8 characters long.</li>
-                      <li>2. Support custom aliases such as /myblog.</li>
-                      <li>
-                        3. Basic analytics like total clicks and unique clicks
-                        are required.
-                      </li>
-                      <li>
-                        4. Assume a global user base with low latency
-                        requirements.
-                      </li>
-                    </ol>
-                    <p className="pt-1 text-xs text-ink-muted">
-                      You can now walk me through your approach.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Extra user sent messages if typed */}
-                {messages.slice(3).map((msg, i) => (
+                {messages.map((msg, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div
                       className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -629,14 +565,43 @@ export function SystemDesignWorkspace() {
                       )}
                     </div>
                     <div
-                      className={`flex flex-1 rounded-2xl p-4 text-sm leading-relaxed text-ink ${
+                      className={`flex flex-1 flex-col gap-2 rounded-2xl p-4 text-sm leading-relaxed text-ink ${
                         msg.sender === "user" ? "bg-[#f5f3ff]" : "bg-[#faf6f0]"
                       }`}
                     >
-                      <p>{msg.content}</p>
+                      <p className="font-medium whitespace-pre-wrap">{msg.content}</p>
+                      {msg.details && msg.details.length > 0 && (
+                        <div className="flex flex-col gap-1.5 pt-1 text-xs text-ink-muted">
+                          {msg.details.map((detail, dIdx) => (
+                            <p key={dIdx} className="leading-relaxed">
+                              {detail}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      {msg.sender === "ai" && i === 0 && (
+                        <div className="flex items-center gap-1.5 pt-1 text-xs font-medium text-[#7c3aed]">
+                          <Info className="size-3.5 shrink-0" />
+                          <span>
+                            Clarifying questions help you in real interviews
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
+
+                {isAiThinking && (
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
+                      <Cpu className="size-4" />
+                    </div>
+                    <div className="flex items-center gap-2 rounded-2xl bg-[#faf6f0] p-4 text-xs font-medium text-ink-muted">
+                      <Loader2 className="size-3.5 animate-spin text-[#7c3aed]" />
+                      <span>Sarah is formulating follow-up probes...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

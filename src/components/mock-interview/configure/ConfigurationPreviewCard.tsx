@@ -92,9 +92,16 @@ export function ConfigurationPreviewCard({
   const handleContinue = () => {
     if (isContinuing) return;
     setIsContinuing(true);
+    const query = new URLSearchParams({
+      type: config.interviewType,
+      role: config.targetRole,
+      difficulty: config.difficulty,
+      duration: config.durationMinutes.toString(),
+      focus: config.focusAreas.join(","),
+    }).toString();
     setTimeout(() => {
-      router.push("/mock-interview/briefing");
-    }, 450);
+      router.push(`/mock-interview/briefing?${query}`);
+    }, 300);
   };
 
   return (

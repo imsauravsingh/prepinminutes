@@ -39,19 +39,26 @@ export default function AdminDashboardPage() {
     pendingTeamRequests: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [enableNextStepFlow, setEnableNextStepFlow] = useState(true);
+  const [updatingFlag, setUpdatingFlag] = useState(false);
+  const [flagSuccessMsg, setFlagSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [meRes, overviewRes] = await Promise.all([
+        const [meRes, overviewRes, configRes] = await Promise.all([
           backendApi.getAdminMe(),
           backendApi.getNeo4jOverview().catch(() => null),
+          backendApi.getPlatformConfig().catch(() => null),
         ]);
         if (meRes.success && meRes.user) {
           setAdmin(meRes.user);
         }
         if (overviewRes?.success && overviewRes.stats) {
           setStats(overviewRes.stats);
+        }
+        if (configRes && typeof configRes.enableNextStepFlow === "boolean") {
+          setEnableNextStepFlow(configRes.enableNextStepFlow);
         }
       } catch (err) {
         console.error("Failed to load admin profile or overview:", err);
@@ -61,6 +68,24 @@ export default function AdminDashboardPage() {
     }
     loadData();
   }, []);
+
+  const handleToggleNextStepFlow = async (enabled: boolean) => {
+    setUpdatingFlag(true);
+    try {
+      await backendApi.updatePlatformConfig({ enableNextStepFlow: enabled });
+      setEnableNextStepFlow(enabled);
+      setFlagSuccessMsg(
+        enabled
+          ? "Next Step assessment flow enabled."
+          : "Next Step flow disabled. Candidates will now directly create preparation plans."
+      );
+      setTimeout(() => setFlagSuccessMsg(null), 3500);
+    } catch (err) {
+      console.error("Failed to update platform flag:", err);
+    } finally {
+      setUpdatingFlag(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -167,6 +192,75 @@ export default function AdminDashboardPage() {
             <span className="size-1.5 rounded-full bg-amber-400" />
             <span>Candidate Isolation 100%</span>
           </div>
+        </div>
+      </div>
+
+      {/* Platform Workflow Flags & Admin Controls */}
+      <div className="p-6 rounded-2xl bg-[#161b22] border border-[#30363d] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+              <Sparkles className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <span>Candidate Onboarding & Plan Workflow Flags</span>
+                <span className="px-2 py-0.5 rounded text-[10px] uppercase font-mono font-bold bg-[#21262d] text-emerald-400 border border-[#30363d]">
+                  Live System Setting
+                </span>
+              </h2>
+              <p className="text-xs text-[#8b949e] mt-0.5">
+                Controls whether candidates must complete the Step 2 assessment quiz or immediately generate and view their preparation plan.
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle Button */}
+          <div className="flex items-center space-x-3 self-start sm:self-auto">
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                enableNextStepFlow
+                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+              }`}
+            >
+              {enableNextStepFlow ? "Next Step Enabled" : "Direct Plan Generation"}
+            </span>
+
+            <button
+              type="button"
+              disabled={updatingFlag}
+              onClick={() => handleToggleNextStepFlow(!enableNextStepFlow)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                enableNextStepFlow ? "bg-emerald-600" : "bg-[#30363d]"
+              }`}
+              role="switch"
+              aria-checked={enableNextStepFlow}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  enableNextStepFlow ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {flagSuccessMsg && (
+          <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center space-x-2">
+            <CheckCircle className="size-4 shrink-0 text-emerald-400" />
+            <span>{flagSuccessMsg}</span>
+          </div>
+        )}
+
+        <div className="text-xs text-[#8b949e] pt-1 border-t border-[#21262d] flex items-center justify-between">
+          <span>
+            {enableNextStepFlow
+              ? "Candidates on Step 1 will see 'Next Step: Assessment' leading to quiz & questions."
+              : "Candidates on Step 1 will see 'Create My Preparation Plan' and jump directly to Step 3."}
+          </span>
+          <span className="font-mono text-[11px] text-[#484f58]">KEY: enable_next_step_flow</span>
         </div>
       </div>
 

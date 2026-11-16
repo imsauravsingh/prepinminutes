@@ -1,33 +1,47 @@
 import { BookOpen, Clock, Calendar, Zap } from "lucide-react";
 
-export function PreparationProgress() {
+interface PreparationProgressProps {
+  completedTopics?: number;
+  totalTopics?: number;
+  remainingDays?: number;
+  estimatedHours?: number;
+}
+
+export function PreparationProgress({
+  completedTopics = 4,
+  totalTopics = 24,
+  remainingDays = 14,
+  estimatedHours = 28,
+}: PreparationProgressProps) {
+  const remainingTopics = Math.max(0, totalTopics - completedTopics);
+
   const metrics = [
     {
       icon: BookOpen,
       iconBg: "bg-[#ecfdf5]",
       iconColor: "text-[#10b981]",
-      value: "3 / 24",
+      value: `${completedTopics} / ${totalTopics}`,
       label: "Topics completed",
     },
     {
       icon: Clock,
       iconBg: "bg-[#eff6ff]",
       iconColor: "text-[#3b82f6]",
-      value: "21",
+      value: `${remainingTopics}`,
       label: "Topics remaining",
     },
     {
       icon: Calendar,
       iconBg: "bg-[#f5f3ff]",
       iconColor: "text-[#8b5cf6]",
-      value: "12 days",
-      label: "Until your interview",
+      value: `${remainingDays} days`,
+      label: "Until your target milestone",
     },
     {
       icon: Zap,
       iconBg: "bg-[#fffbeb]",
       iconColor: "text-[#f59e0b]",
-      value: "28 hrs",
+      value: `${estimatedHours} hrs`,
       label: "Estimated preparation time",
     },
   ];
