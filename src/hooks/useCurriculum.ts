@@ -122,14 +122,14 @@ export function useCurriculumDomains() {
       setError(null);
     } catch (err: any) {
       // If we have cached data, don't break the user experience
-      if (!data) {
+      if (!cached?.data) {
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     } finally {
       setIsLoading(false);
       setIsValidating(false);
     }
-  }, [data]);
+  }, []);
 
   useEffect(() => {
     fetchDomains();
@@ -198,14 +198,14 @@ export function useCurriculumHierarchy(domainSlug: string) {
       }
       setError(null);
     } catch (err: any) {
-      if (!data) {
+      if (!cached?.data) {
         setError(err instanceof Error ? err : new Error(String(err)));
       }
     } finally {
       setIsLoading(false);
       setIsValidating(false);
     }
-  }, [domainSlug, cacheKey, data]);
+  }, [domainSlug, cacheKey]);
 
   useEffect(() => {
     // When domainSlug changes, load cached snapshot immediately
