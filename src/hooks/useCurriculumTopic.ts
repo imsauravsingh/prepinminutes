@@ -183,16 +183,13 @@ export function useCurriculumTopic(options?: UseCurriculumTopicOptions) {
         setTopicData(fallback);
       }
     } catch (err: any) {
-      if (!topicData) {
-        const fallback = generateDefaultTopicData(activeTopicSlug);
-        setTopicData(fallback);
-      }
+      setTopicData((prev) => prev || generateDefaultTopicData(activeTopicSlug));
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
       setIsLoading(false);
       setIsValidating(false);
     }
-  }, [activeTopicSlug, cacheKey, topicData]);
+  }, [activeTopicSlug, cacheKey]);
 
   useEffect(() => {
     // When topic slug changes, check cache first
