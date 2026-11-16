@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,10 +8,6 @@ import {
   Cpu,
   User,
   Info,
-  Pause,
-  Play,
-  Square,
-  Mic,
   LayoutGrid,
   Network,
   FileCode,
@@ -19,22 +15,16 @@ import {
   Lightbulb,
   CheckCircle2,
   X,
-  Send,
   BookOpen,
   Target,
   Loader2,
-  Zap,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
 import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
 import { PracticeQuestionSelector } from "./PracticeQuestionSelector";
 import { backendApi } from "@/lib/api-client";
-
-// Heights for the 24 waveform bars matching Figma node 190:4
-const WAVEFORM_HEIGHTS = [
-  12, 18, 24, 16, 10, 8, 14, 20, 26, 15, 9, 13, 22, 17, 11, 25, 20, 14, 8, 12,
-  18, 24, 10, 6,
-];
+import { useAiVoiceInterviewer } from "@/hooks/useAiVoiceInterviewer";
+import { AiVoiceInterviewerDock } from "@/components/voice/AiVoiceInterviewerDock";
 
 export function SystemDesignWorkspace() {
   // Curriculum Topic & Dynamic Question Loader
@@ -52,13 +42,17 @@ export function SystemDesignWorkspace() {
     isLoading,
   } = useCurriculumTopic({ defaultTopicSlug: "distributed-caching" });
 
+  // Reusable Autonomous AI Voice Interviewer hook
+  const voice = useAiVoiceInterviewer({
+    topicSlug: topic?.slug || "distributed-caching",
+    questionId: activeQuestion?.id,
+    initialPrompt: activeQuestion?.prompt,
+    initialHints: activeQuestion?.hints,
+    candidateRole: "Senior Software Engineer",
+  });
+
   // Timer: starts at 00:00 and counts up towards 30:00
   const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Text input mode toggle
-  const [isTextInput, setIsTextInput] = useState(false);
-  const [textMessage, setTextMessage] = useState("");
 
   // Whiteboard full-screen canvas view state matching node 196:219
   const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
@@ -75,59 +69,6 @@ export function SystemDesignWorkspace() {
   // Settings / End Session modal state
   const [showEndModal, setShowEndModal] = useState(false);
 
-  // Messages list to support sending a new user message
-  const [messages, setMessages] = useState<
-    { sender: "ai" | "user"; content: string; details?: string[] }[]
-  >([]);
-  const [isAiThinking, setIsAiThinking] = useState(false);
-  const [coveredAtoms, setCoveredAtoms] = useState<string[]>([]);
-
-  // Voice Turn & Barge-In State
-  const [turnState, setTurnState] = useState<
-    "IDLE" | "AI_SPEAKING" | "CANDIDATE_SPEAKING" | "PROCESSING"
-  >("IDLE");
-  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  const handleBargeIn = useCallback(async () => {
-    if (activeAudioRef.current) {
-      activeAudioRef.current.pause();
-      activeAudioRef.current.currentTime = 0;
-      activeAudioRef.current = null;
-    }
-    setTurnState("CANDIDATE_SPEAKING");
-
-    try {
-      await backendApi.interruptVoiceSession({
-        source: "system_design_barge_in",
-        timestampMs: Date.now(),
-      });
-    } catch (err) {
-      console.warn("Barge-in signal dispatch failed:", err);
-    }
-  }, []);
-
-  // Update AI Interviewer initial prompt when active question changes
-  useEffect(() => {
-    if (activeQuestion) {
-      setCoveredAtoms([]);
-      setMessages([
-        {
-          sender: "ai",
-          content: activeQuestion.prompt,
-          details:
-            activeQuestion.hints && activeQuestion.hints.length > 0
-              ? [
-                  "Scoping & Clarification Guidelines:",
-                  ...activeQuestion.hints.map((h, i) => `${i + 1}. ${h}`),
-                ]
-              : [
-                  "Before you start, feel free to ask any clarifying questions or state your scale assumptions.",
-                ],
-        },
-      ]);
-    }
-  }, [activeQuestion]);
-
   // Update initial code template when topic changes
   useEffect(() => {
     if (topic) {
@@ -137,14 +78,14 @@ export function SystemDesignWorkspace() {
     }
   }, [topic, domain, category]);
 
-  // Elapsed timer tick
+  // Elapsed timer tick (pauses when voice is paused)
   useEffect(() => {
-    if (isPaused) return;
+    if (voice.isPaused) return;
     const interval = setInterval(() => {
       setSecondsElapsed((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [voice.isPaused]);
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -156,7 +97,7 @@ export function SystemDesignWorkspace() {
   const router = useRouter();
 
   const handleTogglePause = () => {
-    setIsPaused((prev) => !prev);
+    voice.togglePause();
   };
 
   const handleStopSession = () => {
@@ -166,6 +107,7 @@ export function SystemDesignWorkspace() {
   const handleEndSession = async () => {
     try {
       setIsEndingSession(true);
+      voice.stopAndReleaseAudio();
       const idempotencyKey = `sd_${topic?.slug || "design"}_${activeQuestion?.id || "q1"}_${Date.now()}`;
 
       // Retrieve persisted whiteboard state if present
@@ -189,11 +131,11 @@ export function SystemDesignWorkspace() {
           codeSubmission: codeContent || undefined,
           candidateNotes: notesContent || undefined,
           whiteboardData,
-          transcriptHistory: messages.map((m) => ({
+          transcriptHistory: voice.messages.map((m) => ({
             sender: m.sender,
             content: m.content,
           })),
-          coveredRubricAtoms: coveredAtoms,
+          coveredRubricAtoms: voice.coveredRubricAtoms,
           durationSeconds: secondsElapsed,
         },
         { idempotencyKey }
@@ -212,223 +154,27 @@ export function SystemDesignWorkspace() {
     }
   };
 
-  const handleSendText = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const candidateInput = textMessage.trim();
-    if (!candidateInput || isAiThinking) return;
-
-    const newMessages = [
-      ...messages,
-      { sender: "user" as const, content: candidateInput },
-    ];
-    setMessages(newMessages);
-    setTextMessage("");
-    setIsAiThinking(true);
-
-    try {
-      const turnResult = await backendApi.submitPracticeSessionTurn({
-        topicSlug: topic?.slug || "distributed-caching",
-        questionId: activeQuestion?.id,
-        candidateMessage: candidateInput,
-        transcriptHistory: newMessages.map((m) => ({
-          sender: m.sender,
-          content: m.content,
-        })),
-        candidateTargetLevel: "L3",
-      });
-
-      if (turnResult?.replyText) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "ai",
-            content: turnResult.replyText,
-            details: turnResult.nextSuggestedProbe
-              ? [`Follow-up focus: ${turnResult.nextSuggestedProbe}`]
-              : undefined,
-          },
-        ]);
-        if (
-          turnResult.coveredRubricAtoms &&
-          turnResult.coveredRubricAtoms.length > 0
-        ) {
-          setCoveredAtoms((prev) =>
-            Array.from(new Set([...prev, ...turnResult.coveredRubricAtoms]))
-          );
-        }
-      }
-    } catch (err) {
-      console.error("AiInterviewAgent turn error:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          content:
-            "That's a sound architectural approach. How does your design handle failover and data consistency if the primary node goes offline?",
-        },
-      ]);
-    } finally {
-      setIsAiThinking(false);
-    }
-  };
-
   const renderAudioDock = () => (
-    <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-[#7c3aed] bg-[#f5f3ff] p-5 shadow-sm text-center">
-      {/* Listening / Speaking / Paused status label */}
-      <div className="flex items-center gap-2">
-        <span
-          className={`text-xs font-bold uppercase tracking-wider ${
-            isPaused
-              ? "text-ink-muted"
-              : turnState === "AI_SPEAKING"
-                ? "text-emerald-600 animate-pulse"
-                : turnState === "CANDIDATE_SPEAKING"
-                  ? "text-brand"
-                  : "text-[#7c3aed]"
-          }`}
-        >
-          {isPaused
-            ? "Paused"
-            : turnState === "AI_SPEAKING"
-              ? "Sarah Speaking • Click Mic to Interrupt"
-              : turnState === "CANDIDATE_SPEAKING"
-                ? "Listening to you..."
-                : turnState === "PROCESSING"
-                  ? "Thinking..."
-                  : "Ready • Speak Naturally"}
-        </span>
-
-        {/* Live Barge-In Interruption Button */}
-        {turnState === "AI_SPEAKING" && !isPaused && (
-          <button
-            type="button"
-            onClick={handleBargeIn}
-            className="flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs animate-in fade-in"
-          >
-            <Zap className="size-3 text-rose-500 fill-rose-500" />
-            <span>Interrupt</span>
-          </button>
-        )}
-      </div>
-
-      {/* Audio Waveform visualization (24 animated bars) */}
-      <div className="flex h-7 items-center justify-center gap-1">
-        {WAVEFORM_HEIGHTS.map((height, idx) => {
-          const barColor =
-            turnState === "AI_SPEAKING"
-              ? "bg-emerald-500"
-              : turnState === "CANDIDATE_SPEAKING"
-                ? "bg-brand"
-                : "bg-[#7c3aed]";
-
-          return (
-            <div
-              key={idx}
-              className={`w-[3px] rounded-full transition-all duration-200 ${barColor}`}
-              style={{
-                height: isPaused
-                  ? "4px"
-                  : turnState === "IDLE"
-                    ? "6px"
-                    : `${height}px`,
-                opacity: isPaused ? 0.4 : 1,
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Controls row */}
-      <div className="flex items-center gap-4 pt-1">
-        {/* Pause / Resume button */}
-        <button
-          type="button"
-          onClick={handleTogglePause}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-[#7c3aed] bg-white px-4 text-xs font-semibold text-[#7c3aed] shadow-sm transition-colors hover:bg-[#ede9fe]"
-        >
-          {isPaused ? (
-            <>
-              <Play className="size-3.5 fill-[#7c3aed]" />
-              <span>Resume</span>
-            </>
-          ) : (
-            <>
-              <Pause className="size-3.5 fill-[#7c3aed]" />
-              <span>Pause</span>
-            </>
-          )}
-        </button>
-
-        {/* Central Mic circle with instant barge-in support */}
-        <button
-          type="button"
-          onClick={() => {
-            if (turnState === "AI_SPEAKING") {
-              handleBargeIn();
-            } else if (turnState === "CANDIDATE_SPEAKING") {
-              setTurnState("PROCESSING");
-            } else {
-              setTurnState("CANDIDATE_SPEAKING");
-            }
-          }}
-          className={`flex size-14 items-center justify-center rounded-full text-white transition-all active:scale-95 cursor-pointer shadow-md ${
-            turnState === "AI_SPEAKING"
-              ? "bg-emerald-600 hover:bg-rose-600 shadow-emerald-500/30"
-              : turnState === "CANDIDATE_SPEAKING"
-                ? "bg-brand ring-4 ring-brand/30 shadow-brand/40"
-                : "bg-[#7c3aed] hover:bg-[#6d28d9] shadow-[0_4px_16px_rgba(124,58,237,0.35)]"
-          }`}
-          aria-label="Toggle microphone or interrupt interviewer"
-        >
-          <Mic className="size-6" />
-        </button>
-
-        {/* Stop button -> finishes and evaluates */}
-        <button
-          type="button"
-          onClick={handleStopSession}
-          className="flex h-9 items-center gap-1.5 rounded-full border border-red-500 bg-white px-4 text-xs font-semibold text-red-500 shadow-sm transition-colors hover:bg-red-50"
-        >
-          <Square className="size-3 fill-red-500" />
-          <span>Stop</span>
-        </button>
-      </div>
-
-      {/* Text Mode Toggle */}
-      <div className="text-xs text-ink-muted">
-        Speak naturally. You can also{" "}
-        <button
-          type="button"
-          onClick={() => setIsTextInput(!isTextInput)}
-          className="font-semibold text-[#7c3aed] underline hover:text-[#6d28d9]"
-        >
-          {isTextInput ? "hide text input" : "switch to text input"}
-        </button>
-        .
-      </div>
-
-      {/* Inline Text Input Form */}
-      {isTextInput && (
-        <form
-          onSubmit={handleSendText}
-          className="mt-2 flex w-full items-center gap-2"
-        >
-          <input
-            type="text"
-            value={textMessage}
-            onChange={(e) => setTextMessage(e.target.value)}
-            placeholder="Type your system design response..."
-            className="flex-1 rounded-xl border border-[#ede6db] bg-white px-4 py-2.5 text-xs text-ink outline-none focus:border-[#7c3aed]"
-          />
-          <button
-            type="submit"
-            className="flex size-9 items-center justify-center rounded-xl bg-[#7c3aed] text-white transition-opacity hover:opacity-95"
-          >
-            <Send className="size-4" />
-          </button>
-        </form>
-      )}
-    </div>
+    <AiVoiceInterviewerDock
+      turnState={voice.turnState}
+      isCallActive={voice.isCallActive}
+      isPaused={voice.isPaused}
+      isMuted={voice.isMuted}
+      waveformBars={voice.waveformBars}
+      silenceCountdown={voice.silenceCountdown}
+      isTextInput={voice.isTextInput}
+      textMessage={voice.textMessage}
+      interviewerName="Sarah"
+      onStartSession={voice.startSession}
+      onTogglePause={voice.togglePause}
+      onToggleMute={voice.toggleMute}
+      onBargeIn={voice.handleBargeIn}
+      onFinalizeTurn={voice.finalizeCandidateSpokenTurn}
+      onStopSession={handleStopSession}
+      onToggleTextInput={() => voice.setIsTextInput(!voice.isTextInput)}
+      onTextMessageChange={voice.setTextMessage}
+      onSendTextMessage={voice.sendTextMessage}
+    />
   );
 
   return (
@@ -549,7 +295,7 @@ export function SystemDesignWorkspace() {
 
               {/* Chat History Bubbles */}
               <div className="flex flex-col gap-4">
-                {messages.map((msg, i) => (
+                {voice.messages.map((msg, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div
                       className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
@@ -591,7 +337,7 @@ export function SystemDesignWorkspace() {
                   </div>
                 ))}
 
-                {isAiThinking && (
+                {(voice.isProcessing || voice.turnState === "PROCESSING") && (
                   <div className="flex items-start gap-3">
                     <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f5f0ff] text-[#7c3aed]">
                       <Cpu className="size-4" />
@@ -679,7 +425,7 @@ export function SystemDesignWorkspace() {
               {activeQuestion.rubricAtoms && activeQuestion.rubricAtoms.length > 0 ? (
                 <div className="flex flex-col gap-2.5">
                   {activeQuestion.rubricAtoms.map((atom, idx) => {
-                    const isCovered = coveredAtoms.some(
+                    const isCovered = voice.coveredRubricAtoms.some(
                       (ca) =>
                         ca.toLowerCase().includes(atom.toLowerCase()) ||
                         atom.toLowerCase().includes(ca.toLowerCase())
