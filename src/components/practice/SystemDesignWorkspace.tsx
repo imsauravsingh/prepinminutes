@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Settings,
   Cpu,
@@ -22,6 +23,7 @@ import {
   BookOpen,
   Target,
   Loader2,
+  Zap,
 } from "lucide-react";
 import { WhiteboardModal } from "./WhiteboardModal";
 import { useCurriculumTopic } from "@/hooks/useCurriculumTopic";
@@ -80,6 +82,30 @@ export function SystemDesignWorkspace() {
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [coveredAtoms, setCoveredAtoms] = useState<string[]>([]);
 
+  // Voice Turn & Barge-In State
+  const [turnState, setTurnState] = useState<
+    "IDLE" | "AI_SPEAKING" | "CANDIDATE_SPEAKING" | "PROCESSING"
+  >("IDLE");
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleBargeIn = useCallback(async () => {
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      activeAudioRef.current = null;
+    }
+    setTurnState("CANDIDATE_SPEAKING");
+
+    try {
+      await backendApi.interruptVoiceSession({
+        source: "system_design_barge_in",
+        timestampMs: Date.now(),
+      });
+    } catch (err) {
+      console.warn("Barge-in signal dispatch failed:", err);
+    }
+  }, []);
+
   // Update AI Interviewer initial prompt when active question changes
   useEffect(() => {
     if (activeQuestion) {
@@ -126,12 +152,64 @@ export function SystemDesignWorkspace() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const [isEndingSession, setIsEndingSession] = useState(false);
+  const router = useRouter();
+
   const handleTogglePause = () => {
     setIsPaused((prev) => !prev);
   };
 
   const handleStopSession = () => {
     setShowEndModal(true);
+  };
+
+  const handleEndSession = async () => {
+    try {
+      setIsEndingSession(true);
+      const idempotencyKey = `sd_${topic?.slug || "design"}_${activeQuestion?.id || "q1"}_${Date.now()}`;
+
+      // Retrieve persisted whiteboard state if present
+      let whiteboardData: any = null;
+      if (typeof window !== "undefined") {
+        try {
+          const wbKey = `pim_wb_${topic?.slug || "default"}_${activeQuestion?.id || "q1"}`;
+          const raw = localStorage.getItem(wbKey);
+          if (raw) whiteboardData = JSON.parse(raw);
+        } catch {
+          // ignore parsing error
+        }
+      }
+
+      const result = await backendApi.submitPracticeSession(
+        {
+          domain: domain?.slug || "system-design",
+          topicSlug: topic?.slug || "distributed-caching-redis",
+          questionId: activeQuestion?.id || "q1",
+          title: activeQuestion?.title || topic?.title || "System Design Session",
+          codeSubmission: codeContent || undefined,
+          candidateNotes: notesContent || undefined,
+          whiteboardData,
+          transcriptHistory: messages.map((m) => ({
+            sender: m.sender,
+            content: m.content,
+          })),
+          coveredRubricAtoms: coveredAtoms,
+          durationSeconds: secondsElapsed,
+        },
+        { idempotencyKey }
+      );
+
+      if (result && result.reportId) {
+        router.push(`/practice/session/system-design/evaluation?id=${result.reportId}`);
+      } else {
+        router.push("/practice/session/system-design/evaluation");
+      }
+    } catch (err) {
+      console.warn("Session submit fallback triggered:", err);
+      router.push("/practice/session/system-design/evaluation");
+    } finally {
+      setIsEndingSession(false);
+    }
   };
 
   const handleSendText = async (e: React.FormEvent) => {
@@ -196,23 +274,68 @@ export function SystemDesignWorkspace() {
 
   const renderAudioDock = () => (
     <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-[#7c3aed] bg-[#f5f3ff] p-5 shadow-sm text-center">
-      {/* Listening / Paused status label */}
-      <span className="text-xs font-bold uppercase tracking-wider text-[#7c3aed]">
-        {isPaused ? "Paused" : "Listening..."}
-      </span>
+      {/* Listening / Speaking / Paused status label */}
+      <div className="flex items-center gap-2">
+        <span
+          className={`text-xs font-bold uppercase tracking-wider ${
+            isPaused
+              ? "text-ink-muted"
+              : turnState === "AI_SPEAKING"
+                ? "text-emerald-600 animate-pulse"
+                : turnState === "CANDIDATE_SPEAKING"
+                  ? "text-brand"
+                  : "text-[#7c3aed]"
+          }`}
+        >
+          {isPaused
+            ? "Paused"
+            : turnState === "AI_SPEAKING"
+              ? "Sarah Speaking • Click Mic to Interrupt"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "Listening to you..."
+                : turnState === "PROCESSING"
+                  ? "Thinking..."
+                  : "Ready • Speak Naturally"}
+        </span>
+
+        {/* Live Barge-In Interruption Button */}
+        {turnState === "AI_SPEAKING" && !isPaused && (
+          <button
+            type="button"
+            onClick={handleBargeIn}
+            className="flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs animate-in fade-in"
+          >
+            <Zap className="size-3 text-rose-500 fill-rose-500" />
+            <span>Interrupt</span>
+          </button>
+        )}
+      </div>
 
       {/* Audio Waveform visualization (24 animated bars) */}
       <div className="flex h-7 items-center justify-center gap-1">
-        {WAVEFORM_HEIGHTS.map((height, idx) => (
-          <div
-            key={idx}
-            className="w-[3px] rounded-full bg-[#7c3aed] transition-all duration-200"
-            style={{
-              height: isPaused ? "4px" : `${height}px`,
-              opacity: isPaused ? 0.4 : 1,
-            }}
-          />
-        ))}
+        {WAVEFORM_HEIGHTS.map((height, idx) => {
+          const barColor =
+            turnState === "AI_SPEAKING"
+              ? "bg-emerald-500"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "bg-brand"
+                : "bg-[#7c3aed]";
+
+          return (
+            <div
+              key={idx}
+              className={`w-[3px] rounded-full transition-all duration-200 ${barColor}`}
+              style={{
+                height: isPaused
+                  ? "4px"
+                  : turnState === "IDLE"
+                    ? "6px"
+                    : `${height}px`,
+                opacity: isPaused ? 0.4 : 1,
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Controls row */}
@@ -236,12 +359,26 @@ export function SystemDesignWorkspace() {
           )}
         </button>
 
-        {/* Central Mic circle */}
+        {/* Central Mic circle with instant barge-in support */}
         <button
           type="button"
-          onClick={handleTogglePause}
-          className="flex size-14 items-center justify-center rounded-full bg-[#7c3aed] text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] transition-transform active:scale-95 hover:bg-[#6d28d9]"
-          aria-label="Toggle microphone"
+          onClick={() => {
+            if (turnState === "AI_SPEAKING") {
+              handleBargeIn();
+            } else if (turnState === "CANDIDATE_SPEAKING") {
+              setTurnState("PROCESSING");
+            } else {
+              setTurnState("CANDIDATE_SPEAKING");
+            }
+          }}
+          className={`flex size-14 items-center justify-center rounded-full text-white transition-all active:scale-95 cursor-pointer shadow-md ${
+            turnState === "AI_SPEAKING"
+              ? "bg-emerald-600 hover:bg-rose-600 shadow-emerald-500/30"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "bg-brand ring-4 ring-brand/30 shadow-brand/40"
+                : "bg-[#7c3aed] hover:bg-[#6d28d9] shadow-[0_4px_16px_rgba(124,58,237,0.35)]"
+          }`}
+          aria-label="Toggle microphone or interrupt interviewer"
         >
           <Mic className="size-6" />
         </button>
@@ -365,7 +502,11 @@ export function SystemDesignWorkspace() {
       {/* 2. Main Workspace: Whiteboard View vs Live Conversation View */}
       {isWhiteboardOpen ? (
         <div className="flex flex-col gap-6 w-full">
-          <WhiteboardModal onClose={() => setIsWhiteboardOpen(false)} />
+          <WhiteboardModal
+            topicSlug={topic?.slug}
+            questionId={activeQuestion?.id}
+            onClose={() => setIsWhiteboardOpen(false)}
+          />
           {renderAudioDock()}
         </div>
       ) : (
@@ -750,12 +891,21 @@ export function SystemDesignWorkspace() {
               >
                 Continue Session
               </button>
-              <Link
-                href="/practice/session/system-design/evaluation"
-                className="rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600"
+              <button
+                type="button"
+                disabled={isEndingSession}
+                onClick={handleEndSession}
+                className="flex items-center gap-1.5 rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
               >
-                End Now
-              </Link>
+                {isEndingSession ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Evaluating...</span>
+                  </>
+                ) : (
+                  <span>End Now</span>
+                )}
+              </button>
             </div>
           </div>
         </div>

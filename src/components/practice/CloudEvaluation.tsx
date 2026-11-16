@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   ArrowUp,
@@ -24,11 +25,51 @@ import {
   Cpu,
   Network,
   Server,
+  Loader2,
 } from "lucide-react";
+import { backendApi, EvaluationReportDetail } from "@/lib/api-client";
+
+interface CloudCriterionItem {
+  title: string;
+  score: string;
+  rating: string;
+  percent: number;
+  icon: any;
+  color: string;
+  bg: string;
+  feedback: string;
+  missingAtoms?: string[];
+}
 
 export function CloudEvaluation() {
+  const searchParams = useSearchParams();
+  const reportIdParam = searchParams.get("id");
+  const [liveReport, setLiveReport] = useState<EvaluationReportDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(Boolean(reportIdParam));
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!reportIdParam) return;
+    let isMounted = true;
+    backendApi
+      .getEvaluationReport(reportIdParam)
+      .then((res) => {
+        if (isMounted && res.success && res.report) {
+          setLiveReport(res.report);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load live cloud evaluation report:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reportIdParam]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -154,6 +195,85 @@ export function CloudEvaluation() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
+        <Loader2 className="size-8 text-brand animate-spin" />
+        <span className="text-sm font-semibold text-ink-muted">Loading Evaluation Report...</span>
+      </div>
+    );
+  }
+
+  const displayTitle = liveReport?.title || liveReport?.practiceSession?.title || "Practice Evaluation: Multi-Region VPC Peering, Disaster Recovery & High Availability";
+  const displayDomain = liveReport?.practiceSession?.domain || "Cloud Infrastructure";
+  const displayScore = liveReport ? Math.round(liveReport.overallScore) : 85;
+  const displayVerdict = liveReport?.verdict || "Strong Hire";
+  const displayPrior = liveReport?.priorReadinessScore ?? 67;
+  const displayNew = liveReport?.newReadinessScore ?? 76;
+  const displayDelta = liveReport?.readinessDelta ?? 9;
+  const displayPercentile = liveReport?.percentileRank ? `Top ${100 - liveReport.percentileRank}%` : "Top 12%";
+  const displayEvaluator = liveReport ? `${liveReport.evaluatorName} (${liveReport.evaluatorRole})` : "Marcus (AI Principal Cloud Architect)";
+  const displayNotes = liveReport?.evaluatorNotes || "Comprehensive cloud architecture demonstration featuring robust multi-region VPC design, automated Route 53 DNS failover, and solid cross-region replication strategies. Demonstrated clear mastery of recovery objectives (RTO < 5m, RPO < 1m) while maintaining strict zero-trust security postures and egress bandwidth cost optimization. To reach Principal-level depth, elaborate on automated regional split-brain prevention and data sovereignty compliance.";
+
+  const dynamicCriteria: CloudCriterionItem[] =
+    liveReport?.rubricScores && liveReport.rubricScores.length > 0
+      ? liveReport.rubricScores.map((scoreItem) => {
+          const scoreOutOf10 = Math.min(10, Math.max(1, scoreItem.score));
+          const percent = Math.round(scoreOutOf10 * 10);
+          const rating =
+            scoreOutOf10 >= 8.5
+              ? "Exceptional"
+              : scoreOutOf10 >= 7.0
+              ? "Strong"
+              : scoreOutOf10 >= 5.5
+              ? "Good"
+              : "Needs Practice";
+
+          let icon = Network;
+          let color = "text-[#2563eb]";
+          let bg = "bg-[#eff6ff]";
+
+          const dim = scoreItem.dimension.toLowerCase();
+          if (dim.includes("failover") || dim.includes("dns") || dim.includes("availability")) {
+            icon = Target;
+            color = "text-[#10b981]";
+            bg = "bg-[#edf5ec]";
+          } else if (dim.includes("data") || dim.includes("replication") || dim.includes("storage")) {
+            icon = Cpu;
+            color = "text-[#7c3aed]";
+            bg = "bg-[#f5f3ff]";
+          } else if (dim.includes("security") || dim.includes("iam") || dim.includes("perimeter")) {
+            icon = ShieldCheck;
+            color = "text-[#ff6c47]";
+            bg = "bg-[#fff0ec]";
+          } else if (dim.includes("cost") || dim.includes("egress") || dim.includes("bandwidth")) {
+            icon = BarChart3;
+            color = "text-[#0d9488]";
+            bg = "bg-[#e6fbf9]";
+          } else if (dim.includes("observability") || dim.includes("sre") || dim.includes("monitor")) {
+            icon = Clock;
+            color = "text-[#2563eb]";
+            bg = "bg-[#eff6ff]";
+          }
+
+          const formattedTitle = scoreItem.dimension
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          return {
+            title: formattedTitle,
+            score: `${scoreOutOf10.toFixed(1)} / 10`,
+            rating,
+            percent,
+            icon,
+            color,
+            bg,
+            feedback: scoreItem.assessment || "Assessed against FAANG bar raiser cloud architecture standards.",
+            missingAtoms: scoreItem.missingAtoms || [],
+          };
+        })
+      : evaluationCriteria;
+
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1300px] mx-auto pb-16">
       {/* 1. Header & Navigation Row */}
@@ -184,19 +304,17 @@ export function CloudEvaluation() {
           <div className="flex flex-col gap-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md bg-[#eff6ff] px-2.5 py-0.5 text-xs font-bold text-[#2563eb]">
-                Cloud Infrastructure
+                {displayDomain}
               </span>
               <span className="rounded-md bg-[#fff0ec] px-2.5 py-0.5 text-xs font-bold text-brand">
                 AWS / GCP · Multi-Region Architecture
               </span>
             </div>
             <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold text-ink tracking-tight break-words">
-              Practice Evaluation: Multi-Region VPC Peering, Disaster Recovery
-              &amp; High Availability
+              {displayTitle}
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted">
-              Completed on September 27, 2026 • 28 min practice drill •
-              Evaluator: Marcus (AI Principal Cloud Architect)
+              Evaluator: {displayEvaluator}
             </p>
           </div>
 
@@ -288,14 +406,14 @@ export function CloudEvaluation() {
                     stroke="#ff5520"
                     strokeWidth="6"
                     strokeDasharray={213}
-                    strokeDashoffset={213 - (213 * 85) / 100}
+                    strokeDashoffset={213 - (213 * Math.min(100, Math.max(0, displayScore))) / 100}
                     strokeLinecap="round"
                     fill="none"
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="font-display text-lg sm:text-2xl font-black text-ink">
-                    85
+                    {displayScore}
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-ink-muted uppercase font-bold">
                     / 100
@@ -307,10 +425,10 @@ export function CloudEvaluation() {
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span className="flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-extrabold text-[#10b981]">
                     <Check className="size-3 stroke-[3]" />
-                    Strong Hire
+                    {displayVerdict}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-ink-muted">
-                    Percentile: Top 12%
+                    Percentile: {displayPercentile}
                   </span>
                 </div>
                 <h2 className="font-display text-sm sm:text-base lg:text-lg font-bold text-ink leading-snug">
@@ -329,11 +447,11 @@ export function CloudEvaluation() {
                   Readiness Impact
                 </span>
                 <div className="flex items-center gap-1 text-xs font-bold text-ink">
-                  <span className="text-ink-muted font-medium">67%</span>
+                  <span className="text-ink-muted font-medium">{displayPrior}%</span>
                   <span>→</span>
-                  <span className="text-[#10b981]">76%</span>
+                  <span className="text-[#10b981]">{displayNew}%</span>
                   <span className="text-[11px] font-semibold text-[#10b981]">
-                    (+9%)
+                    ({displayDelta >= 0 ? `+${displayDelta}%` : `${displayDelta}%`})
                   </span>
                 </div>
               </div>
@@ -347,14 +465,7 @@ export function CloudEvaluation() {
               <span>AI Evaluator Assessment</span>
             </div>
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              &quot;Comprehensive cloud architecture demonstration featuring
-              robust multi-region VPC design, automated Route 53 DNS failover,
-              and solid cross-region replication strategies. Demonstrated clear
-              mastery of recovery objectives (RTO &lt; 5m, RPO &lt; 1m) while
-              maintaining strict zero-trust security postures and egress
-              bandwidth cost optimization. To reach Principal-level depth,
-              elaborate on automated regional split-brain prevention and data
-              sovereignty compliance.&quot;
+              &quot;{displayNotes}&quot;
             </p>
           </div>
         </div>
@@ -422,7 +533,7 @@ export function CloudEvaluation() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {evaluationCriteria.map((item) => {
+          {dynamicCriteria.map((item) => {
             const Icon = item.icon;
             return (
               <div
@@ -461,6 +572,19 @@ export function CloudEvaluation() {
                   <p className="text-xs text-ink-muted leading-relaxed">
                     {item.feedback}
                   </p>
+                  {item.missingAtoms && item.missingAtoms.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-line/40">
+                      <span className="text-[10px] uppercase font-bold text-rose-500 mr-1">Missing:</span>
+                      {item.missingAtoms.map((atom: string) => (
+                        <span
+                          key={atom}
+                          className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-[10px] font-medium text-rose-700"
+                        >
+                          {atom}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );

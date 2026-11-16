@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandMark } from "@/components/BrandMark";
 import { backendApi } from "@/lib/api-client";
+import { setClientAuthSession } from "@/lib/auth-cookie";
 import { useAppAuth } from "@/components/providers/AuthProvider";
 import {
   Mail,
@@ -153,10 +154,7 @@ export default function ForgotPasswordPage() {
       });
 
       if (typeof window !== "undefined" && resetResult.token) {
-        localStorage.setItem("pim_auth_token", resetResult.token);
-        if (resetResult.user) {
-          localStorage.setItem("pim_auth_user", JSON.stringify(resetResult.user));
-        }
+        setClientAuthSession(resetResult.token, resetResult.user);
       }
 
       setStep("success");

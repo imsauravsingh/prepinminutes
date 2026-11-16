@@ -18,7 +18,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { backendApi } from "@/lib/api-client";
+import { backendApi, ApiError } from "@/lib/api-client";
 
 export function OnboardingFormCard() {
   const router = useRouter();
@@ -88,6 +88,10 @@ export function OnboardingFormCard() {
           }
         }
       } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace("/login?redirect=/dashboard");
+          return;
+        }
         console.warn("Could not pre-load candidate profile:", err);
       } finally {
         if (isMounted) {
@@ -159,6 +163,10 @@ export function OnboardingFormCard() {
       // Step C: Advance to Step 2 (Plan Ready)
       router.push("/dashboard/plan-ready");
     } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace("/login?redirect=/dashboard");
+        return;
+      }
       console.error("Setup submission failed:", err);
       setErrorMessage(
         err instanceof Error

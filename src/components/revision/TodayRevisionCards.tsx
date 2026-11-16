@@ -10,9 +10,15 @@ import {
   Users,
   Clock,
 } from "lucide-react";
+import { RevisionItemDto } from "@/lib/api-client";
 
-export function TodayRevisionCards() {
-  const topics = [
+export interface TodayRevisionCardsProps {
+  onStartDrill?: (topicId: string) => void;
+  items?: RevisionItemDto[];
+}
+
+export function TodayRevisionCards({ onStartDrill, items }: TodayRevisionCardsProps = {}) {
+  const defaultTopics = [
     {
       id: "scalability-fundamentals",
       icon: Database,
@@ -84,6 +90,64 @@ export function TodayRevisionCards() {
       href: "/practice/session/behavioral",
     },
   ];
+
+  const topics =
+    items && items.length > 0
+      ? items.slice(0, 4).map((item, index) => {
+          const domain = item.domain.toLowerCase();
+          let icon = Database;
+          let iconBg = "bg-[#fff0ec] text-brand border border-[#ffd8cc]";
+          let href = "/practice/session/system-design";
+
+          if (domain.includes("cloud") || domain.includes("aws")) {
+            icon = Cloud;
+            iconBg = "bg-[#eff6ff] text-[#2563eb] border border-[#dbeafe]";
+            href = "/practice/session/cloud";
+          } else if (domain.includes("code") || domain.includes("algo") || domain.includes("data structure")) {
+            icon = CodeXml;
+            iconBg = "bg-[#edf5ec] text-[#10b981] border border-[#d1fae5]";
+            href = "/practice/session/coding";
+          } else if (domain.includes("behavioral") || domain.includes("lead")) {
+            icon = Users;
+            iconBg = "bg-[#f5f3ff] text-[#7c3aed] border border-[#ede9fe]";
+            href = "/practice/session/behavioral";
+          }
+
+          const strength = Math.round(item.recallStrength);
+          const isHigh = item.retentionBand === "CRITICAL" || strength < 50;
+          const priorityType: "high" | "medium" = isHigh ? "high" : "medium";
+          const priority = isHigh ? "High Priority" : "Medium Priority";
+          const recallColor = strength < 50 ? "text-[#ef4444]" : strength < 70 ? "text-[#f59e0b]" : "text-[#10b981]";
+          const barColor = strength < 50 ? "bg-[#ef4444]" : strength < 70 ? "bg-[#f59e0b]" : "bg-[#10b981]";
+
+          let lastReviewed = "Pending review";
+          if (item.lastReviewedAt) {
+            const diffDays = Math.max(1, Math.round((Date.now() - new Date(item.lastReviewedAt).getTime()) / (1000 * 60 * 60 * 24)));
+            lastReviewed = `${diffDays} days ago`;
+          }
+
+          return {
+            id: item.topicId || item.id,
+            icon,
+            iconBg,
+            title: item.topicTitle,
+            area: item.domain,
+            priority,
+            priorityType,
+            recallStrength: strength,
+            recallColor,
+            barColor,
+            lastReviewed,
+            whyNow:
+              strength < 50
+                ? "Your recall has fallen into the critical decay zone. Rapid SuperMemo retrieval drill recommended."
+                : "Scheduled retention drill based on SM-2 exponential decay curve to solidify long-term recall.",
+            duration: `${item.recommendedMin || 10} min`,
+            primaryButton: index === 0,
+            href,
+          };
+        })
+      : defaultTopics;
 
   return (
     <div className="w-full rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs flex flex-col gap-5">
@@ -192,17 +256,32 @@ export function TodayRevisionCards() {
 
               {/* Bottom CTA Button */}
               <div className="mt-4 pt-1">
-                <Link
-                  href={t.href}
-                  className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all active:scale-[0.99] cursor-pointer ${
-                    t.primaryButton
-                      ? "bg-brand text-white shadow-2xs hover:opacity-90"
-                      : "bg-[#ffece6] text-brand hover:bg-brand hover:text-white"
-                  }`}
-                >
-                  <span>Start Recall</span>
-                  <ArrowRight className="size-3.5" />
-                </Link>
+                {onStartDrill ? (
+                  <button
+                    type="button"
+                    onClick={() => onStartDrill(t.id)}
+                    className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all active:scale-[0.99] cursor-pointer ${
+                      t.primaryButton
+                        ? "bg-brand text-white shadow-2xs hover:opacity-90"
+                        : "bg-[#ffece6] text-brand hover:bg-brand hover:text-white"
+                    }`}
+                  >
+                    <span>Start Recall Drill</span>
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                ) : (
+                  <Link
+                    href={t.href}
+                    className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 text-xs font-bold transition-all active:scale-[0.99] cursor-pointer ${
+                      t.primaryButton
+                        ? "bg-brand text-white shadow-2xs hover:opacity-90"
+                        : "bg-[#ffece6] text-brand hover:bg-brand hover:text-white"
+                    }`}
+                  >
+                    <span>Start Recall</span>
+                    <ArrowRight className="size-3.5" />
+                  </Link>
+                )}
               </div>
             </div>
           );

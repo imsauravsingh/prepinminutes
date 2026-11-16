@@ -309,7 +309,11 @@ export function CloudWorkspace() {
       {/* 2. Main Workspace: Whiteboard View vs Live Conversation View */}
       {isWhiteboardOpen ? (
         <div className="flex flex-col gap-6 w-full">
-          <WhiteboardModal onClose={() => setIsWhiteboardOpen(false)} />
+          <WhiteboardModal
+            topicSlug={topic?.slug}
+            questionId={activeQuestion?.id}
+            onClose={() => setIsWhiteboardOpen(false)}
+          />
           {renderAudioDock()}
         </div>
       ) : (

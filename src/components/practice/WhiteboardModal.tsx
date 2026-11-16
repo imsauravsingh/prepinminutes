@@ -23,9 +23,13 @@ import {
   Check,
   FileText,
 } from "lucide-react";
+import { useWhiteboardState, WhiteboardStatePayload } from "@/hooks/useWhiteboardState";
 
 interface WhiteboardModalProps {
   onClose: () => void;
+  topicSlug?: string;
+  questionId?: string;
+  onSave?: (payload: WhiteboardStatePayload) => void;
 }
 
 export type ToolType =
@@ -241,7 +245,24 @@ const INITIAL_NODES: BoardNode[] = [
   },
 ];
 
-export function WhiteboardModal({ onClose }: WhiteboardModalProps) {
+export function WhiteboardModal({
+  onClose,
+  topicSlug,
+  questionId,
+  onSave,
+}: WhiteboardModalProps) {
+  // Resolve topic and question from props or URL
+  const resolvedTopicSlug =
+    topicSlug ||
+    (typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("topic") || "default"
+      : "default");
+  const resolvedQuestionId =
+    questionId ||
+    (typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("q") || "q1"
+      : "q1");
+
   // Toolbar state
   const [selectedTool, setSelectedTool] = useState<ToolType>("select");
   const [strokeColor, setStrokeColor] = useState("#7c3aed");
@@ -249,33 +270,52 @@ export function WhiteboardModal({ onClose }: WhiteboardModalProps) {
   const [zoomLevel, setZoomLevel] = useState(100);
   const [showGrid, setShowGrid] = useState(true);
 
-  // Interactive Elements state
-  const [boardNodes, setBoardNodes] = useState<BoardNode[]>(INITIAL_NODES);
-  const [stickyNotes, setStickyNotes] = useState<StickyItem[]>([
-    {
-      id: "note-1",
-      x: 1010,
-      y: 110,
-      text: "Notes:\n1. Base62 for short URL token generation.\n2. Cache hottest 20% URLs.\n3. Keep service stateless.",
-      color: "yellow",
+  // Persistent Whiteboard State via useWhiteboardState hook
+  const {
+    boardNodes,
+    setBoardNodes,
+    stickyNotes,
+    setStickyNotes,
+    textItems,
+    setTextItems,
+    shapes,
+    setShapes,
+    isSaved,
+    isSaving,
+    lastSavedAt,
+    saveImmediate,
+    clearWhiteboard,
+    exportWhiteboardPayload,
+  } = useWhiteboardState({
+    topicSlug: resolvedTopicSlug,
+    questionId: resolvedQuestionId,
+    initialData: {
+      boardNodes: INITIAL_NODES,
+      stickyNotes: [
+        {
+          id: "note-1",
+          x: 1010,
+          y: 110,
+          text: "Notes:\n1. Base62 for short URL token generation.\n2. Cache hottest 20% URLs.\n3. Keep service stateless.",
+          color: "yellow",
+        },
+        {
+          id: "note-2",
+          x: 1010,
+          y: 260,
+          text: "Need Geodistribution for write master databases to avoid cross-region replication latency.",
+          color: "purple",
+        },
+        {
+          id: "note-3",
+          x: 1010,
+          y: 385,
+          text: "Use Redis Cluster with eviction policy set to volatile-lru.",
+          color: "cyan",
+        },
+      ],
     },
-    {
-      id: "note-2",
-      x: 1010,
-      y: 260,
-      text: "Need Geodistribution for write master databases to avoid cross-region replication latency.",
-      color: "purple",
-    },
-    {
-      id: "note-3",
-      x: 1010,
-      y: 385,
-      text: "Use Redis Cluster with eviction policy set to volatile-lru.",
-      color: "cyan",
-    },
-  ]);
-  const [textItems, setTextItems] = useState<TextItem[]>([]);
-  const [shapes, setShapes] = useState<ShapeItem[]>([]);
+  });
 
   // Selection & Hover state
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -1170,12 +1210,19 @@ export function WhiteboardModal({ onClose }: WhiteboardModalProps) {
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.clearRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
     }
-    setStickyNotes([]);
-    setTextItems([]);
-    setShapes([]);
+    clearWhiteboard();
     setSelectedItemIds([]);
     setEditingShapeId(null);
     setEditingNodeId(null);
+  };
+
+  const handleClose = () => {
+    saveImmediate();
+    if (onSave) {
+      const payload = exportWhiteboardPayload(canvasRef.current);
+      onSave(payload);
+    }
+    onClose();
   };
 
   // Export / Download composite canvas snapshot
@@ -1439,6 +1486,24 @@ export function WhiteboardModal({ onClose }: WhiteboardModalProps) {
 
           <span className="hidden sm:block h-4 w-px bg-[#ede6db] mx-0.5" />
 
+          {/* Session Auto-Saved Status Indicator */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/80 border border-emerald-200/60 text-[11px] font-medium text-emerald-700">
+            <span
+              className={`size-1.5 rounded-full ${
+                isSaving ? "bg-amber-500 animate-ping" : "bg-emerald-500"
+              }`}
+            />
+            <span>
+              {isSaving
+                ? "Saving..."
+                : isSaved
+                ? "Auto-saved"
+                : "Unsaved changes"}
+            </span>
+          </div>
+
+          <span className="hidden sm:block h-4 w-px bg-[#ede6db] mx-0.5" />
+
           {/* Download */}
           <button
             type="button"
@@ -1462,7 +1527,7 @@ export function WhiteboardModal({ onClose }: WhiteboardModalProps) {
           {/* Close Modal */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="flex size-8 items-center justify-center rounded-full border border-[#ede6db] bg-[#fbf9f4] text-ink shadow-xs transition-colors hover:bg-[#ede6db]"
             aria-label="Close whiteboard"
           >

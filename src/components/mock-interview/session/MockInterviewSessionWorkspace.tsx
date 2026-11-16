@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Settings,
@@ -19,8 +19,11 @@ import {
   CheckCircle2,
   X,
   Send,
+  Radio,
+  Zap,
 } from "lucide-react";
 import { WhiteboardModal } from "@/components/practice/WhiteboardModal";
+import { backendApi } from "@/lib/api-client";
 
 // Heights for the 24 waveform bars
 const WAVEFORM_HEIGHTS = [
@@ -34,6 +37,32 @@ export function MockInterviewSessionWorkspace() {
   // Timer: starts at 02:34 (154 seconds) and counts up towards 45:00
   const [secondsElapsed, setSecondsElapsed] = useState(154);
   const [isPaused, setIsPaused] = useState(false);
+
+  // Voice Turn & Barge-In Interruption State
+  const [turnState, setTurnState] = useState<
+    "IDLE" | "AI_SPEAKING" | "CANDIDATE_SPEAKING" | "PROCESSING"
+  >("IDLE");
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleBargeIn = useCallback(async () => {
+    // 1. Instantly pause and kill local audio playback (<10ms)
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current.currentTime = 0;
+      activeAudioRef.current = null;
+    }
+    setTurnState("CANDIDATE_SPEAKING");
+
+    // 2. Dispatch server-side interrupt signal
+    try {
+      await backendApi.interruptVoiceSession({
+        source: "candidate_barge_in",
+        timestampMs: Date.now(),
+      });
+    } catch (err) {
+      console.warn("Barge-in signal dispatch failed:", err);
+    }
+  }, []);
 
   // Text input mode toggle
   const [isTextInput, setIsTextInput] = useState(false);
@@ -126,23 +155,68 @@ export function MockInterviewSessionWorkspace() {
 
   const renderAudioDock = () => (
     <div className="flex flex-col items-center gap-3 sm:gap-3.5 rounded-2xl border border-[#7c3aed] bg-[#f5f3ff] p-3.5 sm:p-5 shadow-sm text-center">
-      {/* Listening / Paused status label */}
-      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#7c3aed]">
-        {isPaused ? "Paused" : "Listening..."}
-      </span>
+      {/* Listening / Speaking / Paused status label */}
+      <div className="flex items-center gap-2">
+        <span
+          className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
+            isPaused
+              ? "text-ink-muted"
+              : turnState === "AI_SPEAKING"
+                ? "text-emerald-600 animate-pulse"
+                : turnState === "CANDIDATE_SPEAKING"
+                  ? "text-brand"
+                  : "text-[#7c3aed]"
+          }`}
+        >
+          {isPaused
+            ? "Paused"
+            : turnState === "AI_SPEAKING"
+              ? "Sarah Speaking • Click Mic to Interrupt"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "Listening to you..."
+                : turnState === "PROCESSING"
+                  ? "Thinking..."
+                  : "Ready • Speak Naturally"}
+        </span>
+
+        {/* Live Barge-In Interruption Button */}
+        {turnState === "AI_SPEAKING" && !isPaused && (
+          <button
+            type="button"
+            onClick={handleBargeIn}
+            className="flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-[10px] font-bold text-rose-600 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs animate-in fade-in"
+          >
+            <Zap className="size-3 text-rose-500 fill-rose-500" />
+            <span>Interrupt</span>
+          </button>
+        )}
+      </div>
 
       {/* Audio Waveform visualization (24 animated bars) */}
       <div className="flex h-7 items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-hidden px-1">
-        {WAVEFORM_HEIGHTS.map((height, idx) => (
-          <div
-            key={idx}
-            className="w-[2.5px] sm:w-[3px] rounded-full bg-[#7c3aed] transition-all duration-200 shrink-0"
-            style={{
-              height: isPaused ? "4px" : `${height}px`,
-              opacity: isPaused ? 0.4 : 1,
-            }}
-          />
-        ))}
+        {WAVEFORM_HEIGHTS.map((height, idx) => {
+          const barColor =
+            turnState === "AI_SPEAKING"
+              ? "bg-emerald-500"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "bg-brand"
+                : "bg-[#7c3aed]";
+
+          return (
+            <div
+              key={idx}
+              className={`w-[2.5px] sm:w-[3px] rounded-full transition-all duration-200 shrink-0 ${barColor}`}
+              style={{
+                height: isPaused
+                  ? "4px"
+                  : turnState === "IDLE"
+                    ? "6px"
+                    : `${height}px`,
+                opacity: isPaused ? 0.4 : 1,
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Controls row */}
@@ -166,12 +240,26 @@ export function MockInterviewSessionWorkspace() {
           )}
         </button>
 
-        {/* Central Mic circle */}
+        {/* Central Mic circle with instant barge-in support */}
         <button
           type="button"
-          onClick={handleTogglePause}
-          className="flex size-12 sm:size-14 items-center justify-center rounded-full bg-[#7c3aed] text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] transition-transform active:scale-95 hover:bg-[#6d28d9] cursor-pointer"
-          aria-label="Toggle microphone"
+          onClick={() => {
+            if (turnState === "AI_SPEAKING") {
+              handleBargeIn();
+            } else if (turnState === "CANDIDATE_SPEAKING") {
+              setTurnState("PROCESSING");
+            } else {
+              setTurnState("CANDIDATE_SPEAKING");
+            }
+          }}
+          className={`flex size-12 sm:size-14 items-center justify-center rounded-full text-white transition-all active:scale-95 cursor-pointer shadow-md ${
+            turnState === "AI_SPEAKING"
+              ? "bg-emerald-600 hover:bg-rose-600 shadow-emerald-500/30"
+              : turnState === "CANDIDATE_SPEAKING"
+                ? "bg-brand ring-4 ring-brand/30 shadow-brand/40"
+                : "bg-[#7c3aed] hover:bg-[#6d28d9] shadow-[0_4px_16px_rgba(124,58,237,0.35)]"
+          }`}
+          aria-label="Toggle microphone or interrupt interviewer"
         >
           <Mic className="size-5 sm:size-6" />
         </button>

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { backendApi, EvaluationReportDetail } from "@/lib/api-client";
 import {
   Check,
   ArrowUp,
@@ -24,11 +26,53 @@ import {
   Sparkles,
   Server,
   Network,
+  Loader2,
 } from "lucide-react";
 
+interface EvaluationCriterionItem {
+  title: string;
+  score: string;
+  rating: string;
+  percent: number;
+  icon: any;
+  color: string;
+  bg: string;
+  feedback: string;
+  missingAtoms?: string[];
+}
+
 export function SystemDesignEvaluation() {
+  const searchParams = useSearchParams();
+  const reportIdParam = searchParams.get("id");
+
+  const [liveReport, setLiveReport] = useState<EvaluationReportDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!reportIdParam) return;
+    let isMounted = true;
+    setIsLoading(true);
+
+    backendApi
+      .getEvaluationReport(reportIdParam)
+      .then((res) => {
+        if (isMounted && res.success && res.report) {
+          setLiveReport(res.report);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load live evaluation report:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reportIdParam]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -46,7 +90,7 @@ export function SystemDesignEvaluation() {
     }, 600);
   };
 
-  const evaluationCriteria = [
+  const evaluationCriteria: EvaluationCriterionItem[] = [
     {
       title: "Technical Depth (L4 vs L7)",
       score: "8.5 / 10",
@@ -154,6 +198,81 @@ export function SystemDesignEvaluation() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
+        <Loader2 className="size-8 text-brand animate-spin" />
+        <span className="text-sm font-semibold text-ink-muted">Loading Evaluation Report...</span>
+      </div>
+    );
+  }
+
+  const displayTitle = liveReport?.title || liveReport?.practiceSession?.title || "Practice Evaluation: Load Balancing & High Availability";
+  const displayDomain = liveReport?.practiceSession?.domain || "System Design";
+  const displayScore = liveReport ? Math.round(liveReport.overallScore) : 82;
+  const displayVerdict = liveReport?.verdict || "Strong Hire";
+  const displayPrior = liveReport?.priorReadinessScore ?? 28;
+  const displayNew = liveReport?.newReadinessScore ?? 35;
+  const displayDelta = liveReport?.readinessDelta ?? 7;
+  const displayPercentile = liveReport?.percentileRank ? `Top ${100 - liveReport.percentileRank}%` : "Top 15%";
+  const displayEvaluator = liveReport ? `${liveReport.evaluatorName} (${liveReport.evaluatorRole})` : "Sarah (AI Staff Infrastructure Engineer)";
+  const displayNotes = liveReport?.evaluatorNotes || "The candidate demonstrated a thorough understanding of reverse proxy architectures and high-availability ingress. Clearly articulated why Layer 7 routing is essential for path-based microservices, and implemented active health checks with connection draining. Next level improvement involves diving deeper into consistent hashing with virtual nodes to minimize cache invalidation spikes during auto-scaling events.";
+
+  const dynamicCriteria =
+    liveReport?.rubricScores && liveReport.rubricScores.length > 0
+      ? liveReport.rubricScores.map((scoreItem) => {
+          const scoreOutOf10 = Math.min(10, Math.max(1, scoreItem.score));
+          const percent = Math.round(scoreOutOf10 * 10);
+          const rating =
+            scoreOutOf10 >= 8.5
+              ? "Strong"
+              : scoreOutOf10 >= 7.0
+              ? "Good"
+              : scoreOutOf10 >= 5.5
+              ? "Satisfactory"
+              : "Needs Practice";
+
+          let icon = CodeXml;
+          let color = "text-[#2563eb]";
+          let bg = "bg-[#eff6ff]";
+
+          const dim = scoreItem.dimension.toLowerCase();
+          if (dim.includes("tradeoff") || dim.includes("reasoning")) {
+            icon = Lightbulb;
+            color = "text-[#7c3aed]";
+            bg = "bg-[#f5f3ff]";
+          } else if (dim.includes("scale") || dim.includes("fail") || dim.includes("resilience")) {
+            icon = ShieldCheck;
+            color = "text-[#10b981]";
+            bg = "bg-[#edf5ec]";
+          } else if (dim.includes("comm") || dim.includes("structure")) {
+            icon = Users;
+            color = "text-[#0b8a8f]";
+            bg = "bg-[#edf7f4]";
+          } else if (dim.includes("edge") || dim.includes("robust")) {
+            icon = Target;
+            color = "text-[#ff6c47]";
+            bg = "bg-[#fff0ec]";
+          }
+
+          const formattedTitle = scoreItem.dimension
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          return {
+            title: formattedTitle,
+            score: `${scoreOutOf10.toFixed(1)} / 10`,
+            rating,
+            percent,
+            icon,
+            color,
+            bg,
+            feedback: scoreItem.assessment || "Assessed against FAANG bar raiser criteria.",
+            missingAtoms: scoreItem.missingAtoms || [],
+          };
+        })
+      : evaluationCriteria;
+
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1300px] mx-auto pb-16">
       {/* 1. Header & Navigation Row */}
@@ -184,18 +303,17 @@ export function SystemDesignEvaluation() {
           <div className="flex flex-col gap-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md bg-[#edf7f4] px-2.5 py-0.5 text-xs font-bold text-[#0b8a8f]">
-                System Design
+                {displayDomain}
               </span>
               <span className="rounded-md bg-brand/10 px-2.5 py-0.5 text-xs font-bold text-brand">
-                Load Balancing & High Availability
+                {displayTitle}
               </span>
             </div>
             <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold text-ink tracking-tight break-words">
-              Practice Evaluation: Load Balancing &amp; High Availability
+              {displayTitle}
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted">
-              Completed on September 27, 2026 • 35 min practice drill •
-              Evaluator: Sarah (AI Staff Infrastructure Engineer)
+              Evaluator: {displayEvaluator}
             </p>
           </div>
 
@@ -255,14 +373,14 @@ export function SystemDesignEvaluation() {
                     stroke="#ff5520"
                     strokeWidth="6"
                     strokeDasharray={213}
-                    strokeDashoffset={213 - (213 * 82) / 100}
+                    strokeDashoffset={213 - (213 * displayScore) / 100}
                     strokeLinecap="round"
                     fill="none"
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="font-display text-lg sm:text-2xl font-black text-ink">
-                    82
+                    {displayScore}
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-ink-muted uppercase font-bold">
                     / 100
@@ -274,14 +392,14 @@ export function SystemDesignEvaluation() {
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span className="flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-extrabold text-[#10b981]">
                     <Check className="size-3 stroke-[3]" />
-                    Strong Hire
+                    {displayVerdict}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-ink-muted">
-                    Percentile: Top 15%
+                    Percentile: {displayPercentile}
                   </span>
                 </div>
                 <h2 className="font-display text-sm sm:text-base lg:text-lg font-bold text-ink leading-snug">
-                  Load Balancing &amp; High Availability Mastery
+                  {displayTitle}
                 </h2>
               </div>
             </div>
@@ -296,11 +414,11 @@ export function SystemDesignEvaluation() {
                   Readiness Impact
                 </span>
                 <div className="flex items-center gap-1 text-xs font-bold text-ink">
-                  <span className="text-ink-muted font-medium">28%</span>
+                  <span className="text-ink-muted font-medium">{displayPrior}%</span>
                   <span>→</span>
-                  <span className="text-[#10b981]">35%</span>
+                  <span className="text-[#10b981]">{displayNew}%</span>
                   <span className="text-[11px] font-semibold text-[#10b981]">
-                    (+7%)
+                    ({displayDelta >= 0 ? `+${displayDelta}%` : `${displayDelta}%`})
                   </span>
                 </div>
               </div>
@@ -314,13 +432,7 @@ export function SystemDesignEvaluation() {
               <span>AI Evaluator Assessment</span>
             </div>
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              &quot;The candidate demonstrated a thorough understanding of
-              reverse proxy architectures and high-availability ingress. Clearly
-              articulated why Layer 7 routing is essential for path-based
-              microservices, and implemented active health checks with
-              connection draining. Next level improvement involves diving deeper
-              into consistent hashing with virtual nodes to minimize cache
-              invalidation spikes during auto-scaling events.&quot;
+              &quot;{displayNotes}&quot;
             </p>
           </div>
         </div>
@@ -384,7 +496,7 @@ export function SystemDesignEvaluation() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {evaluationCriteria.map((item) => {
+          {dynamicCriteria.map((item) => {
             const Icon = item.icon;
             return (
               <div
@@ -423,6 +535,19 @@ export function SystemDesignEvaluation() {
                   <p className="text-xs text-ink-muted leading-relaxed">
                     {item.feedback}
                   </p>
+                  {item.missingAtoms && item.missingAtoms.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-line/40">
+                      <span className="text-[10px] uppercase font-bold text-rose-500 mr-1">Missing:</span>
+                      {item.missingAtoms.map((atom: string) => (
+                        <span
+                          key={atom}
+                          className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-[10px] font-medium text-rose-700"
+                        >
+                          {atom}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -444,38 +569,35 @@ export function SystemDesignEvaluation() {
           </div>
 
           <div className="flex flex-col gap-3 text-xs sm:text-sm text-ink leading-relaxed">
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
-              <p>
-                <strong>Routing Strategies:</strong> Demonstrated clear
-                understanding of Round-Robin, Weighted Round-Robin, and
-                Least-Connections algorithms and when to employ each.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
-              <p>
-                <strong>Health Checks & Draining:</strong> Explained active HTTP
-                `/healthz` polling combined with passive TCP connection draining
-                to prevent terminating active transactions.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
-              <p>
-                <strong>SSL/TLS Termination:</strong> Accurately recommended
-                terminating TLS at the load balancer to offload heavy
-                cryptographic operations from application web servers.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
-              <p>
-                <strong>High Availability Pairs:</strong> Addressed load
-                balancer failure by provisioning Active-Passive pairs utilizing
-                VRRP (Virtual Router Redundancy Protocol).
-              </p>
-            </div>
+            {liveReport?.strengths && liveReport.strengths.length > 0 ? (
+              liveReport.strengths.map((str, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
+                  <p>{str}</p>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
+                  <p>
+                    <strong>Routing Strategies:</strong> Demonstrated clear understanding of Round-Robin, Weighted Round-Robin, and Least-Connections algorithms and when to employ each.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
+                  <p>
+                    <strong>Health Checks & Draining:</strong> Explained active HTTP `/healthz` polling combined with passive TCP connection draining to prevent terminating active transactions.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-[#10b981] mt-2 shrink-0" />
+                  <p>
+                    <strong>SSL/TLS Termination:</strong> Accurately recommended terminating TLS at the load balancer to offload heavy cryptographic operations from application web servers.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -491,39 +613,35 @@ export function SystemDesignEvaluation() {
           </div>
 
           <div className="flex flex-col gap-3 text-xs sm:text-sm text-ink leading-relaxed">
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
-              <p>
-                <strong>Consistent Hashing with Virtual Nodes:</strong>{" "}
-                Elaborate on how consistent hashing distributes keys across a
-                hash ring and why virtual nodes (e.g. 100-200 per server)
-                prevent hotspots.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
-              <p>
-                <strong>Sticky Sessions & Decoupled State:</strong> While sticky
-                sessions work, explain why storing state in external distributed
-                caches (e.g. Redis) is superior for autoscaling elasticity.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
-              <p>
-                <strong>Global Anycast DNS:</strong> Discuss BGP Anycast routing
-                where identical public IP addresses are advertised from multiple
-                edge data centers worldwide for low-latency ingress.
-              </p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
-              <p>
-                <strong>Thundering Herd on Health Check Recovery:</strong>{" "}
-                Implement gradual connection ramp-up (warm-up periods) so newly
-                recovered servers aren&apos;t crushed by immediate peak traffic.
-              </p>
-            </div>
+            {liveReport?.improvements && liveReport.improvements.length > 0 ? (
+              liveReport.improvements.map((imp, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
+                  <p>{imp}</p>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
+                  <p>
+                    <strong>Consistent Hashing with Virtual Nodes:</strong> Elaborate on how consistent hashing distributes keys across a hash ring and why virtual nodes (e.g. 100-200 per server) prevent hotspots.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
+                  <p>
+                    <strong>Sticky Sessions & Decoupled State:</strong> While sticky sessions work, explain why storing state in external distributed caches (e.g. Redis) is superior for autoscaling elasticity.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="size-1.5 rounded-full bg-brand mt-2 shrink-0" />
+                  <p>
+                    <strong>Global Anycast DNS:</strong> Discuss BGP Anycast routing where identical public IP addresses are advertised from multiple edge data centers worldwide for low-latency ingress.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

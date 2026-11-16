@@ -11,15 +11,27 @@ import {
   TopicDetailResponse,
   TopicQuestionsResponse,
 } from "@/types/curriculum";
+import {
+  AUTH_TOKEN_STORAGE_KEY,
+  AUTH_USER_STORAGE_KEY,
+  AUTH_COOKIE_NAME,
+  getClientAuthToken,
+  clearClientAuthSession,
+} from "./auth-cookie";
+
+export {
+  AUTH_TOKEN_STORAGE_KEY,
+  AUTH_USER_STORAGE_KEY,
+  AUTH_COOKIE_NAME,
+  getClientAuthToken,
+  clearClientAuthSession,
+};
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === "production"
     ? "https://api.prepinminutes.com"
     : "http://localhost:8787");
-
-export const AUTH_TOKEN_STORAGE_KEY = "pim_auth_token";
-export const AUTH_USER_STORAGE_KEY = "pim_auth_user";
 
 export interface AuthenticatedCandidateUser {
   id: string;
@@ -54,17 +66,12 @@ export interface RequestOptions {
 }
 
 function getStoredAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
+  return getClientAuthToken();
 }
 
 function buildHeaders(
   options: RequestOptions = {},
-  isJson = true
+  isJson = true,
 ): Record<string, string> {
   const headers: Record<string, string> = {
     ...(isJson ? { "Content-Type": "application/json" } : {}),
@@ -89,6 +96,74 @@ function buildHeaders(
   return headers;
 }
 
+export type RetentionBand =
+  | "CRITICAL"
+  | "NEEDS_REINFORCEMENT"
+  | "STABLE"
+  | "MASTERED";
+
+export interface RevisionTopicSummary {
+  id: string;
+  title: string;
+  slug: string;
+  difficulty: string;
+  practiceHref: string;
+}
+
+export interface RevisionItemDto {
+  id: string;
+  candidateId: string;
+  topicId: string;
+  topicTitle: string;
+  domain: string;
+  recallStrength: number;
+  retentionBand: RetentionBand;
+  relevance: string;
+  recommendedMin: number;
+  intervalDays: number;
+  easeFactor: number;
+  repetitions: number;
+  nextReviewDate: string;
+  lastReviewedAt?: string | null;
+  createdAt: string;
+  isDue?: boolean;
+  topic?: RevisionTopicSummary;
+}
+
+export interface RevisionItemsResponse {
+  success: boolean;
+  totalDue: number;
+  stats?: {
+    totalDue: number;
+    criticalCount: number;
+    needsReinforcementCount: number;
+    stableCount: number;
+    masteredCount: number;
+  };
+  items: RevisionItemDto[];
+}
+
+export interface RevisionRecallPayload {
+  revisionItemId?: string;
+  topicSlug?: string;
+  qualityGrade?: number; // 0 - 5
+  sessionScore?: number; // 0 - 100
+}
+
+export interface RevisionRecallResponse {
+  success: boolean;
+  updatedItem: RevisionItemDto;
+  sm2Output: {
+    repetitions: number;
+    intervalDays: number;
+    easeFactor: number;
+    qualityGrade: number;
+    nextReviewDate: string;
+    retentionBand: RetentionBand;
+    recallStrength: number;
+  };
+}
+
 export class ApiError extends Error {
   status: number;
   code?: string;
@@ -98,7 +173,7 @@ export class ApiError extends Error {
     message: string,
     status: number,
     code?: string,
-    data?: Record<string, unknown>
+    data?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "ApiError";
@@ -111,13 +186,32 @@ export class ApiError extends Error {
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== "undefined") {
+      clearClientAuthSession();
+      const currentPath = window.location.pathname;
+      const isPublicPath =
+        currentPath === "/" ||
+        currentPath.startsWith("/login") ||
+        currentPath.startsWith("/sign-up") ||
+        currentPath.startsWith("/forgot-password") ||
+        currentPath.startsWith("/reset-password") ||
+        currentPath.startsWith("/privacy-policy") ||
+        currentPath.startsWith("/coming-soon") ||
+        currentPath.startsWith("/admin");
+
+      if (!isPublicPath) {
+        window.location.href = `/login?redirect=${encodeURIComponent(
+          window.location.pathname + window.location.search
+        )}`;
+      }
+    }
+
     const errorObj = (data as { error?: any })?.error;
     const message =
       (data as { message?: string })?.message ||
       (typeof errorObj === "string" ? errorObj : errorObj?.message) ||
       `API request failed with status ${res.status}`;
-    const code =
-      typeof errorObj === "string" ? errorObj : errorObj?.code;
+    const code = typeof errorObj === "string" ? errorObj : errorObj?.code;
     throw new ApiError(message, res.status, code, data);
   }
   return data as T;
@@ -136,10 +230,61 @@ export interface CandidateProfilePayload {
 export interface PracticeSubmitPayload {
   domain?: string;
   topicSlug: string;
+  questionId?: string;
   title?: string;
-  codeSubmission?: string;
-  whiteboardUrl?: string;
   durationSeconds?: number;
+  codeSubmission?: string;
+  codeLanguage?: string;
+  whiteboardUrl?: string;
+  whiteboardData?: Record<string, unknown> | null;
+  transcriptHistory?: Array<{
+    sender: "ai" | "user";
+    content: string;
+    timestamp?: string;
+  }>;
+  coveredRubricAtoms?: string[];
+  candidateNotes?: string;
+}
+
+export interface EvaluationReportDetail {
+  id: string;
+  candidateId?: string;
+  practiceId?: string;
+  mockId?: string;
+  title?: string;
+  evaluatorName: string;
+  evaluatorRole: string;
+  overallScore: number;
+  verdict: "Strong Hire" | "Hire" | "Leaning Hire" | "Needs Practice" | string;
+  percentileRank?: number;
+  priorReadinessScore?: number;
+  newReadinessScore?: number;
+  readinessDelta: number;
+  evaluatorNotes: string;
+  strengths: string[];
+  improvements: string[];
+  rubricScores: Array<{
+    id: string;
+    dimension: string;
+    score: number;
+    assessment: string;
+    missingAtoms: string[];
+  }>;
+  practiceSession?: {
+    id: string;
+    domain: string;
+    topicSlug: string;
+    title: string;
+    durationSeconds: number;
+    status: string;
+    codeLanguage?: string;
+    codeSubmission?: string;
+    whiteboardUrl?: string;
+    diagramJson?: any;
+    chatHistory?: any;
+    architectureNotes?: string;
+  };
+  createdAt: string;
 }
 
 export interface MockInterviewStartPayload {
@@ -213,7 +358,10 @@ export const backendApi = {
    * POST /api/auth/login
    * Authenticates candidate with identifier (username or email) and password.
    */
-  async loginWithCredentials(payload: { identifier: string; password: string }) {
+  async loginWithCredentials(payload: {
+    identifier: string;
+    password: string;
+  }) {
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -389,7 +537,7 @@ export const backendApi = {
       username?: string;
       avatarUrl?: string | null;
     },
-    token?: string | null
+    token?: string | null,
   ) {
     const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
       method: "PATCH",
@@ -414,7 +562,7 @@ export const backendApi = {
       newPassword: string;
       confirmPassword?: string;
     },
-    token?: string | null
+    token?: string | null,
   ) {
     const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
       method: "POST",
@@ -450,7 +598,7 @@ export const backendApi = {
    */
   async saveProfile(
     payload: CandidateProfilePayload,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ) {
     const res = await fetch(`${API_BASE_URL}/api/onboarding/profile`, {
       method: "POST",
@@ -507,11 +655,22 @@ export const backendApi = {
    */
   async submitPracticeSession(
     payload: PracticeSubmitPayload,
-    options: RequestOptions
+    options: RequestOptions & { idempotencyKey?: string } = {},
   ) {
+    const customHeaders: Record<string, string> = {};
+    if (options.idempotencyKey) {
+      customHeaders["idempotency-key"] = options.idempotencyKey;
+      customHeaders["x-session-attempt-id"] = options.idempotencyKey;
+    }
+
+    const headers = {
+      ...buildHeaders(options),
+      ...customHeaders,
+    };
+
     const res = await fetch(`${API_BASE_URL}/api/practice/session/submit`, {
       method: "POST",
-      headers: buildHeaders(options),
+      headers,
       body: JSON.stringify(payload),
       credentials: "include",
     });
@@ -519,6 +678,7 @@ export const backendApi = {
       success: boolean;
       sessionId: string;
       reportId: string;
+      reportUrl?: string;
       overallScore: number;
       verdict: string;
       readinessDelta: number;
@@ -528,18 +688,37 @@ export const backendApi = {
   },
 
   /**
+   * GET /api/evaluation/:reportId
+   */
+  async getEvaluationReport(reportId: string, options: RequestOptions = {}) {
+    const cleanId = reportId.replace(/^report\//, "").trim();
+    const res = await fetch(`${API_BASE_URL}/api/evaluation/${cleanId}`, {
+      method: "GET",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      report: EvaluationReportDetail;
+    }>(res);
+  },
+
+  /**
    * POST /api/mock-interview/session/start
    */
   async startMockInterview(
     payload: MockInterviewStartPayload,
-    options: RequestOptions
+    options: RequestOptions,
   ) {
-    const res = await fetch(`${API_BASE_URL}/api/mock-interview/session/start`, {
-      method: "POST",
-      headers: buildHeaders(options),
-      body: JSON.stringify(payload),
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/mock-interview/session/start`,
+      {
+        method: "POST",
+        headers: buildHeaders(options),
+        body: JSON.stringify(payload),
+        credentials: "include",
+      },
+    );
     return handleResponse<{
       success: boolean;
       session: Record<string, unknown>;
@@ -556,7 +735,7 @@ export const backendApi = {
    */
   async endMockInterview(
     payload: MockInterviewEndPayload,
-    options: RequestOptions
+    options: RequestOptions,
   ) {
     const res = await fetch(`${API_BASE_URL}/api/mock-interview/session/end`, {
       method: "POST",
@@ -577,60 +756,119 @@ export const backendApi = {
   },
 
   /**
-   * GET /api/evaluation/:reportId
-   */
-  async getEvaluationReport(reportId: string, options: RequestOptions) {
-    const res = await fetch(
-      `${API_BASE_URL}/api/evaluation/${encodeURIComponent(reportId)}`,
-      {
-        method: "GET",
-        headers: buildHeaders(options),
-        credentials: "include",
-      }
-    );
-    return handleResponse<{
-      success: boolean;
-      report: Record<string, unknown>;
-    }>(res);
-  },
-
-  /**
    * GET /api/revision/items
    */
-  async getRevisionItems(dueOnly = true, options: RequestOptions = {}) {
+  async getRevisionItems(
+    query?: boolean | { dueOnly?: boolean; domain?: string },
+    options: RequestOptions = {},
+  ): Promise<RevisionItemsResponse> {
+    const dueOnly = typeof query === "boolean" ? query : query?.dueOnly;
+    const domain = typeof query === "object" ? query?.domain : undefined;
+
+    const params = new URLSearchParams();
+    if (dueOnly !== undefined) params.set("dueOnly", String(dueOnly));
+    if (domain) params.set("domain", domain);
+
+    const queryString = params.toString() ? `?${params.toString()}` : "";
     const res = await fetch(
-      `${API_BASE_URL}/api/revision/items?dueOnly=${dueOnly}`,
+      `${API_BASE_URL}/api/revision/items${queryString}`,
       {
         method: "GET",
         headers: buildHeaders(options),
         credentials: "include",
-      }
+      },
     );
-    return handleResponse<{
-      success: boolean;
-      totalDue: number;
-      items: Array<Record<string, unknown>>;
-    }>(res);
+    return handleResponse<RevisionItemsResponse>(res);
   },
 
   /**
-   * POST /api/revision/items
+   * POST /api/revision/items (or /api/revision/item/recall)
    */
   async submitRevisionRecall(
-    revisionItemId: string,
-    sessionScore: number,
-    options: RequestOptions
-  ) {
+    payload: string | RevisionRecallPayload,
+    sessionScoreOrOptions?: number | RequestOptions,
+    maybeOptions: RequestOptions = {},
+  ): Promise<RevisionRecallResponse> {
+    let body: RevisionRecallPayload;
+    let options: RequestOptions = maybeOptions;
+
+    if (typeof payload === "string") {
+      // Backwards-compatible signature: (revisionItemId, sessionScore, options)
+      body = {
+        revisionItemId: payload,
+        sessionScore:
+          typeof sessionScoreOrOptions === "number"
+            ? sessionScoreOrOptions
+            : undefined,
+      };
+    } else {
+      body = payload;
+      if (
+        typeof sessionScoreOrOptions === "object" &&
+        sessionScoreOrOptions !== null
+      ) {
+        options = sessionScoreOrOptions;
+      }
+    }
+
     const res = await fetch(`${API_BASE_URL}/api/revision/items`, {
       method: "POST",
       headers: buildHeaders(options),
-      body: JSON.stringify({ revisionItemId, sessionScore }),
+      body: JSON.stringify(body),
+      credentials: "include",
+    });
+    return handleResponse<RevisionRecallResponse>(res);
+  },
+
+  /**
+   * GET /api/voice/session/config
+   */
+  async getVoiceSessionConfig(options: RequestOptions = {}) {
+    const res = await fetch(`${API_BASE_URL}/api/voice/session/config`, {
+      method: "GET",
+      headers: buildHeaders(options),
       credentials: "include",
     });
     return handleResponse<{
       success: boolean;
-      updatedItem: Record<string, unknown>;
-      sm2Output: Record<string, unknown>;
+      deepgramAvailable: boolean;
+      cartesiaAvailable: boolean;
+      elevenLabsAvailable: boolean;
+      sttModel: string;
+      ttsModel: string;
+      preferredVoice: string;
+      voiceId: string;
+      sampleRate: number;
+      turnBudgetMs: number;
+      streamingSupported: boolean;
+      deepgramWsUrl: string;
+      availableVoices: Array<{ id: string; name: string; role: string }>;
+    }>(res);
+  },
+
+  /**
+   * POST /api/voice/session/interrupt
+   * Signals a candidate barge-in interruption to halt AI playback immediately.
+   */
+  async interruptVoiceSession(
+    payload: { sessionId?: string; source?: string; timestampMs?: number } = {},
+    options: RequestOptions = {},
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/voice/session/interrupt`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    return handleResponse<{
+      success: boolean;
+      interrupted: boolean;
+      previousState: string;
+      newState: string;
+      latencyMs: number;
+      clearAudioBuffer: boolean;
+      timestamp: number;
+      telemetry?: Record<string, unknown>;
     }>(res);
   },
 
@@ -640,7 +878,7 @@ export const backendApi = {
   async synthesizeVoice(
     text: string,
     options: RequestOptions,
-    voiceId?: string
+    voiceId?: string,
   ): Promise<ArrayBuffer> {
     const res = await fetch(`${API_BASE_URL}/api/voice/synthesize`, {
       method: "POST",
@@ -659,7 +897,7 @@ export const backendApi = {
    */
   async transcribeVoice(
     audioBlob: Blob,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<{ success: boolean; transcript: string; confidence: number }> {
     const headers = buildHeaders(options, false);
     headers["Content-Type"] = audioBlob.type || "audio/webm";
@@ -690,7 +928,7 @@ export const backendApi = {
       resumeSummary?: string;
       jobDescription?: string;
     } = {},
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ) {
     const res = await fetch(`${API_BASE_URL}/api/ai-assessment/start`, {
       method: "POST",
@@ -741,7 +979,7 @@ export const backendApi = {
         notes?: string;
       }>;
     },
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ) {
     const res = await fetch(`${API_BASE_URL}/api/ai-assessment/finish`, {
       method: "POST",
@@ -986,14 +1224,17 @@ export const backendApi = {
    */
   async updateNeo4jCategory(
     slug: string,
-    payload: { name: string; description?: string }
+    payload: { name: string; description?: string },
   ) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/neo4j/categories/${slug}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/neo4j/categories/${slug}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      },
+    );
     return handleResponse<{ success: boolean; message: string }>(res);
   },
 
@@ -1001,10 +1242,13 @@ export const backendApi = {
    * DELETE /api/admin/neo4j/categories/:slug
    */
   async deleteNeo4jCategory(slug: string) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/neo4j/categories/${slug}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/neo4j/categories/${slug}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      },
+    );
     return handleResponse<{ success: boolean; message: string }>(res);
   },
 
@@ -1093,7 +1337,7 @@ export const backendApi = {
       difficulty?: string;
       rubricAtoms?: string[];
       durationMin?: number;
-    }
+    },
   ) {
     const res = await fetch(`${API_BASE_URL}/api/admin/neo4j/topics/${slug}`, {
       method: "PUT",
@@ -1196,7 +1440,7 @@ export const backendApi = {
       difficulty?: string;
       rubricGuide?: string;
       hints?: string[];
-    }
+    },
   ) {
     const res = await fetch(`${API_BASE_URL}/api/admin/neo4j/questions/${id}`, {
       method: "PUT",
@@ -1339,8 +1583,10 @@ export const backendApi = {
     const query = new URLSearchParams();
     if (params?.search) query.set("search", params.search);
     if (params?.tier && params.tier !== "ALL") query.set("tier", params.tier);
-    if (params?.isPlanOpted !== undefined) query.set("isPlanOpted", String(params.isPlanOpted));
-    if (params?.isBlocked !== undefined) query.set("isBlocked", String(params.isBlocked));
+    if (params?.isPlanOpted !== undefined)
+      query.set("isPlanOpted", String(params.isPlanOpted));
+    if (params?.isBlocked !== undefined)
+      query.set("isBlocked", String(params.isBlocked));
     if (params?.page) query.set("page", String(params.page));
     if (params?.limit) query.set("limit", String(params.limit));
     const qs = query.toString() ? `?${query.toString()}` : "";
@@ -1401,49 +1647,73 @@ export const backendApi = {
       isPlanOpted?: boolean;
       voiceMinutesLimit?: number;
       extendDays?: number;
-    }
+    },
   ) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/candidates/${id}/subscription`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      credentials: "include",
-    });
-    return handleResponse<{ success: boolean; message: string; subscription: any }>(res);
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/candidates/${id}/subscription`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      },
+    );
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      subscription: any;
+    }>(res);
   },
 
   /**
    * POST /api/admin/candidates/:id/block
    */
   async blockCandidate(id: string, reason: string) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/candidates/${id}/block`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason }),
-      credentials: "include",
-    });
-    return handleResponse<{ success: boolean; message: string; candidate: any }>(res);
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/candidates/${id}/block`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+        credentials: "include",
+      },
+    );
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      candidate: any;
+    }>(res);
   },
 
   /**
    * POST /api/admin/candidates/:id/unblock
    */
   async unblockCandidate(id: string) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/candidates/${id}/unblock`, {
-      method: "POST",
-      credentials: "include",
-    });
-    return handleResponse<{ success: boolean; message: string; candidate: any }>(res);
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/candidates/${id}/unblock`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+    return handleResponse<{
+      success: boolean;
+      message: string;
+      candidate: any;
+    }>(res);
   },
 
   /**
    * POST /api/admin/candidates/:id/reset-quota
    */
   async resetCandidateQuota(id: string) {
-    const res = await fetch(`${API_BASE_URL}/api/admin/candidates/${id}/reset-quota`, {
-      method: "POST",
-      credentials: "include",
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/candidates/${id}/reset-quota`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
     return handleResponse<{ success: boolean; message: string }>(res);
   },
 
@@ -1513,7 +1783,9 @@ export const backendApi = {
       body: JSON.stringify({ role }),
       credentials: "include",
     });
-    return handleResponse<{ success: boolean; message: string; user: any }>(res);
+    return handleResponse<{ success: boolean; message: string; user: any }>(
+      res,
+    );
   },
 
   /**
@@ -1537,7 +1809,9 @@ export const backendApi = {
       body: JSON.stringify({ role }),
       credentials: "include",
     });
-    return handleResponse<{ success: boolean; message: string; user: any }>(res);
+    return handleResponse<{ success: boolean; message: string; user: any }>(
+      res,
+    );
   },
 
   /**
@@ -1550,7 +1824,9 @@ export const backendApi = {
       body: JSON.stringify({ reason }),
       credentials: "include",
     });
-    return handleResponse<{ success: boolean; message: string; user: any }>(res);
+    return handleResponse<{ success: boolean; message: string; user: any }>(
+      res,
+    );
   },
 
   /**
@@ -1561,7 +1837,9 @@ export const backendApi = {
       method: "POST",
       credentials: "include",
     });
-    return handleResponse<{ success: boolean; message: string; user: any }>(res);
+    return handleResponse<{ success: boolean; message: string; user: any }>(
+      res,
+    );
   },
 
   /**
@@ -1597,8 +1875,10 @@ export const backendApi = {
    * Supports ETag 304 caching.
    */
   async getCurriculumDomains(
-    etag?: string
-  ): Promise<CurriculumDomainsResponse & { etag?: string | null; notModified?: boolean }> {
+    etag?: string,
+  ): Promise<
+    CurriculumDomainsResponse & { etag?: string | null; notModified?: boolean }
+  > {
     const headers: Record<string, string> = {};
     if (etag) headers["If-None-Match"] = etag;
     const res = await fetch(`${API_BASE_URL}/api/curriculum/domains`, {
@@ -1637,8 +1917,13 @@ export const backendApi = {
    */
   async getCurriculumHierarchy(
     domainSlug: string,
-    etag?: string
-  ): Promise<CurriculumHierarchyResponse & { etag?: string | null; notModified?: boolean }> {
+    etag?: string,
+  ): Promise<
+    CurriculumHierarchyResponse & {
+      etag?: string | null;
+      notModified?: boolean;
+    }
+  > {
     const headers: Record<string, string> = {};
     if (etag) headers["If-None-Match"] = etag;
     const res = await fetch(
@@ -1646,7 +1931,7 @@ export const backendApi = {
       {
         method: "GET",
         headers,
-      }
+      },
     );
     if (res.status === 304) {
       return {
@@ -1675,12 +1960,14 @@ export const backendApi = {
    * GET /api/curriculum/topic/:topicSlug
    * Returns 8-layer deep metadata for a single topic.
    */
-  async getCurriculumTopicDetail(topicSlug: string): Promise<TopicDetailResponse> {
+  async getCurriculumTopicDetail(
+    topicSlug: string,
+  ): Promise<TopicDetailResponse> {
     const res = await fetch(
       `${API_BASE_URL}/api/curriculum/topic/${encodeURIComponent(topicSlug)}`,
       {
         method: "GET",
-      }
+      },
     );
     return handleResponse<TopicDetailResponse>(res);
   },
@@ -1691,7 +1978,7 @@ export const backendApi = {
    */
   async getCurriculumTopicQuestions(
     topicSlug: string,
-    params?: { targetLevel?: string; difficulty?: string; limit?: number }
+    params?: { targetLevel?: string; difficulty?: string; limit?: number },
   ): Promise<TopicQuestionsResponse> {
     const query = new URLSearchParams();
     if (params?.targetLevel) query.set("targetLevel", params.targetLevel);
@@ -1743,4 +2030,3 @@ export const backendApi = {
     return handleResponse(res);
   },
 };
-

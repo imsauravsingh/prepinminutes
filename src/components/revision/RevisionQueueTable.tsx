@@ -12,17 +12,103 @@ import {
   ChevronDown,
   Layers,
 } from "lucide-react";
+import { RevisionItemDto } from "@/lib/api-client";
 
 type TabId = "queue" | "upcoming" | "at-risk" | "completed";
 
-export function RevisionQueueTable() {
+export interface RevisionQueueTableProps {
+  onStartDrill?: (topicId: string) => void;
+  items?: RevisionItemDto[];
+}
+
+export function RevisionQueueTable({ onStartDrill, items }: RevisionQueueTableProps = {}) {
   const [activeTab, setActiveTab] = useState<TabId>("queue");
 
+  const mapItemToRow = (item: RevisionItemDto) => {
+    const domain = item.domain.toLowerCase();
+    let icon = Database;
+    let iconBg = "bg-[#fff0ec] text-brand";
+    let href = "/practice/session/system-design";
+
+    if (domain.includes("cloud") || domain.includes("aws")) {
+      icon = Cloud;
+      iconBg = "bg-[#eff6ff] text-[#2563eb]";
+      href = "/practice/session/cloud";
+    } else if (domain.includes("code") || domain.includes("algo") || domain.includes("data structure")) {
+      icon = CodeXml;
+      iconBg = "bg-[#edf5ec] text-[#10b981]";
+      href = "/practice/session/coding";
+    } else if (domain.includes("behavioral") || domain.includes("lead")) {
+      icon = Users;
+      iconBg = "bg-[#f5f3ff] text-[#7c3aed]";
+      href = "/practice/session/behavioral";
+    }
+
+    const strength = Math.round(item.recallStrength);
+    const recallColor = strength < 50 ? "text-[#ef4444]" : strength < 70 ? "text-[#f59e0b]" : "text-[#10b981]";
+    const barColor = strength < 50 ? "bg-[#ef4444]" : strength < 70 ? "bg-[#f59e0b]" : "bg-[#10b981]";
+    const relevanceType: "high" | "medium" = item.relevance === "High" || item.retentionBand === "CRITICAL" ? "high" : "medium";
+
+    let lastReviewed = "Pending";
+    if (item.lastReviewedAt) {
+      const diffDays = Math.max(1, Math.round((Date.now() - new Date(item.lastReviewedAt).getTime()) / (1000 * 60 * 60 * 24)));
+      lastReviewed = `${diffDays} days ago`;
+    }
+
+    return {
+      id: item.topicId || item.id,
+      icon,
+      iconBg,
+      name: item.topicTitle,
+      area: item.domain,
+      recallStrength: strength,
+      barColor,
+      recallColor,
+      lastReviewed,
+      relevance: item.relevance || (relevanceType === "high" ? "High" : "Medium"),
+      relevanceType,
+      recommended: `${item.recommendedMin || 15} min`,
+      href,
+    };
+  };
+
+  const hasLiveItems = Boolean(items && items.length > 0);
+  const liveItems = items || [];
+
+  const dynamicQueue = hasLiveItems
+    ? liveItems.filter((i) => i.isDue ?? i.recallStrength < 70).map(mapItemToRow)
+    : [];
+  const dynamicUpcoming = hasLiveItems
+    ? liveItems.filter((i) => i.recallStrength >= 50 && i.recallStrength < 80).map(mapItemToRow)
+    : [];
+  const dynamicAtRisk = hasLiveItems
+    ? liveItems.filter((i) => i.retentionBand === "CRITICAL" || i.recallStrength < 50).map(mapItemToRow)
+    : [];
+  const dynamicCompleted = hasLiveItems
+    ? liveItems.filter((i) => i.retentionBand === "MASTERED" || i.recallStrength >= 80).map(mapItemToRow)
+    : [];
+
   const tabs = [
-    { id: "queue" as TabId, label: "Revision Queue", count: 4 },
-    { id: "upcoming" as TabId, label: "Upcoming", count: 6 },
-    { id: "at-risk" as TabId, label: "At Risk", count: 4 },
-    { id: "completed" as TabId, label: "Completed", count: 18 },
+    {
+      id: "queue" as TabId,
+      label: "Revision Queue",
+      count: hasLiveItems ? dynamicQueue.length : 4,
+    },
+    {
+      id: "upcoming" as TabId,
+      label: "Upcoming",
+      count: hasLiveItems ? dynamicUpcoming.length : 6,
+    },
+    {
+      id: "at-risk" as TabId,
+      label: "At Risk",
+      count: hasLiveItems ? dynamicAtRisk.length : 4,
+    },
+    {
+      id: "completed" as TabId,
+      label: "Completed",
+      count: hasLiveItems ? dynamicCompleted.length : 18,
+    },
   ];
 
   const queueData = [
@@ -187,8 +273,15 @@ export function RevisionQueueTable() {
     },
   ];
 
-  const currentList =
-    activeTab === "queue"
+  const currentList = hasLiveItems
+    ? activeTab === "queue"
+      ? dynamicQueue
+      : activeTab === "upcoming"
+        ? dynamicUpcoming
+        : activeTab === "at-risk"
+          ? dynamicAtRisk
+          : dynamicCompleted
+    : activeTab === "queue"
       ? queueData
       : activeTab === "upcoming"
         ? upcomingData
@@ -351,13 +444,24 @@ export function RevisionQueueTable() {
 
                   {/* Action: Review Button */}
                   <td className="py-3.5 text-right">
-                    <Link
-                      href={row.href}
-                      className="inline-flex items-center gap-1 rounded-md bg-[#fff0ec] px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand hover:text-white transition-colors cursor-pointer shadow-2xs"
-                    >
-                      <span>Review</span>
-                      <ArrowRight className="size-3" />
-                    </Link>
+                    {onStartDrill ? (
+                      <button
+                        type="button"
+                        onClick={() => onStartDrill(row.id)}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#fff0ec] px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand hover:text-white transition-colors cursor-pointer shadow-2xs"
+                      >
+                        <span>Drill</span>
+                        <ArrowRight className="size-3" />
+                      </button>
+                    ) : (
+                      <Link
+                        href={row.href}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#fff0ec] px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand hover:text-white transition-colors cursor-pointer shadow-2xs"
+                      >
+                        <span>Review</span>
+                        <ArrowRight className="size-3" />
+                      </Link>
+                    )}
                   </td>
                 </tr>
               );

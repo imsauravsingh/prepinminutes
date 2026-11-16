@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   ArrowUp,
@@ -22,11 +23,51 @@ import {
   Sparkles,
   HeartHandshake,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
+import { backendApi, EvaluationReportDetail } from "@/lib/api-client";
+
+interface BehavioralCriterionItem {
+  title: string;
+  score: string;
+  rating: string;
+  percent: number;
+  icon: any;
+  color: string;
+  bg: string;
+  feedback: string;
+  missingAtoms?: string[];
+}
 
 export function BehavioralEvaluation() {
+  const searchParams = useSearchParams();
+  const reportIdParam = searchParams.get("id");
+  const [liveReport, setLiveReport] = useState<EvaluationReportDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(Boolean(reportIdParam));
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!reportIdParam) return;
+    let isMounted = true;
+    backendApi
+      .getEvaluationReport(reportIdParam)
+      .then((res) => {
+        if (isMounted && res.success && res.report) {
+          setLiveReport(res.report);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load live behavioral evaluation report:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [reportIdParam]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -152,6 +193,85 @@ export function BehavioralEvaluation() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-3">
+        <Loader2 className="size-8 text-brand animate-spin" />
+        <span className="text-sm font-semibold text-ink-muted">Loading Evaluation Report...</span>
+      </div>
+    );
+  }
+
+  const displayTitle = liveReport?.title || liveReport?.practiceSession?.title || "Practice Evaluation: High-Stakes Incident Management & Cross-Functional Alignment";
+  const displayDomain = liveReport?.practiceSession?.domain || "Behavioral & Leadership";
+  const displayScore = liveReport ? Math.round(liveReport.overallScore) : 88;
+  const displayVerdict = liveReport?.verdict || "Strong Hire";
+  const displayPrior = liveReport?.priorReadinessScore ?? 52;
+  const displayNew = liveReport?.newReadinessScore ?? 60;
+  const displayDelta = liveReport?.readinessDelta ?? 8;
+  const displayPercentile = liveReport?.percentileRank ? `Top ${100 - liveReport.percentileRank}%` : "Top 8%";
+  const displayEvaluator = liveReport ? `${liveReport.evaluatorName} (${liveReport.evaluatorRole})` : "Sarah (AI Executive Leadership Coach)";
+  const displayNotes = liveReport?.evaluatorNotes || "The candidate demonstrated exceptional mastery of the STAR framework with high emotional intelligence and blameless engineering culture. Effectively articulated technical trade-offs during a high-stress production incident, successfully mediated competing engineering priorities between Infrastructure and Product teams, and demonstrated clear quantifiable business outcomes (MTTR reduced from 45m to 14m, $120K revenue protected). To demonstrate Staff+ executive presence, proactively discuss how incident takeaways influenced long-term engineering SLO budgets.";
+
+  const dynamicCriteria: BehavioralCriterionItem[] =
+    liveReport?.rubricScores && liveReport.rubricScores.length > 0
+      ? liveReport.rubricScores.map((scoreItem) => {
+          const scoreOutOf10 = Math.min(10, Math.max(1, scoreItem.score));
+          const percent = Math.round(scoreOutOf10 * 10);
+          const rating =
+            scoreOutOf10 >= 8.5
+              ? "Exceptional"
+              : scoreOutOf10 >= 7.0
+              ? "Strong"
+              : scoreOutOf10 >= 5.5
+              ? "Good"
+              : "Needs Practice";
+
+          let icon = Target;
+          let color = "text-[#2563eb]";
+          let bg = "bg-[#eff6ff]";
+
+          const dim = scoreItem.dimension.toLowerCase();
+          if (dim.includes("ownership") || dim.includes("accountability") || dim.includes("task")) {
+            icon = ShieldCheck;
+            color = "text-[#10b981]";
+            bg = "bg-[#edf5ec]";
+          } else if (dim.includes("conflict") || dim.includes("collaboration") || dim.includes("mediation")) {
+            icon = Users;
+            color = "text-[#7c3aed]";
+            bg = "bg-[#f5f3ff]";
+          } else if (dim.includes("result") || dim.includes("metric") || dim.includes("impact")) {
+            icon = BarChart3;
+            color = "text-[#ff6c47]";
+            bg = "bg-[#fff0ec]";
+          } else if (dim.includes("empathy") || dim.includes("culture") || dim.includes("blameless")) {
+            icon = HeartHandshake;
+            color = "text-[#0d9488]";
+            bg = "bg-[#e6fbf9]";
+          } else if (dim.includes("reflection") || dim.includes("learn") || dim.includes("growth")) {
+            icon = TrendingUp;
+            color = "text-[#2563eb]";
+            bg = "bg-[#eff6ff]";
+          }
+
+          const formattedTitle = scoreItem.dimension
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+          return {
+            title: formattedTitle,
+            score: `${scoreOutOf10.toFixed(1)} / 10`,
+            rating,
+            percent,
+            icon,
+            color,
+            bg,
+            feedback: scoreItem.assessment || "Assessed against FAANG executive leadership standards.",
+            missingAtoms: scoreItem.missingAtoms || [],
+          };
+        })
+      : evaluationCriteria;
+
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8 max-w-[1300px] mx-auto pb-16">
       {/* 1. Header & Navigation Row */}
@@ -182,19 +302,17 @@ export function BehavioralEvaluation() {
           <div className="flex flex-col gap-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md bg-[#fff0ec] px-2.5 py-0.5 text-xs font-bold text-brand">
-                Behavioral &amp; Leadership
+                {displayDomain}
               </span>
               <span className="rounded-md bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-[#7c3aed]">
                 STAR Method · Crisis Resolution
               </span>
             </div>
             <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold text-ink tracking-tight break-words">
-              Practice Evaluation: High-Stakes Incident Management &amp;
-              Cross-Functional Alignment
+              {displayTitle}
             </h1>
             <p className="text-xs sm:text-sm text-ink-muted">
-              Completed on September 27, 2026 • 24 min practice drill •
-              Evaluator: Sarah (AI Executive Leadership Coach)
+              Evaluator: {displayEvaluator}
             </p>
           </div>
 
@@ -286,14 +404,14 @@ export function BehavioralEvaluation() {
                     stroke="#ff5520"
                     strokeWidth="6"
                     strokeDasharray={213}
-                    strokeDashoffset={213 - (213 * 88) / 100}
+                    strokeDashoffset={213 - (213 * Math.min(100, Math.max(0, displayScore))) / 100}
                     strokeLinecap="round"
                     fill="none"
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="font-display text-lg sm:text-2xl font-black text-ink">
-                    88
+                    {displayScore}
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-ink-muted uppercase font-bold">
                     / 100
@@ -305,10 +423,10 @@ export function BehavioralEvaluation() {
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <span className="flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-extrabold text-[#10b981]">
                     <Check className="size-3 stroke-[3]" />
-                    Strong Hire
+                    {displayVerdict}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-ink-muted">
-                    Percentile: Top 8%
+                    Percentile: {displayPercentile}
                   </span>
                 </div>
                 <h2 className="font-display text-sm sm:text-base lg:text-lg font-bold text-ink leading-snug">
@@ -327,11 +445,11 @@ export function BehavioralEvaluation() {
                   Readiness Impact
                 </span>
                 <div className="flex items-center gap-1 text-xs font-bold text-ink">
-                  <span className="text-ink-muted font-medium">52%</span>
+                  <span className="text-ink-muted font-medium">{displayPrior}%</span>
                   <span>→</span>
-                  <span className="text-[#10b981]">60%</span>
+                  <span className="text-[#10b981]">{displayNew}%</span>
                   <span className="text-[11px] font-semibold text-[#10b981]">
-                    (+8%)
+                    ({displayDelta >= 0 ? `+${displayDelta}%` : `${displayDelta}%`})
                   </span>
                 </div>
               </div>
@@ -345,16 +463,7 @@ export function BehavioralEvaluation() {
               <span>AI Evaluator Assessment</span>
             </div>
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              &quot;The candidate demonstrated exceptional mastery of the STAR
-              framework with high emotional intelligence and blameless
-              engineering culture. Effectively articulated technical trade-offs
-              during a high-stress production incident, successfully mediated
-              competing engineering priorities between Infrastructure and
-              Product teams, and demonstrated clear quantifiable business
-              outcomes (MTTR reduced from 45m to 14m, $120K revenue protected).
-              To demonstrate Staff+ executive presence, proactively discuss how
-              incident takeaways influenced long-term engineering SLO
-              budgets.&quot;
+              &quot;{displayNotes}&quot;
             </p>
           </div>
         </div>
@@ -420,7 +529,7 @@ export function BehavioralEvaluation() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {evaluationCriteria.map((item) => {
+          {dynamicCriteria.map((item) => {
             const Icon = item.icon;
             return (
               <div
@@ -459,6 +568,19 @@ export function BehavioralEvaluation() {
                   <p className="text-xs text-ink-muted leading-relaxed">
                     {item.feedback}
                   </p>
+                  {item.missingAtoms && item.missingAtoms.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-line/40">
+                      <span className="text-[10px] uppercase font-bold text-rose-500 mr-1">Missing:</span>
+                      {item.missingAtoms.map((atom: string) => (
+                        <span
+                          key={atom}
+                          className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-[10px] font-medium text-rose-700"
+                        >
+                          {atom}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );

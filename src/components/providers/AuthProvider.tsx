@@ -16,6 +16,11 @@ import {
   AuthenticatedCandidateUser,
   SsoConfigResponse,
 } from "@/lib/api-client";
+import {
+  setClientAuthSession,
+  clearClientAuthSession,
+  getClientAuthToken,
+} from "@/lib/auth-cookie";
 
 export interface AppAuthContextValue {
   isLoaded: boolean;
@@ -136,12 +141,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     async function initializeAuth() {
-      // 1a. Hydrate local session from localStorage immediately
-      let initialToken: string | null = null;
+      // 1a. Hydrate local session from storage and cookies immediately
+      let initialToken = getClientAuthToken();
       let initialUser: AuthenticatedCandidateUser | null = null;
 
       try {
-        initialToken = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
         const storedUserJson = localStorage.getItem(AUTH_USER_STORAGE_KEY);
         if (storedUserJson) {
           initialUser = JSON.parse(storedUserJson);
@@ -153,7 +157,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (mounted) {
-        if (initialToken) setToken(initialToken);
+        if (initialToken) {
+          setToken(initialToken);
+          setClientAuthSession(initialToken, initialUser);
+        }
         if (initialUser) setUser(initialUser);
       }
 
@@ -178,24 +185,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (mounted) {
             if (authMe.authenticated && authMe.user) {
               setUser(authMe.user);
-              try {
-                localStorage.setItem(
-                  AUTH_USER_STORAGE_KEY,
-                  JSON.stringify(authMe.user)
-                );
-              } catch {}
-            } else if (!authMe.authenticated) {
+              setClientAuthSession(initialToken, authMe.user);
+            } else {
               // Token invalid/expired
               setToken(null);
               setUser(null);
-              try {
-                localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-                localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-              } catch {}
+              clearClientAuthSession();
             }
           }
-        } catch {
-          // Keep offline JWT session if verification probe times out
+        } catch (err: unknown) {
+          // If unauthorized or expired token, clear invalid credentials
+          const status =
+            err && typeof err === "object" && "status" in err
+              ? (err as { status?: number }).status
+              : 0;
+          const msg = err instanceof Error ? err.message.toLowerCase() : "";
+
+          if (status === 401 || status === 403 || msg.includes("sign in required")) {
+            if (mounted) {
+              setToken(null);
+              setUser(null);
+              clearClientAuthSession();
+            }
+          }
         }
       }
 
@@ -226,28 +238,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const completeOAuthCallbackToken = useCallback(
     async (jwtToken: string, redirectUrl = "/dashboard") => {
       setToken(jwtToken);
-      try {
-        localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, jwtToken);
-      } catch {}
-
       const parsed = parseJwtUser(jwtToken);
       if (parsed) {
         setUser(parsed);
-        try {
-          localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(parsed));
-        } catch {}
       }
+      setClientAuthSession(jwtToken, parsed);
 
       try {
         const authMe = await backendApi.getAuthMe(jwtToken);
         if (authMe.authenticated && authMe.user) {
           setUser(authMe.user);
-          try {
-            localStorage.setItem(
-              AUTH_USER_STORAGE_KEY,
-              JSON.stringify(authMe.user)
-            );
-          } catch {}
+          setClientAuthSession(jwtToken, authMe.user);
         }
       } catch {}
 
@@ -264,13 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.success && res.token) {
         setToken(res.token);
         setUser(res.user);
-        try {
-          localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, res.token);
-          localStorage.setItem(
-            AUTH_USER_STORAGE_KEY,
-            JSON.stringify(res.user)
-          );
-        } catch {}
+        setClientAuthSession(res.token, res.user);
 
         router.replace(redirectUrl || "/dashboard");
       } else {
@@ -287,13 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.success && res.token) {
         setToken(res.token);
         setUser(res.user);
-        try {
-          localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, res.token);
-          localStorage.setItem(
-            AUTH_USER_STORAGE_KEY,
-            JSON.stringify(res.user)
-          );
-        } catch {}
+        setClientAuthSession(res.token, res.user);
 
         router.replace(redirectUrl || "/dashboard");
       } else {
@@ -327,13 +316,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.success && res.token && res.user) {
         setToken(res.token);
         setUser(res.user);
-        try {
-          localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, res.token);
-          localStorage.setItem(
-            AUTH_USER_STORAGE_KEY,
-            JSON.stringify(res.user)
-          );
-        } catch {}
+        setClientAuthSession(res.token, res.user);
 
         router.replace(redirectUrl || "/dashboard?setup=true");
         return {
@@ -359,13 +342,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.success && res.token && res.user) {
         setToken(res.token);
         setUser(res.user);
-        try {
-          localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, res.token);
-          localStorage.setItem(
-            AUTH_USER_STORAGE_KEY,
-            JSON.stringify(res.user)
-          );
-        } catch {}
+        setClientAuthSession(res.token, res.user);
 
         router.replace(redirectUrl || "/dashboard?setup=true");
       } else {
@@ -441,10 +418,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setToken(null);
     setUser(null);
-    try {
-      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-    } catch {}
+    clearClientAuthSession();
 
     router.replace("/");
   }, [router]);

@@ -2,13 +2,24 @@
 
 import { Brain, Check } from "lucide-react";
 
-export function KnowledgeHealthCard() {
+export interface KnowledgeHealthCardProps {
+  onStartDrill?: () => void;
+  stats?: {
+    criticalCount?: number;
+    needsReinforcementCount?: number;
+    stableCount?: number;
+    masteredCount?: number;
+    totalDue?: number;
+  };
+}
+
+export function KnowledgeHealthCard({ onStartDrill, stats }: KnowledgeHealthCardProps = {}) {
   const categories = [
     {
       id: "strong",
-      count: "12",
+      count: stats?.masteredCount !== undefined ? String(stats.masteredCount) : "12",
       label: "Strong Recall",
-      subtext: "No immediate revision needed",
+      subtext: "Mastered retention",
       bgColor: "bg-[#f0fdf4]",
       borderColor: "border-[#d1fae5]",
       badgeColor: "text-[#059669]",
@@ -16,7 +27,7 @@ export function KnowledgeHealthCard() {
     },
     {
       id: "good",
-      count: "7",
+      count: stats?.stableCount !== undefined ? String(stats.stableCount) : "7",
       label: "Good Recall",
       subtext: "Keep practicing periodically",
       bgColor: "bg-[#eff6ff]",
@@ -26,7 +37,7 @@ export function KnowledgeHealthCard() {
     },
     {
       id: "needs-reinforcement",
-      count: "6",
+      count: stats?.needsReinforcementCount !== undefined ? String(stats.needsReinforcementCount) : "6",
       label: "Needs Reinforcement",
       subtext: "Include in upcoming revision",
       bgColor: "bg-[#fffbeb]",
@@ -36,7 +47,7 @@ export function KnowledgeHealthCard() {
     },
     {
       id: "at-risk",
-      count: "4",
+      count: stats?.criticalCount !== undefined ? String(stats.criticalCount) : "4",
       label: "At Risk",
       subtext: "Revise soon to avoid forgetting",
       bgColor: "bg-[#fef2f2]",
