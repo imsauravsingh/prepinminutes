@@ -20,6 +20,7 @@ import {
   RotateCcw,
   Sparkles,
   Layers,
+  Trash2,
 } from "lucide-react";
 import { backendApi, ApiError } from "@/lib/api-client";
 
@@ -91,6 +92,8 @@ export function OnboardingFormCard() {
   const [company, setCompany] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeName, setExistingResumeName] = useState<string | null>(null);
+  const [isClearingResume, setIsClearingResume] = useState(false);
+  const [resumeActionMessage, setResumeActionMessage] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [showJdModal, setShowJdModal] = useState(false);
   const [tempJd, setTempJd] = useState("");
@@ -207,6 +210,36 @@ export function OnboardingFormCard() {
     if (e.target.files && e.target.files[0]) {
       setResumeFile(e.target.files[0]);
       setExistingResumeName(null);
+      setResumeActionMessage(null);
+    }
+  };
+
+  const handleClearResume = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+
+    // Reset freshly picked file input
+    setResumeFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
+    // If an existing resume is already persisted on profile, clear it on backend
+    if (existingResumeName) {
+      setIsClearingResume(true);
+      try {
+        await backendApi.deleteResume();
+        setExistingResumeName(null);
+        setResumeActionMessage("Resume cleared. You can proceed without a resume.");
+        setTimeout(() => setResumeActionMessage(null), 3500);
+      } catch (err) {
+        console.warn("Could not delete resume on server:", err);
+        // Optimistically clear locally so candidate is not blocked
+        setExistingResumeName(null);
+      } finally {
+        setIsClearingResume(false);
+      }
+    } else {
+      setResumeActionMessage(null);
     }
   };
 
@@ -563,13 +596,30 @@ export function OnboardingFormCard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Resume Dropzone */}
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <label className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-              Resume
-            </label>
-            <span className="rounded-full bg-[#f0f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#0284c7]">
-              Optional
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <label className="font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
+                Resume
+              </label>
+              <span className="rounded-full bg-[#f0f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#0284c7]">
+                Optional
+              </span>
+            </div>
+            {(resumeFile || existingResumeName) && (
+              <button
+                type="button"
+                onClick={handleClearResume}
+                disabled={isClearingResume}
+                className="flex items-center gap-1 text-[11px] font-medium text-red-600 hover:text-red-700 hover:underline transition-colors disabled:opacity-50"
+              >
+                {isClearingResume ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Trash2 className="size-3" />
+                )}
+                <span>Clear Resume</span>
+              </button>
+            )}
           </div>
 
           <input
@@ -582,32 +632,59 @@ export function OnboardingFormCard() {
 
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-1.5 rounded-[10px] border border-[#ede6db] bg-[#fbf9f4] p-4 text-center cursor-pointer transition-all hover:border-brand/40 hover:bg-[#fff9f6]"
+            className="group relative flex flex-col items-center justify-center gap-1.5 rounded-[10px] border border-[#ede6db] bg-[#fbf9f4] p-4 text-center cursor-pointer transition-all hover:border-brand/40 hover:bg-[#fff9f6]"
           >
             {resumeFile ? (
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981]">
-                <CheckCircle2 className="size-4 text-[#10b981]" />
-                <span className="max-w-[200px] truncate">
-                  {resumeFile.name}
-                </span>
+              <div className="flex w-full items-center justify-between px-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981] min-w-0">
+                  <CheckCircle2 className="size-4 shrink-0 text-[#10b981]" />
+                  <span className="truncate max-w-[200px] sm:max-w-[240px]">
+                    {resumeFile.name}
+                  </span>
+                  <span className="text-[10px] text-ink-muted font-normal shrink-0">
+                    (Ready to upload)
+                  </span>
+                </div>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setResumeFile(null);
-                  }}
-                  className="text-[#6b6661] hover:text-red-500"
+                  title="Remove selected file"
+                  onClick={handleClearResume}
+                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                 >
                   <X className="size-3.5" />
+                  <span className="text-[11px] font-medium">Remove</span>
                 </button>
               </div>
             ) : existingResumeName ? (
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981]">
-                <CheckCircle2 className="size-4 text-[#10b981]" />
-                <span className="max-w-[200px] truncate">
-                  {existingResumeName}
-                </span>
-                <span className="text-[10px] text-[#6b6661] font-normal">(Click to replace)</span>
+              <div className="flex w-full items-center justify-between px-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#10b981] min-w-0">
+                  <CheckCircle2 className="size-4 shrink-0 text-[#10b981]" />
+                  <span className="truncate max-w-[180px] sm:max-w-[240px]">
+                    {existingResumeName}
+                  </span>
+                  <span className="text-[10px] text-ink-muted font-normal shrink-0 hidden sm:inline">
+                    (Attached)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] text-brand font-medium group-hover:underline hidden sm:inline">
+                    Change
+                  </span>
+                  <button
+                    type="button"
+                    title="Clear existing resume"
+                    disabled={isClearingResume}
+                    onClick={handleClearResume}
+                    className="flex items-center gap-1 rounded-md bg-white border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50 hover:border-red-300 transition-all shadow-2xs disabled:opacity-50"
+                  >
+                    {isClearingResume ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="size-3" />
+                    )}
+                    <span className="text-[11px] font-medium">Remove</span>
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -621,8 +698,16 @@ export function OnboardingFormCard() {
               </>
             )}
           </div>
+
+          {resumeActionMessage && (
+            <p className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
+              <CheckCircle2 className="size-3" />
+              <span>{resumeActionMessage}</span>
+            </p>
+          )}
+
           <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
-            We extract your experience to recommend the best starting difficulty.
+            We extract your experience to recommend the best starting difficulty. If skipped, we use your selected role and experience level.
           </span>
         </div>
 

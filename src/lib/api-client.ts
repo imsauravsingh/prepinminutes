@@ -691,6 +691,18 @@ export const backendApi = {
   },
 
   /**
+   * DELETE /api/onboarding/resume
+   */
+  async deleteResume(options: RequestOptions = {}) {
+    const res = await fetch(`${API_BASE_URL}/api/onboarding/resume`, {
+      method: "DELETE",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<{ success: boolean; message: string }>(res);
+  },
+
+  /**
    * POST /api/plan/generate
    */
   async generatePreparationPlan(options: RequestOptions = {}) {
