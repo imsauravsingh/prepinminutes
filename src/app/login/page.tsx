@@ -55,6 +55,7 @@ function LoginContent() {
     "/dashboard";
   const authToken = searchParams.get("auth_token");
   const errorParam = searchParams.get("error");
+  const sessionExpiredParam = searchParams.get("session_expired");
 
   const {
     isLoaded,
@@ -71,7 +72,11 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(
-    errorParam ? "Sign-in was cancelled or encountered an error." : null
+    sessionExpiredParam
+      ? "Your session has expired. Please sign in to continue."
+      : errorParam
+      ? "Sign-in was cancelled or encountered an error."
+      : null
   );
 
   // 1. Handle OAuth Callback Token (?auth_token=...)
@@ -89,10 +94,10 @@ function LoginContent() {
 
   // 2. Redirect if already signed in
   useEffect(() => {
-    if (isLoaded && isSignedIn && !authToken) {
+    if (isLoaded && isSignedIn && !authToken && !sessionExpiredParam) {
       router.replace(redirectUrl);
     }
-  }, [isLoaded, isSignedIn, authToken, redirectUrl, router]);
+  }, [isLoaded, isSignedIn, authToken, redirectUrl, router, sessionExpiredParam]);
 
   // Single Google Sign-In Action
   const handleGoogleLogin = () => {

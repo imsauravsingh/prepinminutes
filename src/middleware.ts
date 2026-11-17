@@ -72,12 +72,17 @@ export default function middleware(req: NextRequest, event: unknown) {
   // 2. Public routes: allow immediate access
   if (isPublicPath(pathname)) {
     // If the candidate is already authenticated and visits /login or /sign-up without explicit query params,
-    // redirect them directly to /dashboard
+    // redirect them directly to /dashboard.
+    // If redirect or session_expired is present, allow them to view login page cleanly without bouncing.
     const token =
       req.cookies.get("pim_session")?.value ||
       req.cookies.get("pim_auth_token")?.value ||
-      req.cookies.get("__session")?.value;
+      (activeAuthProvider === "clerk"
+        ? req.cookies.get("__session")?.value
+        : undefined);
 
+    const hasRedirect = req.nextUrl.searchParams.has("redirect");
+    const hasExpired = req.nextUrl.searchParams.has("session_expired");
     const hasAuthCallback =
       req.nextUrl.searchParams.has("auth_token") ||
       req.nextUrl.searchParams.has("code") ||
@@ -85,12 +90,12 @@ export default function middleware(req: NextRequest, event: unknown) {
 
     if (
       token &&
+      !hasRedirect &&
+      !hasExpired &&
       !hasAuthCallback &&
       (pathname === "/login" || pathname === "/sign-up")
     ) {
-      const redirectTarget =
-        req.nextUrl.searchParams.get("redirect") || "/dashboard";
-      return NextResponse.redirect(new URL(redirectTarget, req.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     return NextResponse.next();
@@ -106,12 +111,15 @@ export default function middleware(req: NextRequest, event: unknown) {
   const sessionToken =
     req.cookies.get("pim_session")?.value ||
     req.cookies.get("pim_auth_token")?.value ||
-    req.cookies.get("__session")?.value;
+    (activeAuthProvider === "clerk"
+      ? req.cookies.get("__session")?.value
+      : undefined);
 
   if (!sessionToken) {
     const loginUrl = new URL("/login", req.url);
     const redirectPath = req.nextUrl.pathname + req.nextUrl.search;
     loginUrl.searchParams.set("redirect", redirectPath);
+    loginUrl.searchParams.set("session_expired", "1");
     return NextResponse.redirect(loginUrl);
   }
 

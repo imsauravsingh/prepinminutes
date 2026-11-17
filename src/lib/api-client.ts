@@ -202,7 +202,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
       if (!isPublicPath) {
         window.location.href = `/login?redirect=${encodeURIComponent(
           window.location.pathname + window.location.search
-        )}`;
+        )}&session_expired=1`;
       }
     }
 

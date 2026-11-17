@@ -52,9 +52,11 @@ export function clearClientAuthSession(): void {
 
     const isHttps = window.location.protocol === "https:";
     const secureFlag = isHttps ? "; Secure" : "";
+    const expiredSuffix = `; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax${secureFlag}`;
 
-    document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
-    document.cookie = `${AUTH_TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
+    document.cookie = `${AUTH_COOKIE_NAME}=${expiredSuffix}`;
+    document.cookie = `${AUTH_TOKEN_COOKIE_NAME}=${expiredSuffix}`;
+    document.cookie = `__session=${expiredSuffix}`;
   } catch (err) {
     console.warn("Failed to clear client auth session:", err);
   }

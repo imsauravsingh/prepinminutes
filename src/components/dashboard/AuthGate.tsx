@@ -1,33 +1,43 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppAuth } from "@/components/providers/AuthProvider";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAppAuth();
   const router = useRouter();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !hasRedirected) {
+      setHasRedirected(true);
       const redirectTarget =
         typeof window !== "undefined"
           ? window.location.pathname + window.location.search
           : "/dashboard";
-      router.replace(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+      const loginUrl = `/login?redirect=${encodeURIComponent(
+        redirectTarget
+      )}&session_expired=1`;
+
+      if (typeof window !== "undefined") {
+        window.location.replace(loginUrl);
+      } else {
+        router.replace(loginUrl);
+      }
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, hasRedirected, router]);
 
-  if (isLoaded && !isSignedIn) {
-    return null;
-  }
-
-  if (!isLoaded) {
+  if (!isLoaded || !isSignedIn) {
     return (
       <div className="flex flex-1 items-center justify-center bg-[#fbf9f4] py-24 min-h-screen">
         <div className="flex flex-col items-center gap-3">
           <div className="size-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-          <p className="text-sm font-medium text-ink-muted">Verifying your session…</p>
+          <p className="text-sm font-medium text-ink-muted">
+            {!isLoaded
+              ? "Verifying your session…"
+              : "Session expired. Redirecting to login…"}
+          </p>
         </div>
       </div>
     );
