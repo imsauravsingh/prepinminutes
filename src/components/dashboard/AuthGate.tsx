@@ -18,7 +18,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  if (!isLoaded || !isSignedIn) {
+  if (isLoaded && !isSignedIn) {
+    return null;
+  }
+
+  if (!isLoaded) {
     return (
       <div className="flex flex-1 items-center justify-center bg-[#fbf9f4] py-24 min-h-screen">
         <div className="flex flex-col items-center gap-3">

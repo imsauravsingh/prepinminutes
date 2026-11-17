@@ -164,52 +164,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (initialUser) setUser(initialUser);
       }
 
-      // 1b. Fetch dynamic SSO runtime configuration from backend
-      try {
-        const config: SsoConfigResponse = await backendApi.getAuthConfig();
-        if (mounted && config.success) {
-          setActiveProvider(config.activeProvider || "google");
-          setGoogleFlow(config.googleFlow || "both");
-          if (config.googleClientId) {
-            setGoogleClientId(config.googleClientId);
-          }
-        }
-      } catch {
-        // Backend offline / static preview — keep default Google SSO settings
-      }
+      // 1b. Timeout safety: ensure initializeAuth never hangs longer than 3.5s if backend is offline
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 3500));
 
-      // 1c. If token exists, verify & refresh session with backend
-      if (initialToken) {
+      const authWorkPromise = (async () => {
+        // Fetch dynamic SSO runtime configuration from backend
         try {
-          const authMe = await backendApi.getAuthMe(initialToken);
-          if (mounted) {
-            if (authMe.authenticated && authMe.user) {
-              setUser(authMe.user);
-              setClientAuthSession(initialToken, authMe.user);
-            } else {
-              // Token invalid/expired
-              setToken(null);
-              setUser(null);
-              clearClientAuthSession();
+          const config: SsoConfigResponse = await backendApi.getAuthConfig();
+          if (mounted && config.success) {
+            setActiveProvider(config.activeProvider || "google");
+            setGoogleFlow(config.googleFlow || "both");
+            if (config.googleClientId) {
+              setGoogleClientId(config.googleClientId);
             }
           }
-        } catch (err: unknown) {
-          // If unauthorized or expired token, clear invalid credentials
-          const status =
-            err && typeof err === "object" && "status" in err
-              ? (err as { status?: number }).status
-              : 0;
-          const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        } catch {
+          // Backend offline / static preview — keep default Google SSO settings
+        }
 
-          if (status === 401 || status === 403 || msg.includes("sign in required")) {
+        // If token exists, verify & refresh session with backend
+        if (initialToken) {
+          try {
+            const authMe = await backendApi.getAuthMe(initialToken);
             if (mounted) {
-              setToken(null);
-              setUser(null);
-              clearClientAuthSession();
+              if (authMe.authenticated && authMe.user) {
+                setUser(authMe.user);
+                setClientAuthSession(initialToken, authMe.user);
+              } else {
+                // Token invalid/expired
+                setToken(null);
+                setUser(null);
+                clearClientAuthSession();
+              }
+            }
+          } catch (err: unknown) {
+            // If unauthorized or expired token, clear invalid credentials
+            const status =
+              err && typeof err === "object" && "status" in err
+                ? (err as { status?: number }).status
+                : 0;
+            const msg = err instanceof Error ? err.message.toLowerCase() : "";
+
+            if (status === 401 || status === 403 || msg.includes("sign in required")) {
+              if (mounted) {
+                setToken(null);
+                setUser(null);
+                clearClientAuthSession();
+              }
             }
           }
         }
-      }
+      })();
+
+      await Promise.race([authWorkPromise, timeoutPromise]);
 
       if (mounted) {
         setIsLoaded(true);
