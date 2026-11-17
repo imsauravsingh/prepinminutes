@@ -274,6 +274,24 @@ export function OnboardingFormCard() {
         jobDescriptionText: jobDescription.trim() || null,
       });
 
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            "pim_profile_cache",
+            JSON.stringify({
+              targetRole: finalTargetRole,
+              experienceLevel: experience,
+              fresherForte: isFresher ? fresherForte : null,
+              timelineLabel: timeline,
+              targetCompanies,
+              completedActivities: 0,
+              completedDays: 0,
+              readinessScore: 0,
+            })
+          );
+        } catch {}
+      }
+
       // Step B: Upload Resume if a new file was attached
       if (resumeFile) {
         setUploadProgressMsg("Processing resume and generating AI embeddings...");

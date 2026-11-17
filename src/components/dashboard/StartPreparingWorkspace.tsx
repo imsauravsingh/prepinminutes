@@ -34,7 +34,15 @@ interface StartPreparingWorkspaceProps {
 export function StartPreparingWorkspace({
   onEditSetup,
 }: StartPreparingWorkspaceProps) {
-  const [profile, setProfile] = useState<Record<string, any> | null>(null);
+  const [profile, setProfile] = useState<Record<string, any> | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("pim_profile_cache");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [activePlan, setActivePlan] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -46,7 +54,14 @@ export function StartPreparingWorkspace({
       .getProfile()
       .then((res) => {
         if (!isMounted) return;
-        if (res.profile) setProfile(res.profile);
+        if (res.profile) {
+          setProfile(res.profile);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("pim_profile_cache", JSON.stringify(res.profile));
+            } catch {}
+          }
+        }
         if (res.activePlan) setActivePlan(res.activePlan);
       })
       .catch((err) => console.warn("Failed to load profile in dashboard:", err))
@@ -63,6 +78,12 @@ export function StartPreparingWorkspace({
     setIsResetting(true);
     try {
       await backendApi.resetProfile();
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("pim_profile_cache");
+          localStorage.removeItem("prep_onboarding_completed");
+        } catch {}
+      }
       setShowResetModal(false);
       if (onEditSetup) {
         onEditSetup();
@@ -76,18 +97,465 @@ export function StartPreparingWorkspace({
     }
   };
 
-  const displayRole = profile?.targetRole || activePlan?.targetRole || "Senior Software Engineer";
-  const displayExperience = profile?.experienceLevel || "4-5 years";
+  const isFresher =
+    String(profile?.experienceLevel || "").toLowerCase().includes("0 years") ||
+    String(profile?.experienceLevel || "").toLowerCase().includes("fresher");
+
+  const displayRole = profile?.targetRole
+    ? isFresher && profile?.fresherForte
+      ? `${profile.targetRole} • ${profile.fresherForte.split(" (")[0]}`
+      : profile.targetRole
+    : activePlan?.targetRole || "Software Engineer / SDE";
+
+  const displayExperience = profile?.experienceLevel || "0-1 years";
   const displayTimeline = profile?.timelineLabel || activePlan?.timelineLabel || "1 month";
   const targetCompanies = profile?.targetCompanies || activePlan?.targetCompanies || [];
   const displayCompany = Array.isArray(targetCompanies) && targetCompanies.length > 0 ? targetCompanies[0] : "Google";
 
-  // Circular progress calculation from live active plan readiness score
+  // Dynamic Completed Metrics: Starts strictly from zero 0 for fresh candidates
+  const completedActivities = Number(
+    profile?.completedActivities ?? activePlan?.completedActivitiesCount ?? 0
+  );
+  const totalActivities = Number(activePlan?.totalActivitiesCount ?? 24);
+  const progressPercent =
+    totalActivities > 0
+      ? Math.round((completedActivities / totalActivities) * 100)
+      : 0;
+  const daysCompleted = Number(
+    profile?.completedDays ??
+      activePlan?.completedDays ??
+      (completedActivities > 0 ? 1 : 0)
+  );
+
+  // Derive total days from timeline
+  const deriveDaysFromTimeline = (label: string): number => {
+    const l = label.toLowerCase();
+    if (l.includes("2 week")) return 14;
+    if (l.includes("1 month") || l.includes("4 week")) return 28;
+    if (l.includes("2 month") || l.includes("8 week")) return 56;
+    if (l.includes("3 month") || l.includes("12 week")) return 84;
+    if (l.includes("6 month") || l.includes("24 week")) return 168;
+    return 28;
+  };
+  const totalTimelineDays = deriveDaysFromTimeline(displayTimeline);
+  const daysRemaining = Math.max(0, totalTimelineDays - daysCompleted);
+
+  // Circular progress calculation from real candidate progress (starts from 0)
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
-  const progressPercent = Math.min(100, Math.max(5, Math.round(activePlan?.readinessScore ?? 18)));
   const strokeDashoffset =
-    circumference - (circumference * progressPercent) / 100;
+    progressPercent === 0
+      ? circumference
+      : circumference - (circumference * progressPercent) / 100;
+
+  // Today's Formatted Live Date
+  const todayFormatted = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date());
+
+  // Dynamically tailor today's activities based on role / forte
+  const getTodayActivities = () => {
+    const roleLower = (profile?.targetRole || "").toLowerCase();
+    const forteLower = (profile?.fresherForte || "").toLowerCase();
+
+    if (
+      roleLower.includes("data analyst") ||
+      forteLower.includes("data analytics") ||
+      forteLower.includes("sql")
+    ) {
+      return [
+        {
+          title: "SQL Mastery: Complex Joins & Aggregations",
+          subtitle: "Master multi-table joins, subqueries and window functions",
+          duration: "10 min",
+          href: "/practice/session/coding?topic=sql-window-functions",
+          icon: BookOpen,
+          bg: "bg-[#ffe4e8]",
+          textColor: "text-pink",
+          badge: "SQL",
+        },
+        {
+          title: "Data Analytics: Metric Definition & KPIs",
+          subtitle: "Walk through churn, cohort retention and funnel drop-offs",
+          duration: "10 min",
+          href: "/practice/topics?domain=data-engineering&search=analytics",
+          icon: Code2,
+          bg: "bg-[#eff6ff]",
+          textColor: "text-blue",
+          badge: "Analytics",
+        },
+        {
+          title: "Behavioral: Presenting Insights to Stakeholders",
+          subtitle: "Practice explaining data findings to non-technical leadership",
+          duration: "5 min",
+          href: "/practice/session/behavioral",
+          icon: MessageSquare,
+          bg: "bg-[#f5f3ff]",
+          textColor: "text-purple",
+          badge: "STAR",
+        },
+      ];
+    }
+
+    if (
+      roleLower.includes("cloud") ||
+      roleLower.includes("devops") ||
+      forteLower.includes("cloud") ||
+      forteLower.includes("devops")
+    ) {
+      return [
+        {
+          title: "Cloud Infrastructure: VPC & Multi-Region Resiliency",
+          subtitle: "Architect cross-region disaster recovery and auto-scaling",
+          duration: "10 min",
+          href: "/practice/session/cloud",
+          icon: BookOpen,
+          bg: "bg-[#eff6ff]",
+          textColor: "text-blue",
+          badge: "VPC",
+        },
+        {
+          title: "DevOps: Kubernetes Pod Scheduling & Ingress",
+          subtitle: "Configure node affinity, taint/tolerations and ingress controllers",
+          duration: "10 min",
+          href: "/practice/session/cloud?topic=kubernetes-architecture",
+          icon: Code2,
+          bg: "bg-[#e0e7ff]",
+          textColor: "text-indigo-600",
+          badge: "K8s",
+        },
+        {
+          title: "Behavioral: Production Incident Management & Post-Mortem",
+          subtitle: "Structure answers around high-severity outage triage",
+          duration: "5 min",
+          href: "/practice/session/behavioral",
+          icon: MessageSquare,
+          bg: "bg-[#f5f3ff]",
+          textColor: "text-purple",
+          badge: "STAR",
+        },
+      ];
+    }
+
+    if (
+      roleLower.includes("machine learning") ||
+      roleLower.includes("ai") ||
+      forteLower.includes("ai") ||
+      forteLower.includes("machine learning")
+    ) {
+      return [
+        {
+          title: "AI System Design: Vector Search & RAG Architecture",
+          subtitle: "Chunking, hybrid BM25 + dense search and re-ranking pipelines",
+          duration: "10 min",
+          href: "/practice/session/system-design?topic=vector-databases-and-rag-pipeline",
+          icon: BookOpen,
+          bg: "bg-[#faf5ff]",
+          textColor: "text-purple-600",
+          badge: "RAG",
+        },
+        {
+          title: "ML Fundamentals: Transformer Self-Attention & Loss",
+          subtitle: "Explain multi-head attention, backprop and gradient clipping",
+          duration: "10 min",
+          href: "/practice/session/coding?topic=dynamic-programming-patterns",
+          icon: Code2,
+          bg: "bg-[#eff6ff]",
+          textColor: "text-blue",
+          badge: "Math/ML",
+        },
+        {
+          title: "Behavioral: Delivering ML Prototypes into Production",
+          subtitle: "Explain trade-offs between model accuracy and inference latency",
+          duration: "5 min",
+          href: "/practice/session/behavioral",
+          icon: MessageSquare,
+          bg: "bg-[#f5f3ff]",
+          textColor: "text-purple",
+          badge: "STAR",
+        },
+      ];
+    }
+
+    if (
+      roleLower.includes("frontend") ||
+      forteLower.includes("web development") ||
+      roleLower.includes("fullstack")
+    ) {
+      return [
+        {
+          title: "Frontend Architecture: SSR vs Hydration & Core Web Vitals",
+          subtitle: "Optimize LCP, INP and CLS with streaming SSR",
+          duration: "10 min",
+          href: "/practice/session/system-design?topic=micro-frontends-and-rendering-strategies",
+          icon: BookOpen,
+          bg: "bg-[#ffe4e8]",
+          textColor: "text-pink",
+          badge: "Web Arch",
+        },
+        {
+          title: "Coding Practice: Reactive UI & State Management",
+          subtitle: "Design concurrent state caches and debounced event queues",
+          duration: "10 min",
+          href: "/practice/session/coding?topic=two-pointers",
+          icon: Code2,
+          bg: "bg-[#eff6ff]",
+          textColor: "text-blue",
+          badge: "React/TS",
+        },
+        {
+          title: "Behavioral: Alignment with Product & Design Teams",
+          subtitle: "Navigate scope trade-offs under tight sprint deadlines",
+          duration: "5 min",
+          href: "/practice/session/behavioral",
+          icon: MessageSquare,
+          bg: "bg-[#f5f3ff]",
+          textColor: "text-purple",
+          badge: "STAR",
+        },
+      ];
+    }
+
+    // Default: Software Engineer / SDE / Backend Architecture
+    return [
+      {
+        title: "System Design: Load Balancing Strategies",
+        subtitle: "L4 vs L7 routing, consistent hashing and health checks",
+        duration: "10 min",
+        href: "/practice/session/system-design?topic=Load%20Balancing%20Strategies",
+        icon: BookOpen,
+        bg: "bg-[#ffe4e8]",
+        textColor: "text-pink",
+        badge: "Architecture",
+      },
+      {
+        title: "Coding Practice: Two Pointers & Sliding Window",
+        subtitle: "Solve 1-2 medium array/string problems optimally in O(N)",
+        duration: "10 min",
+        href: "/practice/session/coding?topic=two-pointers",
+        icon: Code2,
+        bg: "bg-[#eff6ff]",
+        textColor: "text-blue",
+        badge: "Algorithms",
+      },
+      {
+        title: "Behavioral: Conflict Resolution & Cross-Functional Ownership",
+        subtitle: "Practice structuring technical disagreement using STAR",
+        duration: "5 min",
+        href: "/practice/session/behavioral",
+        icon: MessageSquare,
+        bg: "bg-[#f5f3ff]",
+        textColor: "text-purple",
+        badge: "STAR",
+      },
+    ];
+  };
+
+  const todayActivities = getTodayActivities();
+
+  // Dynamically tailor the 4 preparation areas with progress starting at 0%
+  const getPreparationAreas = () => {
+    const roleLower = (profile?.targetRole || "").toLowerCase();
+    const forteLower = (profile?.fresherForte || "").toLowerCase();
+    const isCompleted = completedActivities > 0;
+
+    if (
+      roleLower.includes("data analyst") ||
+      forteLower.includes("data analytics") ||
+      forteLower.includes("sql")
+    ) {
+      return [
+        {
+          name: "SQL & Relational Modeling",
+          progress: isCompleted ? 25 : 0,
+          remaining: isCompleted ? "6 topics remaining" : "8 topics remaining",
+          color: "bg-brand",
+          border: "border-[#ffe4dc]",
+          bg: "bg-[#fff8f6]",
+          iconColor: "text-brand",
+          icon: Layers,
+        },
+        {
+          name: "Data Analytics & KPIs",
+          progress: isCompleted ? 20 : 0,
+          remaining: isCompleted ? "9 topics remaining" : "12 topics remaining",
+          color: "bg-blue",
+          border: "border-[#dbeafe]",
+          bg: "bg-[#f0f7ff]",
+          iconColor: "text-blue",
+          icon: Code2,
+        },
+        {
+          name: "Python for Data Analysis",
+          progress: 0,
+          remaining: "10 topics remaining",
+          color: "bg-purple",
+          border: "border-[#f3e8ff]",
+          bg: "bg-[#faf5ff]",
+          iconColor: "text-purple",
+          icon: Users2,
+        },
+        {
+          name: "Behavioral & Communication",
+          progress: 0,
+          remaining: "6 topics remaining",
+          color: "bg-[#10b981]",
+          border: "border-[#dcfce7]",
+          bg: "bg-[#f0fdf4]",
+          iconColor: "text-[#10b981]",
+          icon: MessageSquare,
+        },
+      ];
+    }
+
+    if (
+      roleLower.includes("cloud") ||
+      roleLower.includes("devops") ||
+      forteLower.includes("cloud") ||
+      forteLower.includes("devops")
+    ) {
+      return [
+        {
+          name: "Cloud Architecture",
+          progress: isCompleted ? 25 : 0,
+          remaining: isCompleted ? "6 topics remaining" : "8 topics remaining",
+          color: "bg-brand",
+          border: "border-[#ffe4dc]",
+          bg: "bg-[#fff8f6]",
+          iconColor: "text-brand",
+          icon: Layers,
+        },
+        {
+          name: "Kubernetes & Containers",
+          progress: isCompleted ? 15 : 0,
+          remaining: isCompleted ? "10 topics remaining" : "12 topics remaining",
+          color: "bg-blue",
+          border: "border-[#dbeafe]",
+          bg: "bg-[#f0f7ff]",
+          iconColor: "text-blue",
+          icon: Code2,
+        },
+        {
+          name: "CI/CD & Infrastructure as Code",
+          progress: 0,
+          remaining: "10 topics remaining",
+          color: "bg-purple",
+          border: "border-[#f3e8ff]",
+          bg: "bg-[#faf5ff]",
+          iconColor: "text-purple",
+          icon: Users2,
+        },
+        {
+          name: "Behavioral & Incident Leadership",
+          progress: 0,
+          remaining: "8 topics remaining",
+          color: "bg-[#10b981]",
+          border: "border-[#dcfce7]",
+          bg: "bg-[#f0fdf4]",
+          iconColor: "text-[#10b981]",
+          icon: MessageSquare,
+        },
+      ];
+    }
+
+    if (
+      roleLower.includes("frontend") ||
+      forteLower.includes("web development") ||
+      roleLower.includes("fullstack")
+    ) {
+      return [
+        {
+          name: "Frontend Architecture",
+          progress: isCompleted ? 20 : 0,
+          remaining: isCompleted ? "6 topics remaining" : "8 topics remaining",
+          color: "bg-brand",
+          border: "border-[#ffe4dc]",
+          bg: "bg-[#fff8f6]",
+          iconColor: "text-brand",
+          icon: Layers,
+        },
+        {
+          name: "React, TypeScript & State",
+          progress: isCompleted ? 15 : 0,
+          remaining: isCompleted ? "10 topics remaining" : "12 topics remaining",
+          color: "bg-blue",
+          border: "border-[#dbeafe]",
+          bg: "bg-[#f0f7ff]",
+          iconColor: "text-blue",
+          icon: Code2,
+        },
+        {
+          name: "API Design & Performance",
+          progress: 0,
+          remaining: "10 topics remaining",
+          color: "bg-purple",
+          border: "border-[#f3e8ff]",
+          bg: "bg-[#faf5ff]",
+          iconColor: "text-purple",
+          icon: Users2,
+        },
+        {
+          name: "Behavioral & Collaboration",
+          progress: 0,
+          remaining: "8 topics remaining",
+          color: "bg-[#10b981]",
+          border: "border-[#dcfce7]",
+          bg: "bg-[#f0fdf4]",
+          iconColor: "text-[#10b981]",
+          icon: MessageSquare,
+        },
+      ];
+    }
+
+    // Default: Software Engineer / SDE / Backend Architecture
+    return [
+      {
+        name: "System Design",
+        progress: isCompleted ? 20 : 0,
+        remaining: isCompleted ? "6 topics remaining" : "8 topics remaining",
+        color: "bg-brand",
+        border: "border-[#ffe4dc]",
+        bg: "bg-[#fff8f6]",
+        iconColor: "text-brand",
+        icon: Layers,
+      },
+      {
+        name: "Coding & Algorithms",
+        progress: isCompleted ? 15 : 0,
+        remaining: isCompleted ? "10 topics remaining" : "12 topics remaining",
+        color: "bg-blue",
+        border: "border-[#dbeafe]",
+        bg: "bg-[#f0f7ff]",
+        iconColor: "text-blue",
+        icon: Code2,
+      },
+      {
+        name: "Cloud & Microservices",
+        progress: 0,
+        remaining: "10 topics remaining",
+        color: "bg-purple",
+        border: "border-[#f3e8ff]",
+        bg: "bg-[#faf5ff]",
+        iconColor: "text-purple",
+        icon: Users2,
+      },
+      {
+        name: "Behavioral & Leadership",
+        progress: 0,
+        remaining: "8 topics remaining",
+        color: "bg-[#10b981]",
+        border: "border-[#dcfce7]",
+        bg: "bg-[#f0fdf4]",
+        iconColor: "text-[#10b981]",
+        icon: MessageSquare,
+      },
+    ];
+  };
+
+  const preparationAreas = getPreparationAreas();
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -228,7 +696,7 @@ export function StartPreparingWorkspace({
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
               <div className="flex items-center gap-1.5 text-xs text-ink-muted font-medium">
                 <Calendar className="size-3.5" />
-                <span>Mon, Sep 16, 2026</span>
+                <span>{todayFormatted}</span>
               </div>
               <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-bold text-brand">
                 25 min
@@ -238,92 +706,46 @@ export function StartPreparingWorkspace({
 
           {/* Activities List */}
           <div className="flex flex-col gap-3">
-            {/* Activity 1: System Design */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-line bg-white p-3.5 shadow-2xs hover:border-brand/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#ffe4e8] text-pink">
-                  <BookOpen className="size-5" />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <h4 className="font-display text-sm font-bold text-ink">
-                    System Design: Load Balancing
-                  </h4>
-                  <p className="text-xs text-ink-muted">
-                    Read key concepts and patterns
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                <span className="text-xs font-semibold text-ink-muted">
-                  10 min
-                </span>
-                <Link
-                  href="/practice/session/system-design?topic=Load%20Balancing%20Strategies"
-                  className="rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#fa552b] transition-colors"
+            {todayActivities.map((act, idx) => {
+              const ActIcon = act.icon;
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-line bg-white p-3.5 shadow-2xs hover:border-brand/30 transition-colors"
                 >
-                  Start →
-                </Link>
-              </div>
-            </div>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${act.bg} ${act.textColor}`}
+                    >
+                      <ActIcon className="size-5" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-display text-sm font-bold text-ink">
+                          {act.title}
+                        </h4>
+                        <span className="rounded bg-cream px-1.5 py-0.5 text-[10px] font-bold text-ink-muted tracking-wide">
+                          {act.badge}
+                        </span>
+                      </div>
+                      <p className="text-xs text-ink-muted">{act.subtitle}</p>
+                    </div>
+                  </div>
 
-            {/* Activity 2: Coding Practice */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-line bg-white p-3.5 shadow-2xs hover:border-brand/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-blue">
-                  <Code2 className="size-5" />
+                  <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                    <span className="text-xs font-semibold text-ink-muted">
+                      {act.duration}
+                    </span>
+                    <Link
+                      href={act.href}
+                      className="rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#fa552b] transition-colors"
+                    >
+                      Start →
+                    </Link>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <h4 className="font-display text-sm font-bold text-ink">
-                    Coding Practice
-                  </h4>
-                  <p className="text-xs text-ink-muted">
-                    Solve 1–2 problems (medium)
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                <span className="text-xs font-semibold text-ink-muted">
-                  10 min
-                </span>
-                <Link
-                  href="/practice/session/coding?topic=two-pointers"
-                  className="rounded-full border border-line bg-white px-4 py-1.5 text-xs font-semibold text-ink shadow-xs hover:bg-cream transition-colors"
-                >
-                  Start →
-                </Link>
-              </div>
-            </div>
-
-            {/* Activity 3: Behavioral */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-line bg-white p-3.5 shadow-2xs hover:border-brand/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f3ff] text-purple">
-                  <MessageSquare className="size-5" />
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <h4 className="font-display text-sm font-bold text-ink">
-                    Behavioral: Conflict Resolution
-                  </h4>
-                  <p className="text-xs text-ink-muted">
-                    Practice answering using STAR
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                <span className="text-xs font-semibold text-ink-muted">
-                  5 min
-                </span>
-                <Link
-                  href="/practice/session/behavioral"
-                  className="rounded-full border border-line bg-white px-4 py-1.5 text-xs font-semibold text-ink shadow-xs hover:bg-cream transition-colors"
-                >
-                  Start →
-                </Link>
-              </div>
-            </div>
+              );
+            })}
           </div>
 
           {/* Motivation Callout */}
@@ -391,16 +813,26 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-baseline gap-1.5">
                 <span className="font-display text-2xl font-extrabold text-ink">
-                  3 / 24
+                  {completedActivities} / {totalActivities}
                 </span>
                 <span className="text-xs text-ink-muted">
                   Activities completed
                 </span>
               </div>
 
-              <div className="inline-flex items-center gap-1 rounded-full bg-[#edf5ec] px-2.5 py-0.5 text-[11px] font-semibold text-[#10b981] w-fit">
-                <span>↗</span>
-                <span>You&apos;re on track!</span>
+              <div
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold w-fit ${
+                  completedActivities === 0
+                    ? "bg-brand/10 text-brand"
+                    : "bg-[#edf5ec] text-[#10b981]"
+                }`}
+              >
+                <span>{completedActivities === 0 ? "🎯" : "↗"}</span>
+                <span>
+                  {completedActivities === 0
+                    ? "Ready to start Day 1!"
+                    : "You're on track!"}
+                </span>
               </div>
             </div>
           </div>
@@ -411,19 +843,21 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
               <BookOpen className="size-4 text-[#10b981]" />
               <span className="font-display text-base font-bold text-ink leading-none">
-                1
+                {daysCompleted}
               </span>
-              <span className="text-[10px] text-ink-muted">Day completed</span>
+              <span className="text-[10px] text-ink-muted">
+                {daysCompleted === 1 ? "Day completed" : "Days completed"}
+              </span>
             </div>
 
             {/* Metric 2 */}
             <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
               <Zap className="size-4 text-purple" />
               <span className="font-display text-base font-bold text-ink leading-none">
-                5
+                {completedActivities}
               </span>
               <span className="text-[10px] text-ink-muted">
-                Topics in progress
+                Topics practiced
               </span>
             </div>
 
@@ -431,7 +865,7 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
               <Clock className="size-4 text-blue" />
               <span className="font-display text-base font-bold text-ink leading-none">
-                12
+                {daysRemaining}
               </span>
               <span className="text-[10px] text-ink-muted">Days remaining</span>
             </div>
@@ -469,119 +903,44 @@ export function StartPreparingWorkspace({
           </Link>
         </div>
 
-        {/* 4 Topic Area Cards */}
+        {/* Dynamic 4 Topic Area Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* 1. System Design */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-[#ffe4dc] bg-[#fff8f6] p-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-white text-red shadow-xs">
-                <Layers className="size-4" />
-              </div>
-              <h4 className="font-display text-sm font-bold text-ink">
-                System Design
-              </h4>
-            </div>
+          {preparationAreas.map((area, idx) => {
+            const AreaIcon = area.icon;
+            return (
+              <div
+                key={idx}
+                className={`flex flex-col justify-between gap-3 rounded-xl border ${area.border} ${area.bg} p-4`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex size-8 items-center justify-center rounded-lg bg-white ${area.iconColor} shadow-xs`}
+                  >
+                    <AreaIcon className="size-4" />
+                  </div>
+                  <h4 className="font-display text-sm font-bold text-ink">
+                    {area.name}
+                  </h4>
+                </div>
 
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-muted">Progress</span>
-                <span className="font-bold text-ink">18%</span>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ink-muted">Progress</span>
+                    <span className="font-bold text-ink">{area.progress}%</span>
+                  </div>
+                  <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
+                    <div
+                      className={`h-full rounded-full ${area.color} transition-all duration-300`}
+                      style={{ width: `${area.progress}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-ink-muted">
+                    {area.remaining}
+                  </span>
+                </div>
               </div>
-              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-                <div
-                  className="h-full rounded-full bg-brand transition-all duration-300"
-                  style={{ width: "18%" }}
-                />
-              </div>
-              <span className="text-[11px] text-ink-muted">
-                8 topics remaining
-              </span>
-            </div>
-          </div>
-
-          {/* 2. Coding */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-[#dbeafe] bg-[#f0f7ff] p-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-white text-blue shadow-xs">
-                <Code2 className="size-4" />
-              </div>
-              <h4 className="font-display text-sm font-bold text-ink">
-                Coding
-              </h4>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-muted">Progress</span>
-                <span className="font-bold text-ink">10%</span>
-              </div>
-              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-                <div
-                  className="h-full rounded-full bg-blue transition-all duration-300"
-                  style={{ width: "10%" }}
-                />
-              </div>
-              <span className="text-[11px] text-ink-muted">
-                12 topics remaining
-              </span>
-            </div>
-          </div>
-
-          {/* 3. Behavioral */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-[#f3e8ff] bg-[#faf5ff] p-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-white text-purple shadow-xs">
-                <Users2 className="size-4" />
-              </div>
-              <h4 className="font-display text-sm font-bold text-ink">
-                Behavioral
-              </h4>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-muted">Progress</span>
-                <span className="font-bold text-ink">5%</span>
-              </div>
-              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-                <div
-                  className="h-full rounded-full bg-purple transition-all duration-300"
-                  style={{ width: "5%" }}
-                />
-              </div>
-              <span className="text-[11px] text-ink-muted">
-                10 topics remaining
-              </span>
-            </div>
-          </div>
-
-          {/* 4. Communication */}
-          <div className="flex flex-col justify-between gap-3 rounded-xl border border-[#dcfce7] bg-[#f0fdf4] p-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-white text-[#10b981] shadow-xs">
-                <MessageSquare className="size-4" />
-              </div>
-              <h4 className="font-display text-sm font-bold text-ink">
-                Communication
-              </h4>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-muted">Progress</span>
-                <span className="font-bold text-ink">8%</span>
-              </div>
-              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-                <div
-                  className="h-full rounded-full bg-[#10b981] transition-all duration-300"
-                  style={{ width: "8%" }}
-                />
-              </div>
-              <span className="text-[11px] text-ink-muted">
-                8 topics remaining
-              </span>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
 
