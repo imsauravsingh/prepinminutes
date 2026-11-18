@@ -33,6 +33,7 @@ import {
   ArrowRight,
   BrainCircuit,
   Plus,
+  LayoutGrid,
 } from "lucide-react";
 
 export type NodeStatus = "mastered" | "in_progress" | "upcoming" | "locked";
@@ -386,6 +387,7 @@ export function InteractiveRoadmap({
   // Primary language selection (defaults to Node.js)
   const [selectedLanguage, setSelectedLanguage] = useState<string>("Node.js");
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [isDomainDropdownOpen, setIsDomainDropdownOpen] = useState(false);
 
   // Profile-driven domain evaluation
   const evaluationResult = useMemo(() => {
@@ -1726,99 +1728,224 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
           </div>
         </div>
 
-        {/* Primary Language / Tech Stack Switcher */}
-        {!isFresher && (
-          <div className="relative self-start sm:self-auto shrink-0 z-40">
+        {/* Right Controls: Primary Stack + Curriculum Domains Dropdowns */}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0 flex-wrap z-40">
+          {/* Primary Language / Tech Stack Switcher */}
+          {!isFresher && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLanguageDropdownOpen(!isLanguageDropdownOpen);
+                  if (isDomainDropdownOpen) setIsDomainDropdownOpen(false);
+                }}
+                className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer ${
+                  isLanguageDropdownOpen
+                    ? "border-emerald-500 bg-[#dcfce7] text-emerald-950 ring-2 ring-emerald-500/20"
+                    : "border-emerald-300 bg-[#f0fdf4] text-emerald-900 hover:bg-[#dcfce7]"
+                }`}
+                aria-expanded={isLanguageDropdownOpen}
+              >
+                <Code2 className="size-4 text-emerald-600" />
+                <span className="text-[11px] font-medium text-emerald-800/80">
+                  Primary Stack:
+                </span>
+                <span className="font-extrabold text-emerald-950">
+                  {selectedLanguage}
+                </span>
+                <ChevronDown
+                  className={`size-3.5 text-emerald-700 transition-transform duration-200 ${
+                    isLanguageDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isLanguageDropdownOpen && (
+                <>
+                  {/* Backdrop to close dropdown on click outside */}
+                  <div
+                    className="fixed inset-0 z-40 cursor-default"
+                    onClick={() => setIsLanguageDropdownOpen(false)}
+                    aria-hidden="true"
+                  />
+
+                  <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="flex items-center justify-between px-3 py-1.5 border-b border-line mb-1.5">
+                      <span className="text-[11px] font-extrabold text-ink uppercase tracking-wider">
+                        Declared Tech Stack
+                      </span>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {supportedLanguages.length} Available
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+                      {supportedLanguages.map((lang) => {
+                        const isSelected = selectedLanguage === lang.name;
+                        return (
+                          <button
+                            key={lang.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedLanguage(lang.name);
+                              setIsLanguageDropdownOpen(false);
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-emerald-50 text-emerald-950 border border-emerald-300 shadow-xs"
+                                : "hover:bg-cream text-ink border border-transparent"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div
+                                className={`flex size-6 shrink-0 items-center justify-center rounded-lg ${
+                                  isSelected
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <Check className="size-3.5 stroke-[3]" />
+                                ) : (
+                                  <Code2 className="size-3.5" />
+                                )}
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate">{lang.name}</span>
+                                <span className="text-[10px] text-ink-muted font-normal truncate">
+                                  {lang.runtime}
+                                </span>
+                              </div>
+                            </div>
+                            <span
+                              className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${
+                                isSelected
+                                  ? "bg-white border-emerald-300 text-emerald-800"
+                                  : "bg-white border-line text-ink-muted"
+                              }`}
+                            >
+                              {lang.badge}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Curriculum Domains Customizer Dropdown */}
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+              onClick={() => {
+                setIsDomainDropdownOpen(!isDomainDropdownOpen);
+                if (isLanguageDropdownOpen) setIsLanguageDropdownOpen(false);
+              }}
               className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold shadow-xs transition-all cursor-pointer ${
-                isLanguageDropdownOpen
-                  ? "border-emerald-500 bg-[#dcfce7] text-emerald-950 ring-2 ring-emerald-500/20"
-                  : "border-emerald-300 bg-[#f0fdf4] text-emerald-900 hover:bg-[#dcfce7]"
+                isDomainDropdownOpen
+                  ? "border-brand bg-brand-soft text-ink ring-2 ring-brand/20"
+                  : "border-line bg-white text-ink hover:bg-cream"
               }`}
-              aria-expanded={isLanguageDropdownOpen}
+              aria-expanded={isDomainDropdownOpen}
             >
-              <Code2 className="size-4 text-emerald-600" />
-              <span className="text-[11px] font-medium text-emerald-800/80">
-                Primary Stack:
+              <LayoutGrid className="size-4 text-brand" />
+              <span className="text-[11px] font-medium text-ink-muted">
+                Curriculum Domains:
               </span>
-              <span className="font-extrabold text-emerald-950">
-                {selectedLanguage}
+              <span className="font-extrabold text-brand">
+                {activeDomainKeys.length} Active
               </span>
               <ChevronDown
-                className={`size-3.5 text-emerald-700 transition-transform duration-200 ${
-                  isLanguageDropdownOpen ? "rotate-180" : ""
+                className={`size-3.5 text-ink-muted transition-transform duration-200 ${
+                  isDomainDropdownOpen ? "rotate-180" : ""
                 }`}
               />
             </button>
 
-            {isLanguageDropdownOpen && (
+            {isDomainDropdownOpen && (
               <>
                 {/* Backdrop to close dropdown on click outside */}
                 <div
                   className="fixed inset-0 z-40 cursor-default"
-                  onClick={() => setIsLanguageDropdownOpen(false)}
+                  onClick={() => setIsDomainDropdownOpen(false)}
                   aria-hidden="true"
                 />
 
-                <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-line mb-1.5">
-                    <span className="text-[11px] font-extrabold text-ink uppercase tracking-wider">
-                      Declared Tech Stack
-                    </span>
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      {supportedLanguages.length} Available
+                <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="flex items-center justify-between px-2 pb-2.5 border-b border-line mb-2">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-extrabold text-ink uppercase tracking-wider">
+                        Curriculum Scope
+                      </span>
+                      <span className="text-[10px] text-ink-muted font-medium">
+                        Toggle domains required for your loop
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-extrabold text-brand bg-brand-soft px-2 py-0.5 rounded-full border border-brand/20">
+                      {activeDomainKeys.length}/{Object.keys(allAvailableDomains).length} Active
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-                    {supportedLanguages.map((lang) => {
-                      const isSelected = selectedLanguage === lang.name;
+                  <div className="flex flex-col gap-1 max-h-80 overflow-y-auto pr-0.5">
+                    {Object.entries(allAvailableDomains).map(([key, dom]) => {
+                      const isActive = activeDomainKeys.includes(key);
+                      const DomIcon = dom.icon;
+
                       return (
                         <button
-                          key={lang.name}
+                          key={key}
                           type="button"
-                          onClick={() => {
-                            setSelectedLanguage(lang.name);
-                            setIsLanguageDropdownOpen(false);
-                          }}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
-                            isSelected
-                              ? "bg-emerald-50 text-emerald-950 border border-emerald-300 shadow-xs"
-                              : "hover:bg-cream text-ink border border-transparent"
+                          onClick={() => toggleDomain(key)}
+                          className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-brand-soft/70 text-ink border border-brand/30 shadow-2xs"
+                              : "hover:bg-cream text-ink-muted border border-transparent"
                           }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div
                               className={`flex size-6 shrink-0 items-center justify-center rounded-lg ${
-                                isSelected
-                                  ? "bg-emerald-600 text-white"
-                                  : "bg-slate-100 text-slate-500"
+                                isActive
+                                  ? "bg-brand text-white"
+                                  : "bg-slate-100 text-slate-400"
                               }`}
                             >
-                              {isSelected ? (
-                                <Check className="size-3.5 stroke-[3]" />
-                              ) : (
-                                <Code2 className="size-3.5" />
-                              )}
+                              <DomIcon className="size-3.5" />
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="truncate">{lang.name}</span>
-                              <span className="text-[10px] text-ink-muted font-normal truncate">
-                                {lang.runtime}
+                              <span
+                                className={`truncate text-xs ${
+                                  isActive
+                                    ? "text-ink font-bold"
+                                    : "text-ink-muted font-medium"
+                                }`}
+                              >
+                                {dom.name}
+                              </span>
+                              <span className="text-[10px] text-ink-muted/80 font-normal truncate">
+                                {key === "ai-system-design"
+                                  ? "Mandatory Modern Standard"
+                                  : isActive
+                                    ? "Included in syllabus"
+                                    : "Click to add"}
                               </span>
                             </div>
                           </div>
-                          <span
-                            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${
-                              isSelected
-                                ? "bg-white border-emerald-300 text-emerald-800"
-                                : "bg-white border-line text-ink-muted"
-                            }`}
-                          >
-                            {lang.badge}
-                          </span>
+
+                          <div className="shrink-0 ml-2">
+                            {isActive ? (
+                              <span className="flex size-5 items-center justify-center rounded-md bg-brand text-white shadow-2xs">
+                                <Check className="size-3.5 stroke-[3]" />
+                              </span>
+                            ) : (
+                              <span className="flex size-5 items-center justify-center rounded-md border border-line bg-white text-ink-muted hover:border-brand hover:text-brand">
+                                <Plus className="size-3.5" />
+                              </span>
+                            )}
+                          </div>
                         </button>
                       );
                     })}
@@ -1827,54 +1954,6 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
               </>
             )}
           </div>
-        )}
-      </div>
-
-      {/* 2. DYNAMIC DOMAIN CUSTOMIZATION TOOLBAR: Add or toggle any required interview domain */}
-      <div className="relative z-10 flex flex-col gap-2.5 rounded-2xl border border-line/80 bg-white/80 p-3.5 backdrop-blur-xs">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-xs font-extrabold text-ink uppercase tracking-wider flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-brand" />
-            <span>
-              Active Interview Domains in Graph ({activeDomainKeys.length})
-            </span>
-          </span>
-          <span className="text-[11px] text-ink-muted">
-            Click to toggle or add any domain required for your specific
-            interview loop:
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {Object.entries(allAvailableDomains).map(([key, dom]) => {
-            const isActive = activeDomainKeys.includes(key);
-            const DomIcon = dom.icon;
-
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => toggleDomain(key)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-ink text-white shadow-xs ring-1 ring-ink"
-                    : "bg-[#fbf9f4] text-ink-muted hover:text-ink hover:bg-cream border border-line"
-                }`}
-              >
-                <DomIcon
-                  className={`size-3.5 ${isActive ? "text-cyan-300" : "text-ink-muted"}`}
-                />
-                <span>{dom.name}</span>
-                {isActive ? (
-                  <span className="text-[10px] text-white/70 ml-1 font-normal">
-                    ✕
-                  </span>
-                ) : (
-                  <Plus className="size-3 text-ink-muted ml-0.5" />
-                )}
-              </button>
-            );
-          })}
         </div>
       </div>
 
