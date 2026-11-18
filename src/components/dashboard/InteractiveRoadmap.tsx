@@ -482,7 +482,7 @@ export function InteractiveRoadmap({
   };
 
   // Build the dynamic graph nodes corresponding to the active domains
-  const { domainGraphNodes, candidateAnalysisRationale } = useMemo(() => {
+  const { domainGraphNodes } = useMemo(() => {
     const nodes: DomainGraphNode[] = [];
 
     // 1. Node.js Runtime Architecture
@@ -1464,7 +1464,6 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
 
     return {
       domainGraphNodes: nodes,
-      candidateAnalysisRationale: `Identified candidate profile: ${evaluationResult.personaLabel} targeting ${company}. Modern hiring standard: AI System Design & GenAI Infra is automatically included alongside traditional engineering (${activeDomainKeys.includes("lld") ? "Low-Level Design (LLD), " : ""}${activeDomainKeys.includes("cloud-devops") ? "Cloud & DevOps (SRE), " : ""}${activeDomainKeys.includes("frontend-engineering") ? "Frontend Architecture, " : ""}${selectedLanguage} Runtime, and DSA) matching ${company}'s interview expectations.`,
     };
   }, [
     activeDomainKeys,
@@ -1713,22 +1712,17 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
             <BrainCircuit className="size-6" />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-extrabold text-brand uppercase tracking-wider">
-                <Sparkles className="size-3" />
-                AI Profile Evaluator
-              </span>
-              <span className="rounded-full bg-cream border border-line px-2.5 py-0.5 text-[11px] font-bold text-ink">
-                🎯 {evaluationResult.personaLabel}
-              </span>
-              <span className="text-xs font-semibold text-ink-muted">
-                · Calibrated for {targetRole} ({company} Bar)
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-ink-muted max-w-3xl leading-relaxed">
-              {candidateAnalysisRationale}
-            </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-extrabold text-brand uppercase tracking-wider">
+              <Sparkles className="size-3" />
+              AI Profile Evaluator
+            </span>
+            <span className="rounded-full bg-cream border border-line px-2.5 py-0.5 text-[11px] font-bold text-ink">
+              🎯 {evaluationResult.personaLabel}
+            </span>
+            <span className="text-xs font-semibold text-ink-muted">
+              · Calibrated for {targetRole} ({company} Bar)
+            </span>
           </div>
         </div>
 
@@ -1949,7 +1943,8 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
           <div className="w-full flex flex-col gap-3">
             <div className="flex items-center justify-center gap-2 mb-1">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink-muted/80 bg-cream border border-line px-3 py-1 rounded-full">
-                Phase 01 · Runtime Foundations & DSA (Data Structure & Algorithm)
+                Phase 01 · Runtime Foundations & DSA (Data Structure &
+                Algorithm)
               </span>
             </div>
 
@@ -1994,7 +1989,8 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
           <div className="w-full flex flex-col gap-3">
             <div className="flex items-center justify-center gap-2 mb-1">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-ink-muted/80 bg-cream border border-line px-3 py-1 rounded-full">
-                Phase 02 · Architecture, Distributed Systems & Specialized Domains
+                Phase 02 · Architecture, Distributed Systems & Specialized
+                Domains
               </span>
             </div>
 
