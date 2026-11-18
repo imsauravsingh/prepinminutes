@@ -6,8 +6,6 @@ import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
 import { InteractiveRoadmap } from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
 import {
-  Briefcase,
-  TrendingUp,
   Clock,
   Building2,
   Pencil,
@@ -665,31 +663,23 @@ export function StartPreparingWorkspace({
           </div>
         </div>
 
-        {/* Center: Parameters Grid (Target Role, Experience, Countdown, Target Company) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 flex-1">
-          {/* Target Role */}
+        {/* Center: Metrics Grid (Practiced, Countdown, Target Company) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 flex-1">
+          {/* Practiced */}
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f3ff] text-purple">
-              <Briefcase className="size-5" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#10b981]">
+              <CheckCircle2 className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Target Role</span>
-              <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                {displayRole}
-              </span>
-            </div>
-          </div>
-
-          {/* Experience */}
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-blue">
-              <TrendingUp className="size-5" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Experience</span>
-              <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                {displayExperience}
-              </span>
+              <span className="text-xs text-ink-muted">Practiced</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-display text-sm sm:text-[15px] font-extrabold text-[#10b981]">
+                  {completedActivities}
+                </span>
+                <span className="text-[11px] text-ink-muted font-medium truncate">
+                  Topics completed
+                </span>
+              </div>
             </div>
           </div>
 
@@ -852,7 +842,8 @@ export function StartPreparingWorkspace({
                 Complete today&apos;s sprint to unlock the next skill tree node!
               </span>
               <span className="text-ink-muted">
-                Your skill tree updates node statuses in real-time as you practice.
+                Your skill tree updates node statuses in real-time as you
+                practice.
               </span>
             </div>
           </div>
@@ -950,7 +941,8 @@ export function StartPreparingWorkspace({
           {/* Motivational Quote */}
           <div className="rounded-xl border border-line bg-[#fbf9f4] p-3 flex flex-col gap-0.5 text-xs">
             <p className="italic text-ink font-medium leading-snug">
-              “Focus on fixing one critical gap per day — consistency compounds exponentially.”
+              “Focus on fixing one critical gap per day — consistency compounds
+              exponentially.”
             </p>
             <span className="text-[10px] text-ink-muted">— James Clear</span>
           </div>
