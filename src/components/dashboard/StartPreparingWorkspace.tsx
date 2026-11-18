@@ -681,9 +681,9 @@ export function StartPreparingWorkspace({
       </div>
 
       {/* 2. User Profile, Readiness Progress & Countdown Header Card */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)] divide-y lg:divide-y-0 lg:divide-x divide-line">
         {/* Left: Circular Readiness Progress Percentage Ring */}
-        <div className="flex items-center gap-3.5 shrink-0 pr-0 lg:pr-5 lg:border-r border-line">
+        <div className="flex items-center gap-3.5 shrink-0 pb-4 lg:pb-0 lg:pr-6">
           <div className="relative flex size-14 shrink-0 items-center justify-center">
             <svg className="size-full -rotate-90" viewBox="0 0 90 90">
               <circle
@@ -731,17 +731,19 @@ export function StartPreparingWorkspace({
               </span>
               <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand group-hover:bg-brand group-hover:text-white transition-colors">
                 <span>View Topics</span>
-                <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
+                <span className="group-hover:translate-y-0.5 transition-transform">
+                  ↓
+                </span>
               </span>
             </button>
           </div>
         </div>
 
-        {/* Center: Metrics Grid (Countdown & Target Company - Practiced removed as redundant) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 flex-1 max-w-lg">
+        {/* Center: Metrics Grid (Countdown & Target Company - Harmonized Spacing & Heights) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 flex-1 py-4 lg:py-0 lg:px-6">
           {/* Countdown & Preparation Timeline */}
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand shadow-2xs">
               <Clock className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
@@ -759,14 +761,17 @@ export function StartPreparingWorkspace({
 
           {/* Target Company */}
           <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-blue relative">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-blue shadow-2xs relative">
               <Building2 className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Target Company</span>
-              <div className="flex items-center gap-1.5">
-                <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-display text-sm sm:text-[15px] font-extrabold text-ink truncate">
                   {displayCompany}
+                </span>
+                <span className="text-[10px] text-blue font-semibold truncate">
+                  (Target Bar)
                 </span>
               </div>
             </div>
@@ -774,22 +779,22 @@ export function StartPreparingWorkspace({
         </div>
 
         {/* Right: Action Buttons: Edit & Reset Profile */}
-        <div className="flex items-center gap-2 self-start lg:self-auto shrink-0 flex-wrap">
+        <div className="flex items-center justify-start sm:justify-end gap-2 shrink-0 pt-4 lg:pt-0 lg:pl-6 flex-wrap">
           {onEditSetup ? (
             <button
               type="button"
               onClick={onEditSetup}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream text-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 font-semibold text-ink shadow-xs transition-colors hover:bg-cream hover:border-line-strong text-xs cursor-pointer"
             >
-              <Pencil className="size-3 text-ink-muted" />
+              <Pencil className="size-3.5 text-ink-muted" />
               <span>Edit Details</span>
             </button>
           ) : (
             <Link
               href="/dashboard?setup=true"
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 font-semibold text-ink shadow-xs transition-colors hover:bg-cream text-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 font-semibold text-ink shadow-xs transition-colors hover:bg-cream hover:border-line-strong text-xs cursor-pointer"
             >
-              <Pencil className="size-3 text-ink-muted" />
+              <Pencil className="size-3.5 text-ink-muted" />
               <span>Edit Details</span>
             </Link>
           )}
@@ -797,9 +802,9 @@ export function StartPreparingWorkspace({
           <button
             type="button"
             onClick={() => setShowResetModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#ede6db] bg-[#fbf9f4] px-3.5 py-1.5 font-semibold text-ink shadow-2xs hover:bg-[#fff0ec] hover:text-brand hover:border-brand/40 text-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-[#faf8f5] px-3.5 py-2 font-semibold text-ink-muted shadow-2xs hover:bg-[#fff0ec] hover:text-brand hover:border-brand/40 text-xs transition-colors cursor-pointer"
           >
-            <RotateCcw className="size-3 text-ink-muted" />
+            <RotateCcw className="size-3.5 text-ink-muted" />
             <span>Reset Profile</span>
           </button>
         </div>
