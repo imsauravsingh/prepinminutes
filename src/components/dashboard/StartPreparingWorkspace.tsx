@@ -126,22 +126,91 @@ export function StartPreparingWorkspace({
 
   const displayExperience = profile?.experienceLevel || "0-1 years";
 
-  // Dynamic Timeline Resolution: Accurate mapping for 3+ months, 2-3 months, 1 month, 1-2 weeks
-  const rawTimeline =
-    profile?.timelineLabel && profile.timelineLabel !== "1 month"
-      ? profile.timelineLabel
-      : activePlan?.timelineLabel && activePlan.timelineLabel !== "1 month"
-        ? activePlan.timelineLabel
-        : "3+ months";
+  // Dynamic Timeline Resolution: Accurately parse user's chosen timeline from profile & active plan
+  const rawTimelineLabel =
+    profile?.timelineLabel || activePlan?.timelineLabel || null;
+  const rawTimelineWeeks =
+    profile?.timelineWeeks || activePlan?.timelineWeeks || null;
 
-  const displayTimeline =
-    rawTimeline === "1-2 weeks"
-      ? "1-2 weeks"
-      : rawTimeline === "2-3 months"
-        ? "2-3 months"
-        : rawTimeline === "1 month" && !profile?.timelineLabel?.includes("3")
+  const { displayTimeline, totalTimelineDays } = useMemo(() => {
+    const label = String(rawTimelineLabel || "").trim().toLowerCase();
+    const weeks = Number(rawTimelineWeeks || 0);
+
+    // 1. Explicit 2-3 months or 2 months or 8 weeks (60 days)
+    // Note: Must check 2-3 months BEFORE 3 months because "2-3 months" contains "3 month" substring!
+    if (
+      label.includes("2-3") ||
+      label.includes("2 month") ||
+      label === "2 months" ||
+      label.includes("8 week") ||
+      weeks === 8
+    ) {
+      return {
+        displayTimeline: label.includes("2-3")
+          ? "2-3 months"
+          : label.includes("2 month")
+            ? "2 months"
+            : "2-3 months",
+        totalTimelineDays: 60,
+      };
+    }
+
+    // 2. Explicit 3+ months or 3 months or 12+ weeks (90 days)
+    if (
+      label.includes("3+") ||
+      (label.includes("3 month") && !label.includes("2-3")) ||
+      label.includes("12 week") ||
+      label.includes("14 week") ||
+      weeks >= 12
+    ) {
+      return {
+        displayTimeline: "3+ months",
+        totalTimelineDays: 90,
+      };
+    }
+
+    // 3. 1-2 weeks or 2 weeks (14 days)
+    if (
+      label.includes("1-2 week") ||
+      label.includes("2 week") ||
+      label.includes("1 week") ||
+      (weeks > 0 && weeks <= 2)
+    ) {
+      return {
+        displayTimeline: "1-2 weeks",
+        totalTimelineDays: 14,
+      };
+    }
+
+    // 4. 1 month or 4 weeks (30 days)
+    if (label.includes("1 month") || label.includes("4 week") || weeks === 4) {
+      return {
+        displayTimeline: "1 month",
+        totalTimelineDays: 30,
+      };
+    }
+
+    // 5. Dynamic fallback if weeks are provided
+    if (weeks > 0) {
+      const days = weeks * 7;
+      const derived =
+        weeks >= 12
           ? "3+ months"
-          : "3+ months";
+          : weeks >= 7
+            ? "2-3 months"
+            : weeks >= 3
+              ? "1 month"
+              : "1-2 weeks";
+      return { displayTimeline: derived, totalTimelineDays: days };
+    }
+
+    // 6. If raw label exists, pass it through cleanly
+    if (rawTimelineLabel) {
+      return { displayTimeline: rawTimelineLabel, totalTimelineDays: 60 };
+    }
+
+    return { displayTimeline: "2-3 months", totalTimelineDays: 60 };
+  }, [rawTimelineLabel, rawTimelineWeeks]);
 
   const targetCompanies =
     profile?.targetCompanies || activePlan?.targetCompanies || [];
@@ -197,36 +266,6 @@ export function StartPreparingWorkspace({
       (completedActivities > 0 ? 1 : 0),
   );
 
-  // Derive total days dynamically from timeline
-  const deriveDaysFromTimeline = (label: string): number => {
-    const l = (label || "").toLowerCase();
-    if (
-      l.includes("3+") ||
-      l.includes("3 month") ||
-      l.includes("12 week") ||
-      l.includes("14 week") ||
-      l.includes("90")
-    ) {
-      return 90; // 3+ months = 90 days
-    }
-    if (
-      l.includes("2-3 month") ||
-      l.includes("2 month") ||
-      l.includes("8 week") ||
-      l.includes("10 week") ||
-      l.includes("60")
-    ) {
-      return 60; // 2 months = 60 days
-    }
-    if (l.includes("1 month") || l.includes("4 week")) {
-      return 30; // 1 month = 30 days
-    }
-    if (l.includes("1-2 week") || l.includes("2 week")) {
-      return 14; // 1-2 weeks = 14 days
-    }
-    return 90; // Default to 3+ months (90 days)
-  };
-  const totalTimelineDays = deriveDaysFromTimeline(displayTimeline);
   const daysRemaining = Math.max(0, totalTimelineDays - daysCompleted);
 
   // Circular progress calculation from real candidate progress (starts from 0)
