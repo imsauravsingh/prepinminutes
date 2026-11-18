@@ -613,10 +613,60 @@ export function StartPreparingWorkspace({
         </div>
       </div>
 
-      {/* 2. User Profile / Parameters Summary Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
-        {/* Parameters Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 flex-1">
+      {/* 2. User Profile, Readiness Progress & Countdown Header Card */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+        {/* Left: Circular Readiness Progress Percentage Ring */}
+        <div className="flex items-center gap-3.5 shrink-0 pr-0 lg:pr-5 lg:border-r border-line">
+          <div className="relative flex size-14 shrink-0 items-center justify-center">
+            <svg className="size-full -rotate-90" viewBox="0 0 90 90">
+              <circle
+                cx="45"
+                cy="45"
+                r={radius}
+                className="stroke-[#f4efe8]"
+                strokeWidth="8"
+                fill="transparent"
+              />
+              <circle
+                cx="45"
+                cy="45"
+                r={radius}
+                className="stroke-brand transition-all duration-700 ease-out"
+                strokeWidth="8"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                fill="transparent"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-display text-xs font-black text-ink">
+                {progressPercent}%
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+              Readiness
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-display text-sm font-extrabold text-ink">
+                {progressPercent >= 80
+                  ? "Exam Ready"
+                  : progressPercent >= 35
+                    ? "In Progress"
+                    : "Starting Out"}
+              </span>
+              <span className="text-[11px] text-ink-muted font-medium">
+                ({completedActivities}/{totalActivities})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Center: Parameters Grid (Target Role, Experience, Countdown, Target Company) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 flex-1">
           {/* Target Role */}
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f5f3ff] text-purple">
@@ -643,16 +693,21 @@ export function StartPreparingWorkspace({
             </div>
           </div>
 
-          {/* Preparation Timeline */}
+          {/* Countdown & Preparation Timeline */}
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
               <Clock className="size-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Timeline</span>
-              <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
-                {displayTimeline}
-              </span>
+              <span className="text-xs text-ink-muted">Countdown</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
+                  {daysRemaining} Days
+                </span>
+                <span className="text-[10px] text-ink-muted font-semibold truncate">
+                  ({displayTimeline})
+                </span>
+              </div>
             </div>
           </div>
 
@@ -672,8 +727,8 @@ export function StartPreparingWorkspace({
           </div>
         </div>
 
-        {/* Action Buttons: Edit & Reset Profile */}
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+        {/* Right: Action Buttons: Edit & Reset Profile */}
+        <div className="flex items-center gap-2 self-start lg:self-auto shrink-0 flex-wrap">
           {onEditSetup ? (
             <button
               type="button"
@@ -704,90 +759,7 @@ export function StartPreparingWorkspace({
         </div>
       </div>
 
-      {/* 3. Overall Readiness & Countdown Strip */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
-        <div className="flex items-center gap-4">
-          <div className="relative flex size-16 shrink-0 items-center justify-center">
-            <svg className="size-full -rotate-90" viewBox="0 0 90 90">
-              <circle
-                cx="45"
-                cy="45"
-                r={radius}
-                className="stroke-[#f4efe8]"
-                strokeWidth="8"
-                fill="transparent"
-              />
-              <circle
-                cx="45"
-                cy="45"
-                r={radius}
-                className="stroke-brand transition-all duration-700 ease-out"
-                strokeWidth="8"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                fill="transparent"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display text-sm font-extrabold text-ink">
-                {progressPercent}%
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-display text-base sm:text-lg font-bold text-ink">
-                Interview Readiness Overview
-              </h3>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2.5 py-0.5 text-xs font-bold text-[#059669]">
-                <Sparkles className="size-3" />
-                <span>On Track for {displayCompany}</span>
-              </span>
-            </div>
-            <p className="text-xs text-ink-muted">
-              {completedActivities} of {totalActivities} high-yield topics mastered.
-              Focus on prerequisite nodes to unlock advanced system design and simulated AI mocks.
-            </p>
-          </div>
-        </div>
-
-        {/* 3 Metrics Pills */}
-        <div className="flex items-center gap-2.5 sm:gap-4 shrink-0 flex-wrap">
-          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
-            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
-              Countdown
-            </span>
-            <span className="font-display text-lg font-extrabold text-ink">
-              {daysRemaining}
-            </span>
-            <span className="text-[10px] text-ink-muted">Days remaining</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
-            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
-              Practiced
-            </span>
-            <span className="font-display text-lg font-extrabold text-[#10b981]">
-              {completedActivities}
-            </span>
-            <span className="text-[10px] text-ink-muted">Topics completed</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
-            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
-              Target Bar
-            </span>
-            <span className="font-display text-lg font-extrabold text-purple truncate max-w-[100px]">
-              {displayCompany}
-            </span>
-            <span className="text-[10px] text-ink-muted">Company rubric</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
+      {/* 3. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
       <InteractiveRoadmap
         targetRole={displayRole}
         experienceLevel={displayExperience}
