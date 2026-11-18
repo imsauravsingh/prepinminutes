@@ -30,7 +30,6 @@ import {
   Target,
   Sparkles,
   AlertTriangle,
-  CheckCircle2,
   Flame,
   ArrowRight,
   Trophy,
@@ -128,19 +127,21 @@ export function StartPreparingWorkspace({
   const displayExperience = profile?.experienceLevel || "0-1 years";
 
   // Dynamic Timeline Resolution: Accurate mapping for 3+ months, 2-3 months, 1 month, 1-2 weeks
-  const timelineWeeks = Number(
-    profile?.timelineWeeks ?? activePlan?.timelineWeeks ?? 0
-  );
   const rawTimeline =
-    profile?.timelineLabel ||
-    activePlan?.timelineLabel ||
-    (timelineWeeks >= 12 ? "3+ months" : null) ||
-    "3+ months";
+    profile?.timelineLabel && profile.timelineLabel !== "1 month"
+      ? profile.timelineLabel
+      : activePlan?.timelineLabel && activePlan.timelineLabel !== "1 month"
+        ? activePlan.timelineLabel
+        : "3+ months";
 
   const displayTimeline =
-    rawTimeline.toLowerCase().includes("3") || timelineWeeks >= 12
-      ? "3+ months"
-      : rawTimeline;
+    rawTimeline === "1-2 weeks"
+      ? "1-2 weeks"
+      : rawTimeline === "2-3 months"
+        ? "2-3 months"
+        : rawTimeline === "1 month" && !profile?.timelineLabel?.includes("3")
+          ? "3+ months"
+          : "3+ months";
 
   const targetCompanies =
     profile?.targetCompanies || activePlan?.targetCompanies || [];
@@ -197,14 +198,14 @@ export function StartPreparingWorkspace({
   );
 
   // Derive total days dynamically from timeline
-  const deriveDaysFromTimeline = (label: string, weeks?: number): number => {
-    if (weeks && weeks > 0) return weeks * 7;
+  const deriveDaysFromTimeline = (label: string): number => {
     const l = (label || "").toLowerCase();
     if (
       l.includes("3+") ||
       l.includes("3 month") ||
       l.includes("12 week") ||
-      l.includes("14 week")
+      l.includes("14 week") ||
+      l.includes("90")
     ) {
       return 90; // 3+ months = 90 days
     }
@@ -212,7 +213,8 @@ export function StartPreparingWorkspace({
       l.includes("2-3 month") ||
       l.includes("2 month") ||
       l.includes("8 week") ||
-      l.includes("10 week")
+      l.includes("10 week") ||
+      l.includes("60")
     ) {
       return 60; // 2 months = 60 days
     }
@@ -222,12 +224,9 @@ export function StartPreparingWorkspace({
     if (l.includes("1-2 week") || l.includes("2 week")) {
       return 14; // 1-2 weeks = 14 days
     }
-    return 90;
+    return 90; // Default to 3+ months (90 days)
   };
-  const totalTimelineDays = deriveDaysFromTimeline(
-    displayTimeline,
-    timelineWeeks
-  );
+  const totalTimelineDays = deriveDaysFromTimeline(displayTimeline);
   const daysRemaining = Math.max(0, totalTimelineDays - daysCompleted);
 
   // Circular progress calculation from real candidate progress (starts from 0)
@@ -716,43 +715,30 @@ export function StartPreparingWorkspace({
 
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
-              Readiness
+              Interview Readiness
             </span>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-display text-sm font-extrabold text-ink">
-                {progressPercent >= 80
-                  ? "Exam Ready"
-                  : progressPercent >= 35
-                    ? "In Progress"
-                    : "Starting Out"}
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("roadmap-curriculum-tree");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="group inline-flex items-center gap-1.5 text-left cursor-pointer hover:opacity-85 transition-all"
+              title="Click to view all topics to prepare in the roadmap below"
+            >
+              <span className="font-display text-sm sm:text-[15px] font-extrabold text-ink">
+                {completedActivities} of {totalRoadmapTopics} Topics Mastered
               </span>
-              <span className="text-[11px] text-ink-muted font-medium">
-                ({completedActivities}/{totalRoadmapTopics})
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand group-hover:bg-brand group-hover:text-white transition-colors">
+                <span>View Topics</span>
+                <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
               </span>
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* Center: Metrics Grid (Practiced, Countdown, Target Company) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 flex-1">
-          {/* Practiced */}
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#10b981]">
-              <CheckCircle2 className="size-5" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs text-ink-muted">Practiced</span>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="font-display text-sm sm:text-[15px] font-extrabold text-[#10b981]">
-                  {completedActivities} / {totalRoadmapTopics}
-                </span>
-                <span className="text-[11px] text-ink-muted font-medium truncate">
-                  Topics completed
-                </span>
-              </div>
-            </div>
-          </div>
-
+        {/* Center: Metrics Grid (Countdown & Target Company - Practiced removed as redundant) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 flex-1 max-w-lg">
           {/* Countdown & Preparation Timeline */}
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
@@ -761,7 +747,7 @@ export function StartPreparingWorkspace({
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-ink-muted">Countdown</span>
               <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="font-display text-sm sm:text-[15px] font-bold text-ink truncate">
+                <span className="font-display text-sm sm:text-[15px] font-extrabold text-ink truncate">
                   {daysRemaining} Days
                 </span>
                 <span className="text-[10px] text-ink-muted font-semibold truncate">
@@ -820,14 +806,16 @@ export function StartPreparingWorkspace({
       </div>
 
       {/* 3. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
-      <InteractiveRoadmap
-        targetRole={displayRole}
-        experienceLevel={displayExperience}
-        targetCompany={displayCompany}
-        timelineLabel={displayTimeline}
-        isFresher={isFresher}
-        completedActivities={completedActivities}
-      />
+      <div id="roadmap-curriculum-tree" className="w-full scroll-mt-6">
+        <InteractiveRoadmap
+          targetRole={displayRole}
+          experienceLevel={displayExperience}
+          targetCompany={displayCompany}
+          timelineLabel={displayTimeline}
+          isFresher={isFresher}
+          completedActivities={completedActivities}
+        />
+      </div>
 
       {/* 5. Two-Column Split: Today's Preparation (Left) + Critical Gaps & AI Advice (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
