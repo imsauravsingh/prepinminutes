@@ -23,6 +23,7 @@ import {
   Building2,
   Lock,
   Flame,
+  Check,
   CheckCircle2,
   Mic,
   FileText,
@@ -1706,7 +1707,7 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
       />
 
       {/* 1. HEADER: AI Candidate Profile Calibration & Stack Switcher */}
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-line">
+      <div className="relative z-30 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-line">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand shadow-xs">
             <BrainCircuit className="size-6" />
@@ -1733,52 +1734,100 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
 
         {/* Primary Language / Tech Stack Switcher */}
         {!isFresher && (
-          <div className="relative self-start md:self-center shrink-0">
+          <div className="relative self-start md:self-center shrink-0 z-40">
             <button
               type="button"
               onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-emerald-300 bg-[#f0fdf4] px-4 py-2.5 text-xs font-bold text-emerald-900 shadow-xs hover:bg-[#dcfce7] transition-all cursor-pointer"
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold shadow-xs transition-all cursor-pointer ${
+                isLanguageDropdownOpen
+                  ? "border-emerald-500 bg-[#dcfce7] text-emerald-950 ring-2 ring-emerald-500/20"
+                  : "border-emerald-300 bg-[#f0fdf4] text-emerald-900 hover:bg-[#dcfce7]"
+              }`}
+              aria-expanded={isLanguageDropdownOpen}
             >
               <Code2 className="size-4 text-emerald-600" />
               <span>
                 Primary Stack: <strong>{selectedLanguage}</strong>
               </span>
-              <ChevronDown className="size-3.5 text-emerald-700" />
+              <ChevronDown
+                className={`size-3.5 text-emerald-700 transition-transform duration-200 ${
+                  isLanguageDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
             </button>
 
             {isLanguageDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 z-30 w-64 rounded-2xl border border-line bg-white p-2 shadow-xl animate-in fade-in">
-                <span className="block px-3 py-1.5 text-[11px] font-bold text-ink-muted uppercase tracking-wider">
-                  Declared Main Language / Stack
-                </span>
-                <div className="flex flex-col gap-1">
-                  {supportedLanguages.map((lang) => (
-                    <button
-                      key={lang.name}
-                      type="button"
-                      onClick={() => {
-                        setSelectedLanguage(lang.name);
-                        setIsLanguageDropdownOpen(false);
-                      }}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-left transition-colors cursor-pointer ${
-                        selectedLanguage === lang.name
-                          ? "bg-emerald-50 text-emerald-800"
-                          : "hover:bg-cream text-ink"
-                      }`}
-                    >
-                      <div className="flex flex-col">
-                        <span>{lang.name}</span>
-                        <span className="text-[10px] text-ink-muted font-normal">
-                          {lang.runtime}
-                        </span>
-                      </div>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[10px] border border-line text-ink-muted">
-                        {lang.badge}
-                      </span>
-                    </button>
-                  ))}
+              <>
+                {/* Backdrop to close dropdown on click outside */}
+                <div
+                  className="fixed inset-0 z-40 cursor-default"
+                  onClick={() => setIsLanguageDropdownOpen(false)}
+                  aria-hidden="true"
+                />
+
+                <div className="absolute left-0 md:left-auto md:right-0 top-full mt-2.5 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-line mb-1.5">
+                    <span className="text-[11px] font-extrabold text-ink uppercase tracking-wider">
+                      Declared Tech Stack
+                    </span>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      {supportedLanguages.length} Available
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+                    {supportedLanguages.map((lang) => {
+                      const isSelected = selectedLanguage === lang.name;
+                      return (
+                        <button
+                          key={lang.name}
+                          type="button"
+                          onClick={() => {
+                            setSelectedLanguage(lang.name);
+                            setIsLanguageDropdownOpen(false);
+                          }}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-emerald-50 text-emerald-950 border border-emerald-300 shadow-xs"
+                              : "hover:bg-cream text-ink border border-transparent"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`flex size-6 shrink-0 items-center justify-center rounded-lg ${
+                                isSelected
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {isSelected ? (
+                                <Check className="size-3.5 stroke-[3]" />
+                              ) : (
+                                <Code2 className="size-3.5" />
+                              )}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="truncate">{lang.name}</span>
+                              <span className="text-[10px] text-ink-muted font-normal truncate">
+                                {lang.runtime}
+                              </span>
+                            </div>
+                          </div>
+                          <span
+                            className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${
+                              isSelected
+                                ? "bg-white border-emerald-300 text-emerald-800"
+                                : "bg-white border-line text-ink-muted"
+                            }`}
+                          >
+                            {lang.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         )}
