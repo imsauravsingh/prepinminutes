@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
+import { InteractiveRoadmap } from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
 import {
   Briefcase,
@@ -25,6 +26,13 @@ import {
   Settings,
   RotateCcw,
   Loader2,
+  Target,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle2,
+  Flame,
+  ArrowRight,
+  Trophy,
 } from "lucide-react";
 
 interface StartPreparingWorkspaceProps {
@@ -43,7 +51,9 @@ export function StartPreparingWorkspace({
     }
     return null;
   });
-  const [activePlan, setActivePlan] = useState<Record<string, any> | null>(null);
+  const [activePlan, setActivePlan] = useState<Record<string, any> | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -58,7 +68,10 @@ export function StartPreparingWorkspace({
           setProfile(res.profile);
           if (typeof window !== "undefined") {
             try {
-              localStorage.setItem("pim_profile_cache", JSON.stringify(res.profile));
+              localStorage.setItem(
+                "pim_profile_cache",
+                JSON.stringify(res.profile),
+              );
             } catch {}
           }
         }
@@ -98,8 +111,12 @@ export function StartPreparingWorkspace({
   };
 
   const isFresher =
-    String(profile?.experienceLevel || "").toLowerCase().includes("0 years") ||
-    String(profile?.experienceLevel || "").toLowerCase().includes("fresher");
+    String(profile?.experienceLevel || "")
+      .toLowerCase()
+      .includes("0 years") ||
+    String(profile?.experienceLevel || "")
+      .toLowerCase()
+      .includes("fresher");
 
   const displayRole = profile?.targetRole
     ? isFresher && profile?.fresherForte
@@ -108,13 +125,18 @@ export function StartPreparingWorkspace({
     : activePlan?.targetRole || "Software Engineer / SDE";
 
   const displayExperience = profile?.experienceLevel || "0-1 years";
-  const displayTimeline = profile?.timelineLabel || activePlan?.timelineLabel || "1 month";
-  const targetCompanies = profile?.targetCompanies || activePlan?.targetCompanies || [];
-  const displayCompany = Array.isArray(targetCompanies) && targetCompanies.length > 0 ? targetCompanies[0] : "Google";
+  const displayTimeline =
+    profile?.timelineLabel || activePlan?.timelineLabel || "1 month";
+  const targetCompanies =
+    profile?.targetCompanies || activePlan?.targetCompanies || [];
+  const displayCompany =
+    Array.isArray(targetCompanies) && targetCompanies.length > 0
+      ? targetCompanies[0]
+      : "Google";
 
   // Dynamic Completed Metrics: Starts strictly from zero 0 for fresh candidates
   const completedActivities = Number(
-    profile?.completedActivities ?? activePlan?.completedActivitiesCount ?? 0
+    profile?.completedActivities ?? activePlan?.completedActivitiesCount ?? 0,
   );
   const totalActivities = Number(activePlan?.totalActivitiesCount ?? 24);
   const progressPercent =
@@ -124,7 +146,7 @@ export function StartPreparingWorkspace({
   const daysCompleted = Number(
     profile?.completedDays ??
       activePlan?.completedDays ??
-      (completedActivities > 0 ? 1 : 0)
+      (completedActivities > 0 ? 1 : 0),
   );
 
   // Derive total days from timeline
@@ -189,7 +211,8 @@ export function StartPreparingWorkspace({
         },
         {
           title: "Behavioral: Presenting Insights to Stakeholders",
-          subtitle: "Practice explaining data findings to non-technical leadership",
+          subtitle:
+            "Practice explaining data findings to non-technical leadership",
           duration: "5 min",
           href: "/practice/session/behavioral",
           icon: MessageSquare,
@@ -219,7 +242,8 @@ export function StartPreparingWorkspace({
         },
         {
           title: "DevOps: Kubernetes Pod Scheduling & Ingress",
-          subtitle: "Configure node affinity, taint/tolerations and ingress controllers",
+          subtitle:
+            "Configure node affinity, taint/tolerations and ingress controllers",
           duration: "10 min",
           href: "/practice/session/cloud?topic=kubernetes-architecture",
           icon: Code2,
@@ -249,7 +273,8 @@ export function StartPreparingWorkspace({
       return [
         {
           title: "AI System Design: Vector Search & RAG Architecture",
-          subtitle: "Chunking, hybrid BM25 + dense search and re-ranking pipelines",
+          subtitle:
+            "Chunking, hybrid BM25 + dense search and re-ranking pipelines",
           duration: "10 min",
           href: "/practice/session/system-design?topic=vector-databases-and-rag-pipeline",
           icon: BookOpen,
@@ -259,7 +284,8 @@ export function StartPreparingWorkspace({
         },
         {
           title: "ML Fundamentals: Transformer Self-Attention & Loss",
-          subtitle: "Explain multi-head attention, backprop and gradient clipping",
+          subtitle:
+            "Explain multi-head attention, backprop and gradient clipping",
           duration: "10 min",
           href: "/practice/session/coding?topic=dynamic-programming-patterns",
           icon: Code2,
@@ -269,7 +295,8 @@ export function StartPreparingWorkspace({
         },
         {
           title: "Behavioral: Delivering ML Prototypes into Production",
-          subtitle: "Explain trade-offs between model accuracy and inference latency",
+          subtitle:
+            "Explain trade-offs between model accuracy and inference latency",
           duration: "5 min",
           href: "/practice/session/behavioral",
           icon: MessageSquare,
@@ -431,7 +458,9 @@ export function StartPreparingWorkspace({
         {
           name: "Kubernetes & Containers",
           progress: isCompleted ? 15 : 0,
-          remaining: isCompleted ? "10 topics remaining" : "12 topics remaining",
+          remaining: isCompleted
+            ? "10 topics remaining"
+            : "12 topics remaining",
           color: "bg-blue",
           border: "border-[#dbeafe]",
           bg: "bg-[#f0f7ff]",
@@ -480,7 +509,9 @@ export function StartPreparingWorkspace({
         {
           name: "React, TypeScript & State",
           progress: isCompleted ? 15 : 0,
-          remaining: isCompleted ? "10 topics remaining" : "12 topics remaining",
+          remaining: isCompleted
+            ? "10 topics remaining"
+            : "12 topics remaining",
           color: "bg-blue",
           border: "border-[#dbeafe]",
           bg: "bg-[#f0f7ff]",
@@ -673,7 +704,100 @@ export function StartPreparingWorkspace({
         </div>
       </div>
 
-      {/* 3. Middle Two-Column Grid: Today's Preparation (Left) + Your Progress (Right) */}
+      {/* 3. Overall Readiness & Countdown Strip */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+        <div className="flex items-center gap-4">
+          <div className="relative flex size-16 shrink-0 items-center justify-center">
+            <svg className="size-full -rotate-90" viewBox="0 0 90 90">
+              <circle
+                cx="45"
+                cy="45"
+                r={radius}
+                className="stroke-[#f4efe8]"
+                strokeWidth="8"
+                fill="transparent"
+              />
+              <circle
+                cx="45"
+                cy="45"
+                r={radius}
+                className="stroke-brand transition-all duration-700 ease-out"
+                strokeWidth="8"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                fill="transparent"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-display text-sm font-extrabold text-ink">
+                {progressPercent}%
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-display text-base sm:text-lg font-bold text-ink">
+                Interview Readiness Overview
+              </h3>
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf5] px-2.5 py-0.5 text-xs font-bold text-[#059669]">
+                <Sparkles className="size-3" />
+                <span>On Track for {displayCompany}</span>
+              </span>
+            </div>
+            <p className="text-xs text-ink-muted">
+              {completedActivities} of {totalActivities} high-yield topics mastered.
+              Focus on prerequisite nodes to unlock advanced system design and simulated AI mocks.
+            </p>
+          </div>
+        </div>
+
+        {/* 3 Metrics Pills */}
+        <div className="flex items-center gap-2.5 sm:gap-4 shrink-0 flex-wrap">
+          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
+            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
+              Countdown
+            </span>
+            <span className="font-display text-lg font-extrabold text-ink">
+              {daysRemaining}
+            </span>
+            <span className="text-[10px] text-ink-muted">Days remaining</span>
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
+            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
+              Practiced
+            </span>
+            <span className="font-display text-lg font-extrabold text-[#10b981]">
+              {completedActivities}
+            </span>
+            <span className="text-[10px] text-ink-muted">Topics completed</span>
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] px-4 py-2 border border-line min-w-[90px]">
+            <span className="text-[10px] text-ink-muted uppercase font-bold tracking-wider">
+              Target Bar
+            </span>
+            <span className="font-display text-lg font-extrabold text-purple truncate max-w-[100px]">
+              {displayCompany}
+            </span>
+            <span className="text-[10px] text-ink-muted">Company rubric</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
+      <InteractiveRoadmap
+        targetRole={displayRole}
+        experienceLevel={displayExperience}
+        targetCompany={displayCompany}
+        timelineLabel={displayTimeline}
+        isFresher={isFresher}
+        completedActivities={completedActivities}
+      />
+
+      {/* 5. Two-Column Split: Today's Preparation (Left) + Critical Gaps & AI Advice (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
         {/* Left Column: Today's Preparation (span 7) */}
         <div className="lg:col-span-7 flex flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
@@ -685,10 +809,10 @@ export function StartPreparingWorkspace({
               </div>
               <div className="flex flex-col gap-0.5">
                 <h3 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-                  Today&apos;s Preparation
+                  Today&apos;s AI Recommended Sprint
                 </h3>
                 <span className="text-xs text-ink-muted sm:text-sm">
-                  A focused plan to keep you on track. ~ 25 minutes
+                  A high-yield 25-minute sprint tailored for {displayRole}.
                 </span>
               </div>
             </div>
@@ -753,194 +877,111 @@ export function StartPreparingWorkspace({
             <span className="text-xl">📣</span>
             <div className="flex flex-col">
               <span className="font-bold text-ink">
-                Complete today&apos;s plan to build momentum!
+                Complete today&apos;s sprint to unlock the next skill tree node!
               </span>
               <span className="text-ink-muted">
-                Your plan adapts as you practice and improve.
+                Your skill tree updates node statuses in real-time as you practice.
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Your Progress (span 5) */}
-        <div className="lg:col-span-5 flex flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+        {/* Right Column: Weaknesses & AI Diagnostic Recommendations (span 5) */}
+        <div className="lg:col-span-5 flex flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-              Your Progress
-            </h3>
+            <div className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                <Flame className="size-4.5 fill-red-500" />
+              </div>
+              <h3 className="font-display text-lg font-extrabold text-ink">
+                Critical Gaps & AI Advice
+              </h3>
+            </div>
+
             <Link
               href="/preparation-plan"
               className="text-xs font-semibold text-blue hover:underline"
             >
-              View Full Plan →
+              Full Analytics →
             </Link>
           </div>
 
-          {/* Radial Ring & Main Metric */}
-          <div className="flex items-center gap-5 sm:gap-6 py-1">
-            {/* SVG Circular Ring */}
-            <div className="relative flex size-24 shrink-0 items-center justify-center">
-              <svg className="size-full -rotate-90" viewBox="0 0 90 90">
-                <circle
-                  cx="45"
-                  cy="45"
-                  r={radius}
-                  className="stroke-[#f4efe8]"
-                  strokeWidth="7"
-                  fill="transparent"
-                />
-                <circle
-                  cx="45"
-                  cy="45"
-                  r={radius}
-                  className="stroke-brand transition-all duration-700 ease-out"
-                  strokeWidth="7"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  fill="transparent"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-display text-xl font-extrabold text-ink">
-                  {progressPercent}%
-                </span>
-              </div>
-            </div>
-
-            {/* Metrics */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-display text-2xl font-extrabold text-ink">
-                  {completedActivities} / {totalActivities}
-                </span>
-                <span className="text-xs text-ink-muted">
-                  Activities completed
-                </span>
-              </div>
-
-              <div
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold w-fit ${
-                  completedActivities === 0
-                    ? "bg-brand/10 text-brand"
-                    : "bg-[#edf5ec] text-[#10b981]"
-                }`}
-              >
-                <span>{completedActivities === 0 ? "🎯" : "↗"}</span>
-                <span>
-                  {completedActivities === 0
-                    ? "Ready to start Day 1!"
-                    : "You're on track!"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 3 Metric Pills Grid */}
-          <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-line">
-            {/* Metric 1 */}
-            <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
-              <BookOpen className="size-4 text-[#10b981]" />
-              <span className="font-display text-base font-bold text-ink leading-none">
-                {daysCompleted}
-              </span>
-              <span className="text-[10px] text-ink-muted">
-                {daysCompleted === 1 ? "Day completed" : "Days completed"}
-              </span>
-            </div>
-
-            {/* Metric 2 */}
-            <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
-              <Zap className="size-4 text-purple" />
-              <span className="font-display text-base font-bold text-ink leading-none">
-                {completedActivities}
-              </span>
-              <span className="text-[10px] text-ink-muted">
-                Topics practiced
-              </span>
-            </div>
-
-            {/* Metric 3 */}
-            <div className="flex flex-col items-center justify-center rounded-xl bg-[#fbf9f4] p-2.5 text-center gap-1">
-              <Clock className="size-4 text-blue" />
-              <span className="font-display text-base font-bold text-ink leading-none">
-                {daysRemaining}
-              </span>
-              <span className="text-[10px] text-ink-muted">Days remaining</span>
-            </div>
-          </div>
-
-          {/* Quote Card */}
-          <div className="rounded-xl border border-line bg-[#fbf9f4] p-3.5 flex flex-col gap-1 text-xs">
-            <p className="italic text-ink font-medium leading-snug">
-              “A little progress each day adds up to big results.”
-            </p>
-            <span className="text-[11px] text-ink-muted">— James Clear</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Row 3: Your Preparation Areas */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex flex-col gap-0.5">
-            <h3 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-              Your Preparation Areas
-            </h3>
-            <span className="text-xs text-ink-muted sm:text-sm">
-              Focus on these areas as per your plan. Progress will update as you
-              complete activities.
-            </span>
-          </div>
-
-          <Link
-            href="/preparation-plan"
-            className="self-start sm:self-auto rounded-full border border-line bg-white px-3.5 py-1 text-xs font-semibold text-brand hover:bg-cream transition-colors shrink-0"
-          >
-            View All →
-          </Link>
-        </div>
-
-        {/* Dynamic 4 Topic Area Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {preparationAreas.map((area, idx) => {
-            const AreaIcon = area.icon;
-            return (
-              <div
-                key={idx}
-                className={`flex flex-col justify-between gap-3 rounded-xl border ${area.border} ${area.bg} p-4`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`flex size-8 items-center justify-center rounded-lg bg-white ${area.iconColor} shadow-xs`}
-                  >
-                    <AreaIcon className="size-4" />
-                  </div>
-                  <h4 className="font-display text-sm font-bold text-ink">
-                    {area.name}
-                  </h4>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-ink-muted">Progress</span>
-                    <span className="font-bold text-ink">{area.progress}%</span>
-                  </div>
-                  <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-[#ede6db]">
-                    <div
-                      className={`h-full rounded-full ${area.color} transition-all duration-300`}
-                      style={{ width: `${area.progress}%` }}
-                    />
-                  </div>
-                  <span className="text-[11px] text-ink-muted">
-                    {area.remaining}
+          <div className="flex flex-col gap-3">
+            {/* Gap 1 */}
+            <div className="flex flex-col gap-1.5 rounded-xl border border-red-200 bg-[#fffbfb] p-3.5">
+              <div className="flex items-center justify-between">
+                <span className="font-display text-xs font-bold text-red-800 flex items-center gap-1.5">
+                  <AlertTriangle className="size-3.5 text-red-600" />
+                  <span>
+                    {isFresher
+                      ? "Algorithm Time Complexity & Edge Cases"
+                      : "Database Indexing & Query Plans"}
                   </span>
-                </div>
+                </span>
+                <span className="text-[10px] font-bold text-red-600 bg-red-100 rounded px-1.5 py-0.5">
+                  Critical Gap
+                </span>
               </div>
-            );
-          })}
+              <p className="text-xs text-ink-muted leading-relaxed">
+                {isFresher
+                  ? "Frequent edge-case misses with 0, null, and duplicate inputs in binary search & tree traversals."
+                  : "Struggled with composite index ordering (leftmost prefix rule) and identifying full table scans."}
+              </p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] font-bold text-emerald-700">
+                  +14% Readiness Lift
+                </span>
+                <Link
+                  href="/practice/session/coding?topic=dynamic-programming-patterns"
+                  className="text-xs font-bold text-brand hover:underline"
+                >
+                  Start Diagnostic Drill →
+                </Link>
+              </div>
+            </div>
+
+            {/* Gap 2 */}
+            <div className="flex flex-col gap-1.5 rounded-xl border border-amber/30 bg-[#fffdfa] p-3.5">
+              <div className="flex items-center justify-between">
+                <span className="font-display text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                  <Clock className="size-3.5 text-amber" />
+                  <span>
+                    {isFresher
+                      ? "Clean Code & Modular Functions"
+                      : "Concurrency & Race Condition Prevention"}
+                  </span>
+                </span>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
+                  Focus Next
+                </span>
+              </div>
+              <p className="text-xs text-ink-muted leading-relaxed">
+                {isFresher
+                  ? "Practice splitting monolithic problem solvers into pure helper functions before coding."
+                  : "Review thread pool saturation, deadlock Coffman conditions, and CAS primitives."}
+              </p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] font-bold text-emerald-700">
+                  +9% Readiness Lift
+                </span>
+                <Link
+                  href="/practice/session/system-design"
+                  className="text-xs font-bold text-brand hover:underline"
+                >
+                  Review Architecture →
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Motivational Quote */}
+          <div className="rounded-xl border border-line bg-[#fbf9f4] p-3 flex flex-col gap-0.5 text-xs">
+            <p className="italic text-ink font-medium leading-snug">
+              “Focus on fixing one critical gap per day — consistency compounds exponentially.”
+            </p>
+            <span className="text-[10px] text-ink-muted">— James Clear</span>
+          </div>
         </div>
       </div>
 
@@ -1147,7 +1188,10 @@ export function StartPreparingWorkspace({
             </div>
 
             <p className="text-xs text-ink-muted leading-relaxed">
-              Are you sure you want to reset your candidate profile? Your current active preparation plan will be archived, and you can reconfigure your target role, experience level, or fresher forte from the start.
+              Are you sure you want to reset your candidate profile? Your
+              current active preparation plan will be archived, and you can
+              reconfigure your target role, experience level, or fresher forte
+              from the start.
             </p>
 
             <div className="flex items-center justify-end gap-2.5 pt-2">
