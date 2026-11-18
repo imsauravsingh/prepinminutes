@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
-import { InteractiveRoadmap } from "@/components/dashboard/InteractiveRoadmap";
+import {
+  InteractiveRoadmap,
+  evaluateCandidateProfileDomains,
+} from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
 import {
   Clock,
@@ -123,8 +126,22 @@ export function StartPreparingWorkspace({
     : activePlan?.targetRole || "Software Engineer / SDE";
 
   const displayExperience = profile?.experienceLevel || "0-1 years";
+
+  // Dynamic Timeline Resolution: Accurate mapping for 3+ months, 2-3 months, 1 month, 1-2 weeks
+  const timelineWeeks = Number(
+    profile?.timelineWeeks ?? activePlan?.timelineWeeks ?? 0
+  );
+  const rawTimeline =
+    profile?.timelineLabel ||
+    activePlan?.timelineLabel ||
+    (timelineWeeks >= 12 ? "3+ months" : null) ||
+    "3+ months";
+
   const displayTimeline =
-    profile?.timelineLabel || activePlan?.timelineLabel || "1 month";
+    rawTimeline.toLowerCase().includes("3") || timelineWeeks >= 12
+      ? "3+ months"
+      : rawTimeline;
+
   const targetCompanies =
     profile?.targetCompanies || activePlan?.targetCompanies || [];
   const displayCompany =
@@ -132,11 +149,43 @@ export function StartPreparingWorkspace({
       ? targetCompanies[0]
       : "Google";
 
+  // Dynamic Candidate Domains Evaluation to derive exact curriculum topics
+  const evaluatedDomains = useMemo(() => {
+    return evaluateCandidateProfileDomains({
+      targetRole: displayRole,
+      experienceLevel: displayExperience,
+      isFresher,
+      targetCompany: displayCompany,
+    });
+  }, [displayRole, displayExperience, isFresher, displayCompany]);
+
+  // Topic counts mapped to each domain's curriculum in the roadmap
+  const DOMAIN_TOPIC_COUNTS: Record<string, number> = {
+    "nodejs-runtime": 3,
+    "frontend-engineering": 3,
+    dsa: 4,
+    "cs-fundamentals": 2,
+    "system-design": 3,
+    lld: 2,
+    "cloud-devops": 2,
+    "ai-system-design": 3,
+    "data-engineering": 2,
+    behavioral: 2,
+  };
+
+  // Real total topics dynamically calculated from candidate's active roadmap domains
+  const totalRoadmapTopics = useMemo(() => {
+    return evaluatedDomains.identifiedKeys.reduce(
+      (sum, key) => sum + (DOMAIN_TOPIC_COUNTS[key] || 2),
+      0
+    );
+  }, [evaluatedDomains]);
+
   // Dynamic Completed Metrics: Starts strictly from zero 0 for fresh candidates
   const completedActivities = Number(
     profile?.completedActivities ?? activePlan?.completedActivitiesCount ?? 0,
   );
-  const totalActivities = Number(activePlan?.totalActivitiesCount ?? 24);
+  const totalActivities = totalRoadmapTopics;
   const progressPercent =
     totalActivities > 0
       ? Math.round((completedActivities / totalActivities) * 100)
@@ -147,17 +196,38 @@ export function StartPreparingWorkspace({
       (completedActivities > 0 ? 1 : 0),
   );
 
-  // Derive total days from timeline
-  const deriveDaysFromTimeline = (label: string): number => {
-    const l = label.toLowerCase();
-    if (l.includes("2 week")) return 14;
-    if (l.includes("1 month") || l.includes("4 week")) return 28;
-    if (l.includes("2 month") || l.includes("8 week")) return 56;
-    if (l.includes("3 month") || l.includes("12 week")) return 84;
-    if (l.includes("6 month") || l.includes("24 week")) return 168;
-    return 28;
+  // Derive total days dynamically from timeline
+  const deriveDaysFromTimeline = (label: string, weeks?: number): number => {
+    if (weeks && weeks > 0) return weeks * 7;
+    const l = (label || "").toLowerCase();
+    if (
+      l.includes("3+") ||
+      l.includes("3 month") ||
+      l.includes("12 week") ||
+      l.includes("14 week")
+    ) {
+      return 90; // 3+ months = 90 days
+    }
+    if (
+      l.includes("2-3 month") ||
+      l.includes("2 month") ||
+      l.includes("8 week") ||
+      l.includes("10 week")
+    ) {
+      return 60; // 2 months = 60 days
+    }
+    if (l.includes("1 month") || l.includes("4 week")) {
+      return 30; // 1 month = 30 days
+    }
+    if (l.includes("1-2 week") || l.includes("2 week")) {
+      return 14; // 1-2 weeks = 14 days
+    }
+    return 90;
   };
-  const totalTimelineDays = deriveDaysFromTimeline(displayTimeline);
+  const totalTimelineDays = deriveDaysFromTimeline(
+    displayTimeline,
+    timelineWeeks
+  );
   const daysRemaining = Math.max(0, totalTimelineDays - daysCompleted);
 
   // Circular progress calculation from real candidate progress (starts from 0)
@@ -657,7 +727,7 @@ export function StartPreparingWorkspace({
                     : "Starting Out"}
               </span>
               <span className="text-[11px] text-ink-muted font-medium">
-                ({completedActivities}/{totalActivities})
+                ({completedActivities}/{totalRoadmapTopics})
               </span>
             </div>
           </div>
@@ -674,7 +744,7 @@ export function StartPreparingWorkspace({
               <span className="text-xs text-ink-muted">Practiced</span>
               <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="font-display text-sm sm:text-[15px] font-extrabold text-[#10b981]">
-                  {completedActivities}
+                  {completedActivities} / {totalRoadmapTopics}
                 </span>
                 <span className="text-[11px] text-ink-muted font-medium truncate">
                   Topics completed
