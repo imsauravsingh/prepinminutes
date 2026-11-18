@@ -1722,9 +1722,6 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
             <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold text-ink whitespace-nowrap">
               🎯 {evaluationResult.personaLabel}
             </span>
-            <span className="text-xs font-semibold text-ink-muted whitespace-nowrap">
-              · Calibrated for {company} Bar
-            </span>
           </div>
         </div>
 
