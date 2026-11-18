@@ -727,7 +727,7 @@ export function StartPreparingWorkspace({
               title="Click to view all topics to prepare in the roadmap below"
             >
               <span className="font-display text-sm sm:text-[15px] font-extrabold text-ink">
-                {completedActivities} of {totalRoadmapTopics} Topics Mastered
+                {completedActivities}/{totalRoadmapTopics}
               </span>
               <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-extrabold text-brand group-hover:bg-brand group-hover:text-white transition-colors">
                 <span>View Topics</span>
