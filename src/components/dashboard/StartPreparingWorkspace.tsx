@@ -33,6 +33,7 @@ import {
   Flame,
   ArrowRight,
   Trophy,
+  X,
 } from "lucide-react";
 
 interface StartPreparingWorkspaceProps {
@@ -95,6 +96,8 @@ export function StartPreparingWorkspace({
         try {
           localStorage.removeItem("pim_profile_cache");
           localStorage.removeItem("prep_onboarding_completed");
+          localStorage.removeItem("pim_primary_language");
+          localStorage.removeItem("pim_fresher_prompt_dismissed");
         } catch {}
       }
       setShowResetModal(false);
@@ -117,6 +120,165 @@ export function StartPreparingWorkspace({
     String(profile?.experienceLevel || "")
       .toLowerCase()
       .includes("fresher");
+
+  // AI-Driven Primary Language Detection for Freshers and General Profiles
+  const detectedLanguageInfo = useMemo(() => {
+    if (profile?.primaryLanguage) {
+      return {
+        recommendedLanguage: profile.primaryLanguage,
+        detectedLanguages: [profile.primaryLanguage],
+        rationale: "Selected in your profile setup",
+      };
+    }
+
+    const textToScan = [
+      profile?.fresherForte || "",
+      profile?.jobDescriptionText || "",
+      profile?.targetRole || "",
+      Array.isArray(profile?.skills)
+        ? profile.skills.join(" ")
+        : profile?.skills || "",
+      profile?.resumeText || "",
+      JSON.stringify(profile?.resumeParsedJson || ""),
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const scores: Record<string, number> = {
+      Python: 0,
+      Java: 0,
+      "C++": 0,
+      "Node.js": 0,
+      Go: 0,
+    };
+
+    // Python mentions
+    if (textToScan.includes("python")) scores.Python += 3;
+    if (
+      textToScan.includes("django") ||
+      textToScan.includes("fastapi") ||
+      textToScan.includes("flask")
+    ) {
+      scores.Python += 2;
+    }
+    if (
+      textToScan.includes("pytorch") ||
+      textToScan.includes("pandas") ||
+      textToScan.includes("numpy")
+    ) {
+      scores.Python += 1;
+    }
+
+    // Java mentions (exclude javascript)
+    const javaMatches = textToScan.match(/\bjava\b/g);
+    if (javaMatches) scores.Java += javaMatches.length * 3;
+    if (
+      textToScan.includes("spring") ||
+      textToScan.includes("springboot") ||
+      textToScan.includes("jvm") ||
+      textToScan.includes("hibernate")
+    ) {
+      scores.Java += 2;
+    }
+
+    // C++ mentions
+    if (
+      textToScan.includes("c++") ||
+      textToScan.includes("cpp") ||
+      textToScan.includes("stl")
+    ) {
+      scores["C++"] += 3;
+    }
+
+    // Node.js / JavaScript / TypeScript mentions
+    if (textToScan.includes("node") || textToScan.includes("nodejs")) {
+      scores["Node.js"] += 3;
+    }
+    if (
+      textToScan.includes("typescript") ||
+      textToScan.includes("javascript") ||
+      textToScan.includes("react") ||
+      textToScan.includes("express")
+    ) {
+      scores["Node.js"] += 2;
+    }
+
+    // Go mentions
+    if (textToScan.includes("golang") || textToScan.includes("goroutine")) {
+      scores.Go += 3;
+    }
+
+    const detected = Object.keys(scores).filter((k) => scores[k] > 0);
+    detected.sort((a, b) => scores[b] - scores[a]);
+
+    if (detected.length > 0 && scores[detected[0]] > 0) {
+      const top = detected[0];
+      return {
+        recommendedLanguage: top,
+        detectedLanguages: detected,
+        rationale: `AI detected strongest experience in ${top} from your projects & skills`,
+      };
+    }
+
+    return {
+      recommendedLanguage: "Python",
+      detectedLanguages: ["Python", "Java", "C++", "Node.js"],
+      rationale:
+        "AI Recommended: Most widely tested language in entry-level coding rounds",
+    };
+  }, [profile]);
+
+  // Selected language state (synced with localStorage & roadmap)
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("pim_primary_language");
+        if (saved) return saved;
+      } catch {}
+    }
+    return profile?.primaryLanguage || detectedLanguageInfo.recommendedLanguage;
+  });
+
+  // Prompt banner visibility state for freshers (prompt to choose or skip)
+  const [showFresherPrompt, setShowFresherPrompt] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (localStorage.getItem("pim_fresher_prompt_dismissed") === "true")
+          return false;
+        if (localStorage.getItem("pim_primary_language")) return false;
+      } catch {}
+    }
+    return true;
+  });
+
+  const handleConfirmLanguage = (lang: string) => {
+    setSelectedLanguage(lang);
+    setShowFresherPrompt(false);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("pim_primary_language", lang);
+        localStorage.setItem("pim_fresher_prompt_dismissed", "true");
+      } catch {}
+    }
+  };
+
+  const handleSkipLanguagePrompt = () => {
+    setShowFresherPrompt(false);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("pim_fresher_prompt_dismissed", "true");
+      } catch {}
+    }
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    setSelectedLanguage(lang);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("pim_primary_language", lang);
+      } catch {}
+    }
+  };
 
   const displayRole = profile?.targetRole
     ? isFresher && profile?.fresherForte
@@ -849,6 +1011,115 @@ export function StartPreparingWorkspace({
         </div>
       </div>
 
+      {/* 2.5 FRESHER PRIMARY STACK CALIBRATION PROMPT (Choose or Skip at Step 3) */}
+      {isFresher && showFresherPrompt && (
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5 rounded-2xl border border-brand/30 bg-gradient-to-r from-[#fff7f3] via-white to-[#fffaf6] p-5 sm:p-6 shadow-[0_4px_20px_rgba(255,108,71,0.06)] animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="flex items-start gap-4 max-w-2xl">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand shadow-xs">
+              <Code2 className="size-6" />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-extrabold text-brand uppercase tracking-wider">
+                  <Sparkles className="size-3" />
+                  Fresher Calibration
+                </span>
+                <span className="text-[11px] font-semibold text-ink-muted">
+                  · 1 Primary Language Required
+                </span>
+              </div>
+
+              <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+                Choose your primary language for coding & DSA rounds
+              </h3>
+
+              <p className="text-xs sm:text-[13px] text-ink-muted leading-relaxed">
+                Technical interviewers evaluate freshers in one main language.{" "}
+                {detectedLanguageInfo.detectedLanguages.length > 1 ? (
+                  <>
+                    Multiple skills found in your profile. AI evaluated strongest
+                    experience in{" "}
+                    <strong className="text-brand font-bold">
+                      {detectedLanguageInfo.recommendedLanguage}
+                    </strong>
+                    . Confirm or choose below:
+                  </>
+                ) : (
+                  <>
+                    {detectedLanguageInfo.rationale}. Confirm or choose your
+                    preferred language:
+                  </>
+                )}
+              </p>
+
+              {/* Language Choice Chips */}
+              <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+                {["Python", "Java", "C++", "Node.js", "Go"].map((lang) => {
+                  const isSelected = selectedLanguage === lang;
+                  const isAiTop =
+                    detectedLanguageInfo.recommendedLanguage === lang;
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => setSelectedLanguage(lang)}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-2 border-brand bg-brand text-white shadow-xs"
+                          : "border border-line bg-white text-ink hover:bg-cream"
+                      }`}
+                    >
+                      <span>{lang}</span>
+                      {isAiTop && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
+                            isSelected
+                              ? "bg-white/20 text-white"
+                              : "bg-brand-soft text-brand"
+                          }`}
+                        >
+                          AI Pick
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Action Buttons: Confirm vs Skip */}
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center gap-2.5 shrink-0 self-start md:self-center">
+            <button
+              type="button"
+              onClick={() => handleConfirmLanguage(selectedLanguage)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-brand/90 transition-all cursor-pointer active:scale-[0.99]"
+            >
+              <span>Confirm {selectedLanguage} →</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSkipLanguagePrompt}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-4 py-2.5 text-xs font-semibold text-ink-muted hover:text-ink hover:bg-cream transition-all cursor-pointer"
+            >
+              <span>Skip for now</span>
+            </button>
+          </div>
+
+          {/* Dismiss X button */}
+          <button
+            type="button"
+            onClick={handleSkipLanguagePrompt}
+            className="absolute top-3.5 right-3.5 p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-cream transition-colors cursor-pointer"
+            title="Dismiss prompt"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+
       {/* 3. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
       <div id="roadmap-curriculum-tree" className="w-full scroll-mt-6">
         <InteractiveRoadmap
@@ -858,6 +1129,8 @@ export function StartPreparingWorkspace({
           timelineLabel={displayTimeline}
           isFresher={isFresher}
           completedActivities={completedActivities}
+          initialLanguage={selectedLanguage}
+          onLanguageChange={handleLanguageChange}
         />
       </div>
 

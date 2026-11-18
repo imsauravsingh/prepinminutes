@@ -89,6 +89,8 @@ interface InteractiveRoadmapProps {
   timelineLabel: string;
   isFresher: boolean;
   completedActivities: number;
+  initialLanguage?: string;
+  onLanguageChange?: (lang: string) => void;
 }
 
 /**
@@ -380,14 +382,24 @@ export function InteractiveRoadmap({
   timelineLabel,
   isFresher,
   completedActivities,
+  initialLanguage,
+  onLanguageChange,
 }: InteractiveRoadmapProps) {
   const company = targetCompany || "Google";
   const roleLower = (targetRole || "").toLowerCase();
 
-  // Primary language selection (defaults to Node.js)
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("Node.js");
+  // Primary language selection (defaults to initialLanguage || (isFresher ? "Python" : "Node.js"))
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
+    initialLanguage || (isFresher ? "Python" : "Node.js"),
+  );
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [isDomainDropdownOpen, setIsDomainDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialLanguage && initialLanguage !== selectedLanguage) {
+      setSelectedLanguage(initialLanguage);
+    }
+  }, [initialLanguage]);
 
   // Profile-driven domain evaluation
   const evaluationResult = useMemo(() => {
@@ -420,13 +432,30 @@ export function InteractiveRoadmap({
   // Available languages candidate can switch between
   const supportedLanguages = [
     {
-      name: "Node.js",
-      runtime: "V8 / Libuv (TypeScript & JavaScript)",
-      badge: "Primary",
+      name: "Python",
+      runtime: "CPython (DSA & AI First)",
+      badge: "Top DSA Choice",
     },
-    { name: "Java", runtime: "JVM (Spring Boot)", badge: "Enterprise" },
-    { name: "Python", runtime: "CPython (FastAPI & Django)", badge: "Fast" },
-    { name: "Go", runtime: "Goroutines & Channels", badge: "Cloud Native" },
+    {
+      name: "Java",
+      runtime: "JVM (Spring Boot & Collections)",
+      badge: "Enterprise Standard",
+    },
+    {
+      name: "C++",
+      runtime: "STL & Low-Level Memory",
+      badge: "Competitive DSA",
+    },
+    {
+      name: "Node.js",
+      runtime: "V8 / Libuv (TypeScript & JS)",
+      badge: "Full Stack",
+    },
+    {
+      name: "Go",
+      runtime: "Goroutines & Microservices",
+      badge: "Cloud Native",
+    },
   ];
 
   // Full Domain Master Catalog (Dynamic and expandable)
@@ -1727,9 +1756,8 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
 
         {/* Right Controls: Primary Stack + Curriculum Domains Dropdowns */}
         <div className="flex items-center gap-2.5 self-start lg:self-auto shrink-0 flex-wrap z-40">
-          {/* Primary Language / Tech Stack Switcher */}
-          {!isFresher && (
-            <div className="relative">
+          {/* Primary Language / Tech Stack Switcher (Available to all candidates including freshers) */}
+          <div className="relative">
               <button
                 type="button"
                 onClick={() => {
@@ -1786,6 +1814,7 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
                             onClick={() => {
                               setSelectedLanguage(lang.name);
                               setIsLanguageDropdownOpen(false);
+                              onLanguageChange?.(lang.name);
                             }}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
                               isSelected
@@ -1831,7 +1860,6 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
                 </>
               )}
             </div>
-          )}
 
           {/* Curriculum Domains Customizer Dropdown */}
           <div className="relative">
