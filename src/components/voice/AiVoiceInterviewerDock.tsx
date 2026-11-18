@@ -14,6 +14,7 @@ import {
   Sparkles,
   Radio,
   Zap,
+  SkipForward,
 } from "lucide-react";
 import { VoiceTurnState } from "@/hooks/useAiVoiceInterviewer";
 
@@ -33,6 +34,7 @@ export interface AiVoiceInterviewerDockProps {
   onBargeIn: () => void;
   onFinalizeTurn: () => void;
   onStopSession: () => void;
+  onSkipQuestion?: () => void;
   onToggleTextInput: () => void;
   onTextMessageChange: (val: string) => void;
   onSendTextMessage: () => void;
@@ -54,6 +56,7 @@ export function AiVoiceInterviewerDock({
   onBargeIn,
   onFinalizeTurn,
   onStopSession,
+  onSkipQuestion,
   onToggleTextInput,
   onTextMessageChange,
   onSendTextMessage,
@@ -217,6 +220,19 @@ export function AiVoiceInterviewerDock({
             <Mic className="size-5 sm:size-6" />
           )}
         </button>
+
+        {/* Skip Question Button */}
+        {onSkipQuestion && (
+          <button
+            type="button"
+            onClick={onSkipQuestion}
+            title="Skip to next question (Esc)"
+            className="flex h-9 items-center gap-1.5 rounded-full border border-[#ede6db] bg-white px-3 sm:px-4 text-xs font-semibold text-ink shadow-sm transition-colors hover:bg-[#faf6f0] hover:border-brand/40 cursor-pointer"
+          >
+            <SkipForward className="size-3.5 text-ink-muted" />
+            <span>Skip</span>
+          </button>
+        )}
 
         {/* Stop Button */}
         <button

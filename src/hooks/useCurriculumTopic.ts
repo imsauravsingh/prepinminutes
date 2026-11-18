@@ -224,17 +224,17 @@ export function useCurriculumTopic(options?: UseCurriculumTopicOptions) {
     return idx >= 0 ? idx : 0;
   }, [questions, activeQuestion]);
 
-  // Select question and update URL query params without scroll
+  // Select question and update URL query params instantly without Next.js router roundtrip
   const selectQuestion = useCallback(
     (questionId: string) => {
       setActiveQuestionId(questionId);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("q", questionId);
-        router.replace(url.pathname + url.search, { scroll: false });
+        window.history.replaceState(null, "", url.pathname + url.search);
       }
     },
-    [router]
+    []
   );
 
   const nextQuestion = useCallback(() => {

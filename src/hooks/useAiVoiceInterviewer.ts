@@ -72,6 +72,8 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const speechGenIdRef = useRef<number>(0);
+  const speakIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // VAD & Silence Smoothing Refs
   const lastSpokeTimeRef = useRef<number>(0);
@@ -109,9 +111,40 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
   }, [initialPrompt, initialHints, isCallActive]);
 
   /**
+   * Hard Kill Active Audio: Unloads the audio buffer, aborts any in-flight TTS synthesis,
+   * stops speech waveform intervals, and completely silences the browser immediately.
+   */
+  const hardKillActiveAudio = useCallback(() => {
+    speechGenIdRef.current += 1;
+
+    if (speakIntervalRef.current) {
+      clearInterval(speakIntervalRef.current);
+      speakIntervalRef.current = null;
+    }
+
+    if (activeAudioRef.current) {
+      const audio = activeAudioRef.current;
+      audio.onended = null;
+      audio.onerror = null;
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.removeAttribute("src");
+        audio.src = "";
+        audio.load();
+      } catch {}
+      activeAudioRef.current = null;
+    }
+
+    setWaveformBars(WAVEFORM_HEIGHTS);
+  }, []);
+
+  /**
    * Dedicated clean audio teardown: stop recorder, release mic tracks, cancel VAD
    */
   const stopAndReleaseAudio = useCallback(() => {
+    hardKillActiveAudio();
+
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
@@ -141,14 +174,7 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
       micStreamRef.current.getTracks().forEach((track) => track.stop());
       micStreamRef.current = null;
     }
-
-    if (activeAudioRef.current) {
-      activeAudioRef.current.pause();
-      activeAudioRef.current = null;
-    }
-
-    setWaveformBars(WAVEFORM_HEIGHTS);
-  }, []);
+  }, [hardKillActiveAudio]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -169,6 +195,10 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
         return;
       }
 
+      // Hard kill any prior playing audio before synthesizing new speech
+      hardKillActiveAudio();
+      const currentGenId = speechGenIdRef.current;
+
       return new Promise<void>(async (resolve) => {
         try {
           // Acoustic isolation: pause VAD analysis and recording while Sarah speaks
@@ -188,17 +218,13 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
             } catch {}
           }
 
-          if (activeAudioRef.current) {
-            activeAudioRef.current.pause();
-            activeAudioRef.current = null;
-          }
-
           updateTurnState("AI_SPEAKING");
 
           // Animate waveform during Sarah speaking
-          const speakInterval = setInterval(() => {
+          if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
+          speakIntervalRef.current = setInterval(() => {
             if (turnStateRef.current !== "AI_SPEAKING") {
-              clearInterval(speakInterval);
+              if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
               return;
             }
             setWaveformBars(
@@ -209,6 +235,14 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
           }, 100);
 
           const audioBuffer = await backendApi.synthesizeVoice(speechText, {});
+
+          // Invalidation check: Did candidate click skip or barge-in while synthesizing?
+          if (speechGenIdRef.current !== currentGenId) {
+            if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
+            resolve();
+            return;
+          }
+
           const audioBlob = new Blob([audioBuffer], { type: "audio/wav" });
           const audioUrl = URL.createObjectURL(audioBlob);
 
@@ -216,30 +250,37 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
           activeAudioRef.current = audio;
 
           audio.onended = () => {
-            clearInterval(speakInterval);
+            if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
             activeAudioRef.current = null;
             URL.revokeObjectURL(audioUrl);
             resolve();
           };
 
           audio.onerror = () => {
-            clearInterval(speakInterval);
+            if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
             activeAudioRef.current = null;
             resolve();
           };
 
+          if (speechGenIdRef.current !== currentGenId) {
+            hardKillActiveAudio();
+            resolve();
+            return;
+          }
+
           await audio.play().catch((err) => {
-            clearInterval(speakInterval);
+            if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
             console.warn("Audio autoplay blocked/failed:", err);
             resolve();
           });
         } catch (err) {
+          if (speakIntervalRef.current) clearInterval(speakIntervalRef.current);
           console.warn("TTS synthesis error:", err);
           resolve();
         }
       });
     },
-    [isMuted, updateTurnState]
+    [isMuted, updateTurnState, hardKillActiveAudio]
   );
 
   /**
@@ -467,12 +508,7 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
    * Instant Barge-In Interruption: Cut Sarah's audio <10ms and switch to candidate speaking
    */
   const handleBargeIn = useCallback(async () => {
-    if (activeAudioRef.current) {
-      activeAudioRef.current.pause();
-      activeAudioRef.current.currentTime = 0;
-      activeAudioRef.current = null;
-    }
-
+    hardKillActiveAudio();
     updateTurnState("CANDIDATE_SPEAKING");
 
     try {
@@ -485,7 +521,61 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
     }
 
     startAutonomousListening();
-  }, [startAutonomousListening, updateTurnState]);
+  }, [startAutonomousListening, updateTurnState, hardKillActiveAudio]);
+
+  /**
+   * Instant Skip Question Audio: Immediately halts previous audio, cancels any silence
+   * timers or candidate voice recording, and resets state cleanly to LISTENING_WAITING ("Ready • Speak naturally").
+   */
+  const handleSkipQuestionAudio = useCallback(
+    (nextPromptText?: string) => {
+      // 1. Instantly hard-kill any playing audio and invalidate in-flight TTS
+      hardKillActiveAudio();
+
+      // 2. Clear any silence countdowns and frame loops
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+      setSilenceCountdown(null);
+      lastSpokeTimeRef.current = 0;
+      smoothedRmsRef.current = 0;
+      speechDetectedRef.current = false;
+      lastCountdownUpdateRef.current = 0;
+
+      // 3. Clear any buffered speech recordings from skipped question
+      audioChunksRef.current = [];
+
+      // 4. Reset turn state directly to Ready (DO NOT set CANDIDATE_SPEAKING)
+      updateTurnState(isCallActive ? "LISTENING_WAITING" : "LOBBY");
+
+      // 5. Fire background signal to backend to cancel in-flight audio/turn
+      backendApi
+        .interruptVoiceSession({
+          source: "candidate_skip_question",
+          timestampMs: Date.now(),
+        })
+        .catch(() => {});
+
+      // 6. If call is active and nextPromptText is passed, Sarah speaks the new question prompt aloud
+      if (isCallActive && nextPromptText) {
+        speakSarah(nextPromptText)
+          .then(() => {
+            startAutonomousListening();
+          })
+          .catch(() => {
+            startAutonomousListening();
+          });
+      } else if (isCallActive) {
+        startAutonomousListening();
+      }
+    },
+    [isCallActive, speakSarah, startAutonomousListening, updateTurnState, hardKillActiveAudio]
+  );
 
   /**
    * Initialize microphone, AudioContext and start the interview session
@@ -646,6 +736,7 @@ export function useAiVoiceInterviewer(options: UseAiVoiceInterviewerOptions) {
     startSession,
     stopAndReleaseAudio,
     handleBargeIn,
+    handleSkipQuestionAudio,
     finalizeCandidateSpokenTurn,
     sendTextMessage,
     togglePause,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -96,6 +96,23 @@ export function SystemDesignWorkspace() {
   const [isEndingSession, setIsEndingSession] = useState(false);
   const router = useRouter();
 
+  // Track all questions visited/covered during this practice session
+  const [coveredQuestionIds, setCoveredQuestionIds] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  // Auto-register current question into covered set
+  useEffect(() => {
+    if (activeQuestion?.id) {
+      setCoveredQuestionIds((prev) => {
+        if (prev.has(activeQuestion.id)) return prev;
+        const next = new Set(prev);
+        next.add(activeQuestion.id);
+        return next;
+      });
+    }
+  }, [activeQuestion?.id]);
+
   const handleTogglePause = () => {
     voice.togglePause();
   };
@@ -104,7 +121,7 @@ export function SystemDesignWorkspace() {
     setShowEndModal(true);
   };
 
-  const handleEndSession = async () => {
+  const handleEndSession = useCallback(async () => {
     try {
       setIsEndingSession(true);
       voice.stopAndReleaseAudio();
@@ -152,7 +169,97 @@ export function SystemDesignWorkspace() {
     } finally {
       setIsEndingSession(false);
     }
-  };
+  }, [
+    topic,
+    activeQuestion,
+    domain,
+    codeContent,
+    notesContent,
+    voice,
+    secondsElapsed,
+    router,
+  ]);
+
+  const handleSkipQuestion = useCallback(() => {
+    if (!questions || questions.length === 0) return;
+
+    // 1. Mark current question as covered
+    const currentId = activeQuestion?.id;
+    const updated = new Set(coveredQuestionIds);
+    if (currentId) {
+      updated.add(currentId);
+      setCoveredQuestionIds(updated);
+    }
+
+    // 2. Identify any unvisited / uncovered questions in this topic
+    const remaining = questions.filter((q) => !updated.has(q.id));
+
+    // 3. If ALL questions are now covered, trigger the automatic interview wrap-up and evaluation!
+    if (remaining.length === 0) {
+      voice.handleSkipQuestionAudio();
+      voice.setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          content: `Excellent work! You have covered all architectural scenarios for "${topic?.title || "System Design"}". Compiling your final evaluation report now...`,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ]);
+      handleEndSession();
+      return;
+    }
+
+    // 4. Otherwise, jump directly to the next uncovered question
+    const nextQ = remaining[0];
+    const nextIdx = questions.findIndex((q) => q.id === nextQ.id);
+
+    // Synchronously jump to the unvisited question in memory (<1ms)
+    selectQuestion(nextQ.id);
+
+    // Immediately halt previous audio without waiting for candidate voice
+    voice.handleSkipQuestionAudio(nextQ?.prompt);
+
+    // Post conversational transition into live chat
+    voice.setMessages((prev) => [
+      ...prev,
+      {
+        sender: "ai",
+        content: `Got it! Let's move to Question ${nextIdx + 1} of ${totalQuestions}: "${nextQ?.title || topic?.title}".\n\n${nextQ?.prompt || ""}`,
+        details: nextQ?.hints,
+        timestamp: new Date().toLocaleTimeString(),
+      },
+    ]);
+  }, [
+    activeQuestion?.id,
+    coveredQuestionIds,
+    questions,
+    totalQuestions,
+    topic?.title,
+    selectQuestion,
+    voice,
+    handleEndSession,
+  ]);
+
+  // Global capture keyboard shortcut listener (Esc key triggers Skip Question instantly)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't skip if candidate is actively editing a note or typing text
+      const target = e.target as HTMLElement | null;
+      const tagName = (target?.tagName || "").toLowerCase();
+      if (tagName === "input" || tagName === "textarea" || target?.isContentEditable) {
+        return;
+      }
+
+      if (e.key === "Escape" || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSkipQuestion();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [handleSkipQuestion]);
 
   const renderAudioDock = () => (
     <AiVoiceInterviewerDock
@@ -171,6 +278,7 @@ export function SystemDesignWorkspace() {
       onBargeIn={voice.handleBargeIn}
       onFinalizeTurn={voice.finalizeCandidateSpokenTurn}
       onStopSession={handleStopSession}
+      onSkipQuestion={handleSkipQuestion}
       onToggleTextInput={() => voice.setIsTextInput(!voice.isTextInput)}
       onTextMessageChange={voice.setTextMessage}
       onSendTextMessage={voice.sendTextMessage}
@@ -186,7 +294,7 @@ export function SystemDesignWorkspace() {
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
               <span className="font-bold text-brand">
-                {activeQuestionIndex + 1} / {totalQuestions}
+                {Math.min(coveredQuestionIds.size, totalQuestions)} / {totalQuestions} Covered
               </span>
               <span className="text-[#b0a898]">•</span>
               <span className="font-semibold text-ink">
@@ -204,7 +312,9 @@ export function SystemDesignWorkspace() {
               className="h-full bg-brand transition-all duration-300"
               style={{
                 width: `${Math.round(
-                  ((activeQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+                  (Math.min(coveredQuestionIds.size, Math.max(1, totalQuestions)) /
+                    Math.max(1, totalQuestions)) *
+                    100
                 )}%`,
               }}
             />
@@ -584,7 +694,7 @@ export function SystemDesignWorkspace() {
       )}
 
       {/* End Session Confirmation Modal */}
-      {showEndModal && (
+      {showEndModal && !isEndingSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
           <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-6 shadow-xl text-center">
             <h3 className="font-display font-bold text-lg text-ink">
@@ -606,17 +716,33 @@ export function SystemDesignWorkspace() {
                 type="button"
                 disabled={isEndingSession}
                 onClick={handleEndSession}
-                className="flex items-center gap-1.5 rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-full bg-red-500 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-600 disabled:opacity-50 cursor-pointer"
               >
-                {isEndingSession ? (
-                  <>
-                    <Loader2 className="size-3.5 animate-spin" />
-                    <span>Evaluating...</span>
-                  </>
-                ) : (
-                  <span>End Now</span>
-                )}
+                <span>End Now</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Evaluation Loading Overlay when all questions are completed or submitting */}
+      {isEndingSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-3xl bg-white p-6 sm:p-7 shadow-2xl text-center animate-in fade-in zoom-in-95">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-[#f5f0ff] border border-[#ede9fe] text-[#7c3aed]">
+              <Cpu className="size-7 animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <h3 className="font-display font-bold text-base text-ink">
+                All Scenarios Completed!
+              </h3>
+              <p className="text-xs text-ink-muted leading-relaxed">
+                Sarah is compiling your diagnostic architecture evaluation report, rubric scores, and design strengths...
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#7c3aed] pt-1">
+              <Loader2 className="size-4 animate-spin" />
+              <span>Redirecting to Evaluation Scorecard...</span>
             </div>
           </div>
         </div>
