@@ -1708,28 +1708,28 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
       />
 
       {/* 1. HEADER: AI Candidate Profile Calibration & Stack Switcher */}
-      <div className="relative z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-4 border-b border-line">
+      <div className="relative z-30 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 pb-4 border-b border-line">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand shadow-xs">
             <BrainCircuit className="size-5" />
           </div>
 
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-extrabold text-brand uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-extrabold text-brand uppercase tracking-wider shrink-0">
               <Sparkles className="size-3" />
-              AI Profile Evaluator
+              AI Evaluator
             </span>
-            <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold text-ink truncate">
+            <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold text-ink whitespace-nowrap">
               🎯 {evaluationResult.personaLabel}
             </span>
-            <span className="text-xs font-semibold text-ink-muted truncate">
-              · Calibrated for {targetRole} ({company} Bar)
+            <span className="text-xs font-semibold text-ink-muted whitespace-nowrap">
+              · Calibrated for {company} Bar
             </span>
           </div>
         </div>
 
         {/* Right Controls: Primary Stack + Curriculum Domains Dropdowns */}
-        <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0 flex-wrap z-40">
+        <div className="flex items-center gap-2.5 self-start lg:self-auto shrink-0 flex-wrap z-40">
           {/* Primary Language / Tech Stack Switcher */}
           {!isFresher && (
             <div className="relative">
@@ -1874,7 +1874,7 @@ const topKDocs = crossEncoder.rerank([...denseDocs, ...sparseDocs], 5);`,
                   aria-hidden="true"
                 />
 
-                <div className="absolute right-0 top-full mt-2 z-50 w-80 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50 w-80 max-w-[calc(100vw-2.5rem)] rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="flex items-center justify-between px-2 pb-2.5 border-b border-line mb-2">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-extrabold text-ink uppercase tracking-wider">
