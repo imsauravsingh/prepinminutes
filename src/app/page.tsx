@@ -1,5 +1,5 @@
 import { NavBar } from "@/components/landing/NavBar";
-import { Hero } from "@/components/landing/Hero";
+import { HeroScene } from "@/components/landing/scene/HeroScene";
 import { Problem } from "@/components/landing/Problem";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { AiCoach } from "@/components/landing/AiCoach";
@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col bg-white">
       <NavBar />
-      <Hero />
+      <HeroScene />
       <Problem />
       <HowItWorks />
       <AiCoach />

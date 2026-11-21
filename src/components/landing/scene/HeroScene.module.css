@@ -1,0 +1,764 @@
+/* ---------- Layout ---------- */
+
+.wrap {
+  position: relative;
+  background: #faf6f0;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  height: 62svh;
+  min-height: 380px;
+  background: #f3dfd3;
+}
+
+@media (min-width: 640px) {
+  .hero {
+    height: 58svh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    height: min(calc(100svh - 72px), 56.25vw);
+    min-height: 560px;
+  }
+}
+
+.scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.layer {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ---------- Headline dock ---------- */
+
+.dock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 16px 32px;
+  color: var(--color-ink);
+}
+
+@media (min-width: 640px) {
+  .dock {
+    padding: 28px 32px 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dock {
+    position: absolute;
+    left: var(--dock-x, auto);
+    right: auto;
+    bottom: var(--dock-b, 24px);
+    width: min(470px, calc(100% - var(--dock-x, 0px) - 20px));
+    gap: 10px;
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: rgba(255, 252, 248, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 18px 40px rgba(64, 38, 25, 0.16);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    animation: dockIn 700ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes dockIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.kicker {
+  align-self: flex-start;
+  border-radius: 999px;
+  border: 1px solid var(--color-brand);
+  background: var(--color-brand-soft);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-brand);
+}
+
+.title {
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font-size: clamp(22px, 1.9vw, 30px);
+  }
+}
+
+.sub {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 1024px) {
+  .sub {
+    display: none;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 4px;
+}
+
+.primary {
+  border-radius: 999px;
+  background: var(--color-brand);
+  padding: 11px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(255, 108, 71, 0.3);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(255, 108, 71, 0.35);
+}
+
+.secondary {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Whiteboard ---------- */
+
+.whiteboard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  padding: 22px 26px;
+  font-family: var(--font-marker), "Comic Sans MS", cursive;
+  color: #1f3a8a;
+}
+
+.wbTitle {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: #e2502e;
+}
+
+.wbUnderline {
+  display: block;
+  width: 250px;
+  height: 14px;
+  margin-top: 2px;
+  fill: none;
+  stroke: #e2502e;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.wbList {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.wbList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wbBox {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wbDiagram {
+  display: block;
+  width: 100%;
+  height: 62px;
+  margin-top: 12px;
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wbDiagram text {
+  fill: #1f3a8a;
+  stroke: none;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.wbScore {
+  margin-top: 8px;
+  font-size: 30px;
+  font-weight: 700;
+  color: #0f9f6e;
+}
+
+/*
+ * Board timeline (16s loop): each piece writes in at its own delay (--d),
+ * holds, then is wiped in the same order, so the board keeps "working".
+ */
+.write {
+  display: inline-block;
+  animation: wbWrite 16s var(--d, 0s) linear infinite both;
+}
+
+@keyframes wbWrite {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 1;
+  }
+  6% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  55% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  61%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+}
+
+.draw,
+.drawBox,
+.drawTick,
+.drawDiagram {
+  stroke-dasharray: 1;
+  animation: wbDraw 16s var(--d, 0s) linear infinite both;
+}
+
+.drawBox {
+  stroke: #1f3a8a;
+  stroke-width: 2.4;
+}
+
+.drawTick {
+  stroke: #0f9f6e;
+  stroke-width: 3.6;
+}
+
+@keyframes wbDraw {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  5% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  61%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.fadeIn {
+  animation: wbFade 16s var(--d, 0s) linear infinite both;
+}
+
+@keyframes wbFade {
+  0% {
+    opacity: 0;
+  }
+  4%,
+  55% {
+    opacity: 1;
+  }
+  61%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Monitor ---------- */
+
+.monitor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 6px;
+  background: radial-gradient(120% 90% at 20% 0%, #26324f 0%, #161b2c 55%, #10131f 100%);
+  color: #e9ecf7;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  animation: monOn 900ms 300ms ease-out both;
+}
+
+@keyframes monOn {
+  from {
+    opacity: 0;
+    filter: brightness(2.2);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.monBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 17px;
+}
+
+.monLogo {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #ff8a6b;
+}
+
+.monLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: #a7f3d0;
+}
+
+.monLive i,
+.monNext i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34d399;
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(52, 211, 153, 0);
+  }
+}
+
+.monBody {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.monRing {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.monRing svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 12;
+}
+
+.ringFill {
+  fill: none;
+  stroke: #ff6c47;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: var(--c);
+  stroke-dashoffset: var(--c);
+  animation: ringFill 9s 0.8s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+}
+
+@keyframes ringFill {
+  0% {
+    stroke-dashoffset: var(--c);
+  }
+  18%,
+  88% {
+    stroke-dashoffset: var(--o);
+  }
+  100% {
+    stroke-dashoffset: var(--c);
+  }
+}
+
+.monRingText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.monRingText b {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.monRingText span {
+  font-size: 13px;
+  color: #aab2cc;
+}
+
+.monSkills {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.monSkill {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.monSkillHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #cfd5ea;
+}
+
+.monTrack {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.monTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff6c47, #ffb199);
+  transform-origin: left;
+  animation: barFill 9s var(--d, 0s) cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+}
+
+@keyframes barFill {
+  0% {
+    transform: scaleX(0);
+  }
+  15%,
+  88% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+.monChart {
+  height: 70px;
+  margin-right: 70px; /* the desk plant covers the bottom-right corner */
+}
+
+.monChart svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chartArea {
+  fill: rgba(52, 211, 153, 0.14);
+}
+
+.chartLine {
+  fill: none;
+  stroke: #34d399;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  vector-effect: non-scaling-stroke;
+  animation: chartDraw 9s 1.2s ease-out infinite both;
+}
+
+@keyframes chartDraw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  22%,
+  88% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+.monNext {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #cfd5ea;
+}
+
+.monNext b {
+  color: #fff;
+}
+
+.monGlare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 38%);
+}
+
+/* ---------- Clock ---------- */
+
+.clock {
+  position: absolute;
+}
+
+.clock svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tickMajor {
+  stroke: #3a2f2a;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.tickMinor {
+  stroke: #b9aca3;
+  stroke-width: 1.2;
+}
+
+.clockNum {
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  fill: #3a2f2a;
+}
+
+.clockBrand {
+  font-family: var(--font-marker), cursive;
+  font-size: 15px;
+  fill: #ff6c47;
+}
+
+.hourHand,
+.minHand {
+  stroke: #2b2320;
+  stroke-linecap: round;
+}
+
+.hourHand {
+  stroke-width: 6.5;
+}
+
+.minHand {
+  stroke-width: 4.2;
+}
+
+.secHand {
+  stroke: #ff6c47;
+  fill: #ff6c47;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  transition: transform 260ms cubic-bezier(0.4, 2.2, 0.6, 1);
+}
+
+.clockCap {
+  fill: #2b2320;
+}
+
+/* ---------- Sticky notes ---------- */
+
+.note {
+  position: absolute;
+  width: 96px;
+  min-height: 84px;
+  padding: 18px 9px 9px;
+  font-family: var(--font-marker), cursive;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: #3a2f2a;
+  border-radius: 2px 2px 10px 2px;
+  box-shadow: 0 6px 10px rgba(80, 50, 30, 0.18);
+  transform-origin: 50% 4px;
+  transform: rotate(var(--rot));
+  animation: noteFlutter 5.5s var(--d, 0s) ease-in-out infinite;
+}
+
+.noteTape {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 40px;
+  height: 14px;
+  margin-left: -20px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes noteFlutter {
+  0%,
+  100% {
+    transform: rotate(var(--rot)) skewX(0deg);
+  }
+  40% {
+    transform: rotate(calc(var(--rot) + 1.6deg)) skewX(-1deg);
+  }
+  70% {
+    transform: rotate(calc(var(--rot) - 0.8deg)) skewX(0.6deg);
+  }
+}
+
+/* ---------- Lamp light ---------- */
+
+.lampGlow {
+  position: absolute;
+  width: 460px;
+  height: 340px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 230, 170, 0.75), rgba(255, 200, 120, 0.25) 55%, rgba(255, 190, 110, 0));
+  mix-blend-mode: screen;
+  animation: lampBreathe 4.6s ease-in-out infinite, lampFlicker 9s steps(1, end) infinite;
+}
+
+.lampPool {
+  position: absolute;
+  width: 520px;
+  height: 180px;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 214, 150, 0.45), rgba(255, 214, 150, 0));
+  mix-blend-mode: soft-light;
+  animation: lampBreathe 4.6s ease-in-out infinite;
+}
+
+@keyframes lampBreathe {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+@keyframes lampFlicker {
+  0%,
+  61%,
+  64%,
+  100% {
+    filter: none;
+  }
+  62% {
+    filter: brightness(0.82);
+  }
+  63% {
+    filter: brightness(1.08);
+  }
+}
+
+/* ---------- Reduced motion: show everything in its finished state. ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .write,
+  .draw,
+  .drawBox,
+  .drawTick,
+  .drawDiagram,
+  .fadeIn,
+  .ringFill,
+  .monTrack i,
+  .chartLine,
+  .note,
+  .lampGlow,
+  .lampPool,
+  .monitor,
+  .dock,
+  .monLive i,
+  .monNext i {
+    animation: none;
+  }
+
+  .ringFill {
+    stroke-dashoffset: var(--o);
+  }
+
+  .chartLine,
+  .draw,
+  .drawBox,
+  .drawTick,
+  .drawDiagram {
+    stroke-dashoffset: 0;
+  }
+
+  .secHand {
+    transition: none;
+  }
+}

@@ -32,7 +32,7 @@ const steps: {
 
 export function HowItWorks() {
   return (
-    <section className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
+    <section id="how-it-works" className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
       <RuledLines height={500} spacing={28} opacity={0.4} color="#c9c2b6" />
       <Blob size={280} color="#93C5FD" opacity={0.12} className="left-[1280px] top-20 hidden lg:block" />
 
