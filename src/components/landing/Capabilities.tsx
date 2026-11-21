@@ -21,6 +21,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { RadarChart } from "./decorative";
+import { PrepSection } from "./journey/PrepSection";
+import { RevealOnView } from "./RevealOnView";
 
 type Card = {
   icon: LucideIcon;
@@ -137,7 +139,7 @@ const loopSteps = ["Prepare", "Practice", "Evaluate", "Improve", "Revise"];
 
 function CapabilityCard({ icon: Icon, iconBg, iconColor, title, description }: Card) {
   return (
-    <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-line bg-white p-6">
+    <div className="paper-card flex h-full flex-1 flex-col gap-4 rounded-2xl p-6">
       <div
         className="flex size-11 items-center justify-center rounded-xl"
         style={{ backgroundColor: iconBg }}
@@ -173,10 +175,10 @@ function JourneyRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:gap-10">
+    <RevealOnView className="flex flex-col gap-5 lg:flex-row lg:gap-10">
       <div className="flex items-center gap-4 lg:w-[190px] lg:shrink-0 lg:flex-col lg:items-start lg:gap-3">
         <span
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-extrabold text-white"
+          className="flex size-12 shrink-0 items-center justify-center rounded-full font-marker text-2xl font-bold text-white shadow-[0_6px_12px_rgba(96,60,36,0.15)]"
           style={{ backgroundColor: color }}
         >
           {number}
@@ -189,27 +191,25 @@ function JourneyRow({
         </div>
       </div>
       <div className="flex-1">{children}</div>
-    </div>
+    </RevealOnView>
   );
 }
 
 export function Capabilities() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
-      <div className="flex flex-col items-center gap-10 lg:gap-16">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <p className="text-sm font-bold uppercase text-brand">Key capabilities</p>
-          <h2 className="font-display text-[26px] font-extrabold leading-[32px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
-            Everything you need to turn preparation into{" "}
-            <span className="text-brand">interview readiness</span>
-          </h2>
-          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
-            From understanding the job to practicing realistic interviews, PrepInMinutes
-            continuously identifies what to learn, what to practice, and what to improve.
-          </p>
-        </div>
-
-        <div className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-4 rounded-2xl border border-line bg-white p-4 sm:p-5 lg:flex-nowrap lg:justify-between">
+    <PrepSection
+      id="features"
+      step={4}
+      kicker="The toolkit"
+      title={
+        <>
+          Everything you need to turn preparation into{" "}
+          <span className="text-brand">interview readiness</span>
+        </>
+      }
+      intro="From understanding the job to practicing realistic interviews, PrepInMinutes keeps finding what to learn, what to practice, and what to improve."
+    >
+        <RevealOnView className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-4 rounded-2xl border border-white/80 bg-white/70 p-4 shadow-[0_10px_24px_rgba(96,60,36,0.08)] backdrop-blur sm:p-5 lg:flex-nowrap lg:justify-between">
           {pipelineSteps.map((step, i) => (
             <div key={step.label} className="flex items-center gap-2">
               <div className="flex items-center gap-2.5">
@@ -229,7 +229,7 @@ export function Capabilities() {
               )}
             </div>
           ))}
-        </div>
+        </RevealOnView>
 
         <div className="flex w-full flex-col gap-10 lg:gap-12">
           <JourneyRow
@@ -264,7 +264,7 @@ export function Capabilities() {
             title="PRACTICE"
             description="Practice like it's the real thing"
           >
-            <div className="flex flex-col gap-8 rounded-3xl border border-[#8b5cf6]/25 bg-[#f5effb] p-6 sm:p-8">
+            <div className="flex flex-col gap-8 rounded-3xl border border-[#8b5cf6]/20 bg-white/75 p-6 shadow-[0_14px_30px_rgba(96,60,36,0.08)] sm:p-8">
               <div className="flex flex-col gap-8 lg:flex-row">
                 <div className="flex flex-1 flex-col gap-5">
                   <div className="flex flex-wrap items-center gap-3">
@@ -371,7 +371,7 @@ export function Capabilities() {
                   description="Detailed scorecard evaluating your logic, architecture, code quality, speed and communication."
                 />
               </div>
-              <div className="flex flex-col items-center gap-6 rounded-2xl border border-line bg-white p-6 sm:flex-1 sm:flex-row sm:items-center sm:gap-8">
+              <div className="paper-card flex flex-col items-center gap-6 rounded-2xl p-6 sm:flex-1 sm:flex-row sm:items-center sm:gap-8">
                 <div className="flex shrink-0 flex-col items-center gap-1 sm:items-start">
                   <p className="text-xs font-semibold uppercase text-ink-muted">Overall Score</p>
                   <p className="font-display text-4xl font-extrabold text-[#ec4899]">
@@ -399,20 +399,20 @@ export function Capabilities() {
           </JourneyRow>
         </div>
 
-        <div className="flex w-full flex-col items-center gap-6 rounded-3xl border-2 border-dashed border-line-strong p-6 sm:p-8">
+        <RevealOnView className="whiteboard-frame flex w-full flex-col items-center gap-6 p-6 sm:p-8">
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899)]">
               <RefreshCw className="size-6 text-white" />
             </span>
-            <p className="font-display text-lg font-extrabold text-ink">
-              Continuous Improvement Loop
+            <p className="font-marker text-[30px] font-bold leading-none text-[#e2502e]">
+              Continuous improvement loop
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3">
             {loopSteps.map((step, i) => (
               <div key={step} className="flex items-center gap-2">
-                <span className="rounded-full bg-cream px-4 py-2 text-sm font-semibold text-ink">
+                <span className="rounded-full border-2 border-dashed border-marker-blue/40 bg-white px-4 py-2 text-sm font-semibold text-marker-blue">
                   {step}
                 </span>
                 {i < loopSteps.length - 1 ? (
@@ -424,12 +424,11 @@ export function Capabilities() {
             ))}
           </div>
 
-          <p className="max-w-xl text-center text-sm leading-6 text-ink-muted">
+          <p className="max-w-xl text-center text-[15px] leading-6 text-ink-muted">
             The more you practice, the smarter our AI gets. The smarter it gets, the better you
             perform.
           </p>
-        </div>
-      </div>
-    </section>
+        </RevealOnView>
+    </PrepSection>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Caveat } from "next/font/google";
 import {
   CHAR_BOX,
   CHAR_FRAMES,
@@ -20,8 +19,6 @@ import {
 } from "./sceneGeometry";
 import { SceneClock, SceneMonitor, SceneNotes, SceneWhiteboard } from "./SceneBoards";
 import styles from "./HeroScene.module.css";
-
-const marker = Caveat({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-marker" });
 
 const BG_SRC = "/hero/bg.webp";
 const frameSrc = (i: number) => `/hero/char/c${String(i).padStart(3, "0")}.avif`;
@@ -352,7 +349,7 @@ export function HeroScene() {
   }, []);
 
   return (
-    <section className={`${styles.wrap} ${marker.variable}`}>
+    <section className={styles.wrap}>
       <div ref={heroRef} className={styles.hero}>
         <div ref={sceneRef} className={styles.scene} style={{ width: SCENE_W, height: SCENE_H }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- fixed-size scene layer, not a responsive image */}

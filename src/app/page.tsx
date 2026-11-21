@@ -7,18 +7,21 @@ import { Capabilities } from "@/components/landing/Capabilities";
 import { ReadinessScore } from "@/components/landing/ReadinessScore";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/landing/Footer";
+import { JourneyRail } from "@/components/landing/journey/JourneyRail";
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col bg-white">
       <NavBar overlay />
       <HeroScene />
-      <Problem />
-      <HowItWorks />
-      <AiCoach />
-      <Capabilities />
-      <ReadinessScore />
-      <FinalCta />
+      <JourneyRail>
+        <Problem />
+        <HowItWorks />
+        <AiCoach />
+        <Capabilities />
+        <ReadinessScore />
+        <FinalCta />
+      </JourneyRail>
       <Footer />
     </div>
   );

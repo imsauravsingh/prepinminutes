@@ -6,13 +6,15 @@ type RevealOnViewProps = {
   children: ReactNode;
   delay?: number;
   className?: string;
+  /** "rise" fades up (default); "drop" pins it like a sticky note. */
+  variant?: "rise" | "drop";
 };
 
 /**
  * Fades and rises its child in the first time it scrolls into view.
  * With reduced motion enabled, the child is never hidden.
  */
-export function RevealOnView({ children, delay = 0, className }: RevealOnViewProps) {
+export function RevealOnView({ children, delay = 0, className, variant = "rise" }: RevealOnViewProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,6 +24,7 @@ export function RevealOnView({ children, delay = 0, className }: RevealOnViewPro
     if (!("IntersectionObserver" in window)) return;
 
     el.classList.add("reveal-pending");
+    if (variant === "drop") el.classList.add("reveal-drop");
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -35,7 +38,7 @@ export function RevealOnView({ children, delay = 0, className }: RevealOnViewPro
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [variant]);
 
   return (
     <div

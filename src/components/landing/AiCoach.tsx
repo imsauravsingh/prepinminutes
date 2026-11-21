@@ -1,102 +1,103 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
+import { PrepSection } from "./journey/PrepSection";
+import { RevealOnView } from "./RevealOnView";
 
 const actions = [
   {
     title: "Revise distributed systems",
-    description: "Read failures, partitioned networks, CAP theorem review.",
+    description: "Failures, network partitions, and a CAP theorem review.",
   },
   {
     title: "Practice payment system design",
-    description: "Design reliable ledger, dual-write mitigation drills.",
+    description: "Reliable ledgers and dual-write mitigation drills.",
   },
   {
     title: "Take a mock interview",
-    description: "45-min scenario with focus on system resilience & trade-offs.",
+    description: "45-minute scenario focused on resilience and trade-offs.",
   },
 ];
 
 const highlights = [
-  "Targeted problem sets matching specific weaknesses",
-  "Conceptual crash cards for rapid revision loops",
-  "Adaptive mock sessions emphasizing difficult scenarios",
+  "Targeted problem sets that match your weak spots",
+  "Quick concept cards for fast revision",
+  "Adaptive mock sessions that focus on hard scenarios",
 ];
 
 export function AiCoach() {
   return (
-    <section className="border-y border-line bg-cream px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
-      <div className="flex flex-col items-center gap-10 lg:gap-16">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <p className="text-sm font-bold uppercase text-brand">Adaptive Coaching</p>
-          <h2 className="font-display text-[28px] font-extrabold leading-[34px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
-            Your preparation should adapt to you
-          </h2>
-          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
-            PrepInMinutes continuously updates your study schedule and mocks based on your real
-            performance metrics, saving you weeks of misaligned focus.
-          </p>
-        </div>
-
-        <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-12">
-          <div className="flex flex-1 flex-col gap-6 rounded-3xl border-[1.5px] border-brand bg-white p-6 shadow-[0_12px_12px_rgba(255,108,71,0.07)] sm:p-8">
+    <PrepSection
+      step={3}
+      kicker="The coach"
+      title="Your preparation should adapt to you"
+      intro="PrepInMinutes keeps updating your schedule and mock interviews based on how you actually perform, so you never waste weeks on the wrong focus."
+    >
+      <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-14">
+        <RevealOnView className="flex-1">
+          {/* Styled like the monitor on the desk in the hero scene. */}
+          <div className="monitor-frame flex flex-col gap-5 p-5 sm:p-7">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-brand" />
-                <p className="text-[13px] font-semibold text-ink-muted">Coach Insight Session</p>
-              </div>
-              <p className="text-[11px] text-ink-muted">Updated 2m ago</p>
+              <span className="font-display text-[15px] font-extrabold text-[#ff8a6b]">PrepInMinutes</span>
+              <span className="flex items-center gap-2 text-[13px] text-[#a7f3d0]">
+                <i className="live-dot" aria-hidden="true" /> AI coach live
+              </span>
             </div>
 
-            <div className="rounded-2xl bg-cream p-5">
-              <p className="text-lg font-medium leading-7 text-ink">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 sm:p-5">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#aab2cc]">
+                Coach insight · updated 2 min ago
+              </p>
+              <p className="text-[17px] font-medium leading-7 text-white">
                 &ldquo;Your system design answers are strong on architecture but weak on failure
                 handling and trade-offs.&rdquo;
               </p>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-bold uppercase text-ink-muted">Recommended Actions:</p>
+            <div className="flex flex-col gap-2.5">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#aab2cc]">Recommended next</p>
               {actions.map((action, i) => (
-                <div key={action.title} className="flex items-center gap-4 rounded-xl bg-cream p-4">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-xs font-extrabold text-brand">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="font-display text-sm font-bold text-ink">{action.title}</p>
-                    <p className="text-xs text-ink-muted">{action.description}</p>
+                <RevealOnView key={action.title} delay={250 + i * 140}>
+                  <div className="flex items-center gap-3.5 rounded-xl bg-white/[0.06] p-3.5 transition-colors hover:bg-white/10">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-extrabold text-white">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-display text-sm font-bold text-white">{action.title}</p>
+                      <p className="text-[13px] text-[#cfd5ea]">{action.description}</p>
+                    </div>
+                    <ArrowRight className="size-4 shrink-0 text-[#aab2cc]" aria-hidden="true" />
                   </div>
-                  <ArrowRight className="size-3.5 shrink-0 text-ink-muted" />
-                </div>
+                </RevealOnView>
               ))}
             </div>
 
             <a
-              href="#"
-              className="rounded-full bg-brand py-3 text-center text-[15px] font-semibold text-white shadow-[0_4px_6px_rgba(255,108,71,0.2)]"
+              href="/sign-up"
+              className="rounded-full bg-brand py-3 text-center text-[15px] font-semibold text-white shadow-[0_6px_14px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
             >
-              Start Recommendation →
+              Start this plan &rarr;
             </a>
           </div>
+        </RevealOnView>
 
-          <div className="flex flex-1 flex-col gap-6">
-            <h3 className="font-display text-2xl font-extrabold leading-8 text-ink sm:text-[32px] sm:leading-10">
-              Smart coaching designed to eliminate study guesswork.
-            </h3>
-            <p className="text-base leading-[26px] text-ink-muted">
-              Our AI engine continuously parses your practical answers, grades your conceptual
-              logic, and flags high-leverage knowledge deficiencies. You get clear instructions on
-              what systems to revise, when to practice, and when to book real mocks.
-            </p>
-            <div className="flex flex-col gap-4">
-              {highlights.map((highlight) => (
-                <div key={highlight} className="flex items-center gap-2.5">
-                  <CheckCircle className="size-4 shrink-0 text-success" />
-                  <p className="text-[15px] text-ink">{highlight}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <RevealOnView delay={150} className="flex flex-1 flex-col gap-6">
+          <h3 className="font-display text-2xl font-extrabold leading-8 text-ink sm:text-[32px] sm:leading-10">
+            Smart coaching that removes the guesswork.
+          </h3>
+          <p className="text-base leading-[26px] text-ink-muted sm:text-[17px] sm:leading-7">
+            The AI reviews your practice answers, grades your reasoning, and flags the gaps that
+            matter most. You always know what to revise, when to practice, and when you are ready
+            for a real mock.
+          </p>
+          <ul className="flex flex-col gap-4">
+            {highlights.map((highlight) => (
+              <li key={highlight} className="flex items-center gap-3">
+                <CheckCircle className="size-5 shrink-0 text-success" aria-hidden="true" />
+                <span className="text-[15px] text-ink sm:text-base">{highlight}</span>
+              </li>
+            ))}
+          </ul>
+        </RevealOnView>
       </div>
-    </section>
+    </PrepSection>
   );
 }

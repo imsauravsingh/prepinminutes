@@ -6,7 +6,11 @@ import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useAppAuth } from "@/components/providers/AuthProvider";
 import { BrandMark } from "@/components/BrandMark";
 
-const navLinks = ["How It Works", "Features", "Pricing"];
+const navLinks = [
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "#" },
+];
 
 type NavBarProps = {
   /**
@@ -71,8 +75,8 @@ export function NavBar({ overlay = false }: NavBarProps) {
 
         <nav className="hidden gap-8 text-sm font-semibold text-ink/75 lg:flex">
           {navLinks.map((link) => (
-            <a key={link} href="#" className="hover:text-ink">
-              {link}
+            <a key={link.label} href={link.href} className="hover:text-ink">
+              {link.label}
             </a>
           ))}
         </nav>
@@ -139,12 +143,12 @@ export function NavBar({ overlay = false }: NavBarProps) {
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className="rounded-lg px-3 py-3 text-base font-medium text-ink-muted hover:bg-cream hover:text-ink"
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </nav>

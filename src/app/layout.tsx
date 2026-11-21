@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Outfit } from "next/font/google";
+import { Caveat, Geist, Outfit } from "next/font/google";
 import { ClerkProviderClient } from "@/components/providers/ClerkProviderClient";
 import "./globals.css";
 
@@ -11,6 +11,13 @@ const geistSans = Geist({
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+});
+
+// Handwritten marker style, used for whiteboard-like labels across the landing page.
+const marker = Caveat({
+  variable: "--font-marker",
+  subsets: ["latin"],
+  weight: ["500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${outfit.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${outfit.variable} ${marker.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ClerkProviderClient

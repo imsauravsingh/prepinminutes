@@ -7,10 +7,9 @@ import {
   AlertTriangle,
   BookOpen,
   CheckCircle,
-  ArrowRight,
   type LucideIcon,
 } from "lucide-react";
-import { Blob, RuledLines } from "./decorative";
+import { PrepSection } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
 
 const steps: {
@@ -20,60 +19,61 @@ const steps: {
   title: string;
   description: string;
 }[] = [
-  { icon: FileText, color: "#3b82f6", number: "01", title: "Resume + JD", description: "Input background" },
-  { icon: Cpu, color: "#10b981", number: "02", title: "AI Analysis", description: "Skill extraction" },
-  { icon: Calendar, color: "#ff6c47", number: "03", title: "Personal Plan", description: "Dynamic schedule" },
+  { icon: FileText, color: "#3b82f6", number: "01", title: "Resume + JD", description: "Add your background" },
+  { icon: Cpu, color: "#10b981", number: "02", title: "AI Analysis", description: "Skills extracted" },
+  { icon: Calendar, color: "#ff6c47", number: "03", title: "Personal Plan", description: "Daily schedule" },
   { icon: Edit3, color: "#f59e0b", number: "04", title: "Practice", description: "Tailored drills" },
   { icon: Award, color: "#ef4444", number: "05", title: "Evaluation", description: "Answers graded" },
-  { icon: AlertTriangle, color: "#8b5cf6", number: "06", title: "Weakness Alert", description: "Identify gaps" },
+  { icon: AlertTriangle, color: "#8b5cf6", number: "06", title: "Weakness Alert", description: "Gaps found" },
   { icon: BookOpen, color: "#ec4899", number: "07", title: "Smart Revision", description: "Reinforced learning" },
-  { icon: CheckCircle, color: "#06b6d4", number: "08", title: "Ready!", description: "Enter confident" },
+  { icon: CheckCircle, color: "#06b6d4", number: "08", title: "Ready!", description: "Walk in confident" },
 ];
+
+/** Hand-drawn marker arrow between two steps on the board. */
+function MarkerArrow() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 36 16" className="hidden h-4 w-7 shrink-0 text-marker-blue lg:block">
+      <path d="M2 9 C 12 5, 22 11, 31 8 M25 3 L32 8 L25 13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-[120px] lg:py-[100px]">
-      <RuledLines height={500} spacing={28} opacity={0.4} color="#c9c2b6" />
-      <Blob size={280} color="#93C5FD" opacity={0.12} className="left-[1280px] top-20 hidden lg:block" />
-
-      <div className="relative flex flex-col items-center gap-10 lg:gap-16">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <p className="text-sm font-bold uppercase text-brand">Workflow pipeline</p>
-          <h2 className="font-display text-[28px] font-extrabold leading-[34px] text-ink sm:text-[34px] sm:leading-[40px] lg:text-[40px] lg:leading-[48px]">
-            How PrepInMinutes Works
-          </h2>
-          <p className="w-full max-w-[720px] text-base leading-[26px] text-ink-muted">
-            A highly intelligent continuous loop designed to take you from a raw candidate to
-            fully interview-confident.
+    <PrepSection
+      id="how-it-works"
+      step={2}
+      kicker="The plan"
+      title="How PrepInMinutes works"
+      intro="One continuous loop that takes you from a raw candidate to interview-confident, the same plan you saw on the whiteboard."
+    >
+      <RevealOnView className="w-full">
+        <div className="whiteboard-frame w-full p-5 sm:p-8">
+          <p className="mb-5 font-marker text-[28px] font-bold leading-none text-[#e2502e] sm:text-[32px]">
+            Your prep pipeline
           </p>
-        </div>
-
-        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 lg:flex lg:items-center lg:gap-2">
-          {steps.map((step, i) => (
-            <RevealOnView key={step.number} delay={i * 110} className="flex items-center lg:flex-1">
-              <div
-                className="flex flex-1 flex-col gap-2.5 rounded-2xl border-[1.5px] bg-white p-4"
-                style={{
-                  borderColor: step.color,
-                  boxShadow: `0 6px 6px ${step.color}14`,
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <step.icon className="size-[18px]" style={{ color: step.color }} />
-                  <p className="text-[11px] font-extrabold text-ink-muted">{step.number}</p>
+          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 lg:flex lg:items-center lg:gap-1">
+            {steps.map((step, i) => (
+              <RevealOnView key={step.number} delay={150 + i * 110} className="flex items-center lg:flex-1">
+                <div
+                  className="flex flex-1 flex-col gap-2 rounded-xl border-2 border-dashed bg-white/80 p-3.5"
+                  style={{ borderColor: `${step.color}80` }}
+                >
+                  <div className="flex items-center justify-between">
+                    <step.icon className="size-[18px]" style={{ color: step.color }} aria-hidden="true" />
+                    <span className="font-marker text-lg font-bold leading-none" style={{ color: step.color }}>
+                      {step.number}
+                    </span>
+                  </div>
+                  <p className="font-display text-sm font-bold text-ink">{step.title}</p>
+                  <p className="text-xs text-ink-muted">{step.description}</p>
                 </div>
-                <p className="truncate font-display text-[13px] font-bold text-ink">
-                  {step.title}
-                </p>
-                <p className="truncate text-[11px] text-ink-muted">{step.description}</p>
-              </div>
-              {i < steps.length - 1 && (
-                <ArrowRight className="mx-1 hidden size-3 shrink-0 text-ink-muted lg:block" />
-              )}
-            </RevealOnView>
-          ))}
+                {i < steps.length - 1 && <MarkerArrow />}
+              </RevealOnView>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </RevealOnView>
+    </PrepSection>
   );
 }
