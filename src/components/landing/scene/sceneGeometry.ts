@@ -15,11 +15,36 @@ export type Quad = readonly [Point, Point, Point, Point]; // TL, TR, BR, BL
 /** Inner screen of the angled desktop monitor (right edge is nearer, so taller). */
 export const MONITOR_QUAD: Quad = [
   [1403, 407],
-  [1879, 326],
-  [1864, 754],
+  [1874, 331], // kept just inside the black bezel on the plant side
+  [1854, 745],
   [1384, 726],
 ];
 export const MONITOR_SIZE = { w: 512, h: 400 };
+
+/** Spines of the two books beside the coffee cup, between their raised bands. */
+export const BOOK_LABELS = [
+  {
+    key: "blue",
+    title: "System Design",
+    quad: [
+      [198, 912],
+      [346, 925],
+      [346, 965],
+      [198, 954],
+    ] as Quad,
+  },
+  {
+    key: "coral",
+    title: "DSA Patterns",
+    quad: [
+      [182, 963],
+      [343, 976],
+      [343, 1020],
+      [182, 1009],
+    ] as Quad,
+  },
+] as const;
+export const BOOK_LABEL_SIZE = { w: 300, h: 84 };
 
 /** Writable area of the whiteboard (inside the metal frame). */
 export const WHITEBOARD_QUAD: Quad = [
@@ -51,11 +76,14 @@ export const HEAD = { x: 640, y: 330 };
  * - "outside": tree leaves seen through the window. They move everywhere and
  *   are clipped to the glass, so they never draw over the window bars.
  * - "plant": potted plants. `baseY` (the pot) stays still and the tips move most.
+ *
+ * `mask` picks how leaf pixels are found: "green" for the deep-green monstera,
+ * "bright" for the yellow-green desk plant whose leaves overlap the monitor.
  */
 export const GREENERY = [
-  { key: "outside", kind: "outside", x: 0, y: 0, w: 340, h: 790, baseY: 0, amp: 6, speed: 0.0009, phase: 0.6 },
-  { key: "monstera", kind: "plant", x: 0, y: 0, w: 400, h: 790, baseY: 725, amp: 11, speed: 0.0011, phase: 0 },
-  { key: "desk-plant", kind: "plant", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 7, speed: 0.0014, phase: 1.7 },
+  { key: "outside", kind: "outside", mask: "green", x: 0, y: 0, w: 340, h: 790, baseY: 0, amp: 6, speed: 0.0009, phase: 0.6 },
+  { key: "monstera", kind: "plant", mask: "green", x: 0, y: 0, w: 400, h: 790, baseY: 725, amp: 11, speed: 0.0011, phase: 0 },
+  { key: "desk-plant", kind: "plant", mask: "bright", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 7, speed: 0.0014, phase: 1.7 },
 ] as const;
 
 /**

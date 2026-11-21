@@ -17,7 +17,7 @@ import {
   cyclicDelta,
   wrapFrame,
 } from "./sceneGeometry";
-import { SceneClock, SceneMonitor, SceneNotes, SceneWhiteboard } from "./SceneBoards";
+import { SceneBookLabels, SceneClock, SceneMonitor, SceneNotes, SceneWhiteboard } from "./SceneBoards";
 import styles from "./HeroScene.module.css";
 
 const BG_SRC = "/hero/bg.webp";
@@ -161,6 +161,14 @@ export function HeroScene() {
     // Sunlit tree leaves outside: bright yellow-green, not pink wall, curtain, or wood.
     const outsideAlpha = (r: number, g: number, b: number) =>
       (r + g + b) / 3 > 110 && r < g * 1.18 ? (g - b - 30) * 6 : 0;
+    // Desk plant: whole yellow-green leaves, their highlights and dark outlines, so the
+    // leaves that overlap the monitor stay in front of the screen content.
+    const brightPlantAlpha = (r: number, g: number, b: number) => {
+      const lum = (r + g + b) / 3;
+      const bright = r < g * 1.15 && lum > 22 ? (g - b - 18) * 6 : 0;
+      const shade = lum <= 110 && g >= r * 0.95 && g > b + 6 ? (g - b) * 10 : 0;
+      return Math.max(bright, shade);
+    };
     const clamp255 = (v: number) => Math.max(0, Math.min(255, v));
 
     const bg = new Image();
@@ -197,7 +205,7 @@ export function HeroScene() {
             p[j + 3] = a;
             if (clipData) clipData.data[j + 3] = a;
           } else {
-            p[j + 3] = clamp255(plantAlpha(r, g, b));
+            p[j + 3] = clamp255(cfg.mask === "bright" ? brightPlantAlpha(r, g, b) : plantAlpha(r, g, b));
           }
         }
         lctx.putImageData(data, 0, 0);
@@ -386,6 +394,7 @@ export function HeroScene() {
           ))}
 
           <SceneWhiteboard />
+          <SceneBookLabels />
           <SceneNotes />
           <SceneClock />
 

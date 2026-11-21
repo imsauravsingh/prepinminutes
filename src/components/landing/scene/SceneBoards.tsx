@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import {
+  BOOK_LABELS,
+  BOOK_LABEL_SIZE,
   CLOCK,
   MONITOR_QUAD,
   MONITOR_SIZE,
@@ -256,6 +258,29 @@ export function SceneNotes() {
         >
           <span className={styles.noteTape} />
           {n.text}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Printed titles on the spines of the two books next to the coffee cup. */
+export function SceneBookLabels() {
+  return (
+    <>
+      {BOOK_LABELS.map((book) => (
+        <div
+          key={book.key}
+          className={styles.bookLabel}
+          style={{
+            width: BOOK_LABEL_SIZE.w,
+            height: BOOK_LABEL_SIZE.h,
+            transform: quadMatrix(BOOK_LABEL_SIZE.w, BOOK_LABEL_SIZE.h, book.quad),
+          }}
+          aria-hidden="true"
+        >
+          <span className={styles.bookTitle}>{book.title}</span>
+          <span className={styles.bookBy}>by PrepInMinutes</span>
         </div>
       ))}
     </>
