@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { ProgressRing } from "./decorative";
 import { PrepSection } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
+import { CountUpOnView } from "./motion/CountUpOnView";
 
 const dimensions = [
   { label: "Technical Core", value: 85, color: "#3b82f6" },
@@ -12,11 +12,14 @@ const dimensions = [
 ];
 
 const ticks = Array.from({ length: 60 }, (_, i) => i);
+const SCORE = 78;
+const RING_R = 80;
+const RING_C = 2 * Math.PI * RING_R;
 
 export function ReadinessScore() {
   return (
     <PrepSection
-      step={5}
+      step={4}
       kicker="The scoreboard"
       title="Know where you stand before the interview"
       intro="No more gut feelings. Your Readiness Score shows exactly how close you are, and which skills need one more round."
@@ -41,9 +44,24 @@ export function ReadinessScore() {
               ))}
             </svg>
             <div className="relative flex size-[74%] items-center justify-center">
-              <ProgressRing percentage={78} />
+              <svg aria-hidden="true" viewBox="0 0 200 200" className="absolute inset-0 size-full -rotate-90">
+                <circle cx="100" cy="100" r={RING_R} fill="none" stroke="#f4efe8" strokeWidth="16" />
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={RING_R}
+                  fill="none"
+                  stroke="#ff6c47"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                  className="score-ring-fill"
+                  style={{ "--c": RING_C, "--o": RING_C * (1 - SCORE / 100) } as CSSProperties}
+                />
+              </svg>
               <div className="absolute flex flex-col items-center gap-1">
-                <p className="font-display text-[40px] font-extrabold text-ink sm:text-[52px] lg:text-[60px]">78%</p>
+                <p className="font-display text-[40px] font-extrabold text-ink sm:text-[52px] lg:text-[60px]">
+                  <CountUpOnView value={SCORE} />
+                </p>
                 <p className="font-marker text-xl font-bold text-brand sm:text-2xl">interview ready</p>
               </div>
             </div>

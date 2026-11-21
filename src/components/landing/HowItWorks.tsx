@@ -9,34 +9,28 @@ import {
   CheckCircle,
   type LucideIcon,
 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { PrepSection } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
 
 const steps: {
   icon: LucideIcon;
   color: string;
-  number: string;
   title: string;
   description: string;
 }[] = [
-  { icon: FileText, color: "#3b82f6", number: "01", title: "Resume + JD", description: "Add your background" },
-  { icon: Cpu, color: "#10b981", number: "02", title: "AI Analysis", description: "Skills extracted" },
-  { icon: Calendar, color: "#ff6c47", number: "03", title: "Personal Plan", description: "Daily schedule" },
-  { icon: Edit3, color: "#f59e0b", number: "04", title: "Practice", description: "Tailored drills" },
-  { icon: Award, color: "#ef4444", number: "05", title: "Evaluation", description: "Answers graded" },
-  { icon: AlertTriangle, color: "#8b5cf6", number: "06", title: "Weakness Alert", description: "Gaps found" },
-  { icon: BookOpen, color: "#ec4899", number: "07", title: "Smart Revision", description: "Reinforced learning" },
-  { icon: CheckCircle, color: "#06b6d4", number: "08", title: "Ready!", description: "Walk in confident" },
+  { icon: FileText, color: "#3b82f6", title: "Resume + JD", description: "Add your background" },
+  { icon: Cpu, color: "#10b981", title: "AI Analysis", description: "Skills extracted" },
+  { icon: Calendar, color: "#ff6c47", title: "Personal Plan", description: "Daily schedule" },
+  { icon: Edit3, color: "#f59e0b", title: "Practice", description: "Tailored drills" },
+  { icon: Award, color: "#ef4444", title: "Evaluation", description: "Answers graded" },
+  { icon: AlertTriangle, color: "#8b5cf6", title: "Weakness Alert", description: "Gaps found" },
+  { icon: BookOpen, color: "#ec4899", title: "Smart Revision", description: "Reinforced learning" },
+  { icon: CheckCircle, color: "#06b6d4", title: "Ready!", description: "Walk in confident" },
 ];
 
-/** Hand-drawn marker arrow between two steps on the board. */
-function MarkerArrow() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 36 16" className="hidden h-4 w-7 shrink-0 text-marker-blue lg:block">
-      <path d="M2 9 C 12 5, 22 11, 31 8 M25 3 L32 8 L25 13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+/** Seconds each card stays highlighted as the loop flows through the pipeline. */
+const STEP_SECONDS = 1.2;
 
 export function HowItWorks() {
   return (
@@ -45,34 +39,46 @@ export function HowItWorks() {
       step={2}
       kicker="The plan"
       title="How PrepInMinutes works"
-      intro="One continuous loop that takes you from a raw candidate to interview-confident, the same plan you saw on the whiteboard."
+      intro="One continuous loop that takes you from a raw candidate to interview-confident. Watch your plan flow from step to step."
     >
-      <RevealOnView className="w-full">
-        <div className="whiteboard-frame w-full p-5 sm:p-8">
-          <p className="mb-5 font-marker text-[28px] font-bold leading-none text-[#e2502e] sm:text-[32px]">
-            Your prep pipeline
-          </p>
-          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 lg:flex lg:items-center lg:gap-1">
-            {steps.map((step, i) => (
-              <RevealOnView key={step.number} delay={150 + i * 110} className="flex items-center lg:flex-1">
-                <div
-                  className="flex flex-1 flex-col gap-2 rounded-xl border-2 border-dashed bg-white/80 p-3.5"
-                  style={{ borderColor: `${step.color}80` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <step.icon className="size-[18px]" style={{ color: step.color }} aria-hidden="true" />
-                    <span className="font-marker text-lg font-bold leading-none" style={{ color: step.color }}>
-                      {step.number}
-                    </span>
-                  </div>
-                  <p className="font-display text-sm font-bold text-ink">{step.title}</p>
-                  <p className="text-xs text-ink-muted">{step.description}</p>
-                </div>
-                {i < steps.length - 1 && <MarkerArrow />}
-              </RevealOnView>
-            ))}
+      <div
+        className="flow-pipeline relative w-full lg:pb-10"
+        style={{ "--flow-total": `${steps.length * STEP_SECONDS}s`, "--flow-steps": steps.length } as CSSProperties}
+      >
+        {/* Rail under the cards with a pulse that reaches each card as it lights up (desktop). */}
+        <RevealOnView className="absolute inset-0 hidden lg:block">
+          <div aria-hidden="true" className="flow-track">
+            <span className="flow-track-pulse" />
           </div>
-        </div>
+        </RevealOnView>
+
+        <ol className="relative grid w-full grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8 lg:gap-3">
+          {steps.map((step, i) => (
+            <li key={step.title} className="flex">
+              <RevealOnView variant="pop" delay={i * 140} className="flex w-full">
+                <div
+                  className="flow-card group flex w-full flex-col items-center gap-2.5 rounded-2xl p-4 text-center"
+                  style={{ "--c": step.color, "--i": i } as CSSProperties}
+                >
+                  <span className="flow-icon flex size-12 items-center justify-center rounded-full">
+                    <step.icon className="size-[22px]" aria-hidden="true" />
+                  </span>
+                  <span className="font-marker text-xl font-bold leading-none" style={{ color: step.color }}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <p className="font-display text-[15px] font-bold leading-tight text-ink">{step.title}</p>
+                  <p className="text-[13px] leading-snug text-ink-muted">{step.description}</p>
+                </div>
+              </RevealOnView>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <RevealOnView delay={900}>
+        <p className="text-center font-marker text-[26px] font-bold text-marker-blue">
+          &hellip;and the loop repeats until you&rsquo;re ready &#8635;
+        </p>
       </RevealOnView>
     </PrepSection>
   );

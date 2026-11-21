@@ -1,6 +1,8 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { PrepSection } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
+import { TiltCard } from "./motion/TiltCard";
+import { Typewriter } from "./motion/Typewriter";
 
 const actions = [
   {
@@ -26,6 +28,7 @@ const highlights = [
 export function AiCoach() {
   return (
     <PrepSection
+      id="coach"
       step={3}
       kicker="The coach"
       title="Your preparation should adapt to you"
@@ -34,6 +37,7 @@ export function AiCoach() {
       <div className="flex w-full flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-14">
         <RevealOnView className="flex-1">
           {/* Styled like the monitor on the desk in the hero scene. */}
+          <TiltCard className="rounded-[18px]" max={4}>
           <div className="monitor-frame flex flex-col gap-5 p-5 sm:p-7">
             <div className="flex items-center justify-between">
               <span className="font-display text-[15px] font-extrabold text-[#ff8a6b]">PrepInMinutes</span>
@@ -47,8 +51,7 @@ export function AiCoach() {
                 Coach insight · updated 2 min ago
               </p>
               <p className="text-[17px] font-medium leading-7 text-white">
-                &ldquo;Your system design answers are strong on architecture but weak on failure
-                handling and trade-offs.&rdquo;
+                <Typewriter text="“Your system design answers are strong on architecture but weak on failure handling and trade-offs.”" />
               </p>
             </div>
 
@@ -72,11 +75,12 @@ export function AiCoach() {
 
             <a
               href="/sign-up"
-              className="rounded-full bg-brand py-3 text-center text-[15px] font-semibold text-white shadow-[0_6px_14px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
+              className="btn-shine rounded-full bg-brand py-3 text-center text-[15px] font-semibold text-white shadow-[0_6px_14px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
             >
               Start this plan &rarr;
             </a>
           </div>
+          </TiltCard>
         </RevealOnView>
 
         <RevealOnView delay={150} className="flex flex-1 flex-col gap-6">

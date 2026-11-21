@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { RevealOnView } from "../RevealOnView";
 
-export const JOURNEY_TOTAL = 6;
+export const JOURNEY_TOTAL = 5;
 
 type PrepSectionProps = {
   id?: string;

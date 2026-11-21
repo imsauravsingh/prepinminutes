@@ -2,6 +2,7 @@ import { Layers, User, EyeOff, RotateCcw, type LucideIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 import { PrepSection } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
+import { TiltCard } from "./motion/TiltCard";
 
 const problems: {
   icon: LucideIcon;
@@ -54,7 +55,8 @@ export function Problem() {
     >
       <div className="grid w-full grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
         {problems.map(({ icon: Icon, note, rot, title, description }, i) => (
-          <RevealOnView key={title} variant="drop" delay={i * 120}>
+          <RevealOnView key={title} variant="drop" delay={i * 120} className="h-full">
+            <TiltCard className="h-full rounded-[4px_4px_18px_4px]" max={9}>
             <article
               className="sticky-note relative flex h-full flex-col gap-3 rounded-[4px_4px_18px_4px] p-6 pt-8"
               style={{ background: note, "--rot": `${rot}deg` } as CSSProperties}
@@ -66,6 +68,7 @@ export function Problem() {
               <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
               <p className="text-[15px] leading-6 text-ink/80">{description}</p>
             </article>
+            </TiltCard>
           </RevealOnView>
         ))}
       </div>

@@ -1,5 +1,6 @@
 import { JOURNEY_TOTAL } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
+import { ParallaxImage } from "./motion/ParallaxImage";
 
 /**
  * The last stop: back at the same desk from the hero, now ready to start.
@@ -17,13 +18,7 @@ export function FinalCta() {
       </span>
 
       <div aria-hidden="true" className="absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element -- decorative background reused from the hero */}
-        <img
-          src="/hero/bg.webp"
-          alt=""
-          loading="lazy"
-          className="size-full object-cover object-[30%_45%]"
-        />
+        <ParallaxImage src="/hero/bg.webp" className="size-full object-cover object-[30%_45%] will-change-transform" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(250,246,240,0.2)_0%,rgba(250,246,240,0.55)_45%,rgba(250,246,240,0.9)_70%)] max-lg:bg-[linear-gradient(180deg,rgba(250,246,240,0.35)_0%,rgba(250,246,240,0.92)_55%)]" />
       </div>
 
@@ -45,7 +40,7 @@ export function FinalCta() {
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
               <a
                 href="/sign-up"
-                className="rounded-full bg-brand px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_18px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
+                className="btn-shine rounded-full bg-brand px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_18px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
               >
                 Get Interview Ready &rarr;
               </a>

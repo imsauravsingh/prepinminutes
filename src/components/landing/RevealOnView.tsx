@@ -6,8 +6,8 @@ type RevealOnViewProps = {
   children: ReactNode;
   delay?: number;
   className?: string;
-  /** "rise" fades up (default); "drop" pins it like a sticky note. */
-  variant?: "rise" | "drop";
+  /** "rise" fades up (default); "drop" pins it like a sticky note; "pop" springs in. */
+  variant?: "rise" | "drop" | "pop";
 };
 
 /**
@@ -24,7 +24,7 @@ export function RevealOnView({ children, delay = 0, className, variant = "rise" 
     if (!("IntersectionObserver" in window)) return;
 
     el.classList.add("reveal-pending");
-    if (variant === "drop") el.classList.add("reveal-drop");
+    if (variant !== "rise") el.classList.add(`reveal-${variant}`);
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
