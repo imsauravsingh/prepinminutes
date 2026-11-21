@@ -11,8 +11,8 @@ type TiltCardProps = {
 };
 
 /**
- * Tilts gently toward the pointer in 3D and shows a soft glare, so cards feel
- * like real objects you can pick up. Does nothing on touch or reduced motion.
+ * Tilts gently toward the pointer in 3D, so cards feel like real objects you
+ * can pick up. Does nothing on touch or reduced motion.
  */
 export function TiltCard({ children, className = "", style, max = 7 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,8 +26,6 @@ export function TiltCard({ children, className = "", style, max = 7 }: TiltCardP
     const y = (e.clientY - r.top) / r.height - 0.5;
     el.style.setProperty("--tilt-x", `${(-y * max).toFixed(2)}deg`);
     el.style.setProperty("--tilt-y", `${(x * max).toFixed(2)}deg`);
-    el.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
-    el.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
     el.dataset.tilting = "true";
   };
 
@@ -42,7 +40,6 @@ export function TiltCard({ children, className = "", style, max = 7 }: TiltCardP
   return (
     <div ref={ref} className={`tilt-card ${className}`} style={style} onPointerMove={onMove} onPointerLeave={onLeave}>
       {children}
-      <span aria-hidden="true" className="tilt-glare" />
     </div>
   );
 }
