@@ -1,5 +1,6 @@
 import { Cpu } from "lucide-react";
 import { Blob, DotGrid } from "./decorative";
+import { CountUpPercent } from "./CountUpPercent";
 
 const sparklineBars = [6, 10, 8, 14, 18];
 
@@ -47,7 +48,7 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="relative w-full flex-1 rounded-3xl border-[1.5px] border-line bg-white p-5 shadow-[0_16px_16px_rgba(107,102,97,0.08)] sm:p-7 lg:max-w-[560px]">
+      <div className="rise-in relative w-full flex-1 rounded-3xl border-[1.5px] border-line bg-white p-5 shadow-[0_16px_16px_rgba(107,102,97,0.08)] sm:p-7 lg:max-w-[560px]">
         <div className="flex flex-col gap-5 lg:gap-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
             <div className="flex items-center gap-2">
@@ -63,13 +64,15 @@ export function Hero() {
             <div className="flex flex-1 flex-col gap-2 rounded-2xl bg-cream p-[18px]">
               <p className="text-[13px] text-ink-muted">Readiness Score</p>
               <div className="flex items-center gap-3">
-                <p className="font-display text-[32px] font-extrabold text-success">78%</p>
+                <p className="font-display text-[32px] font-extrabold text-success">
+                  <CountUpPercent value={78} />
+                </p>
                 <div className="flex h-5 items-end gap-0.5">
                   {sparklineBars.map((h, i) => (
                     <span
                       key={i}
-                      className="w-[3px] rounded-sm bg-success"
-                      style={{ height: h }}
+                      className="bar-grow w-[3px] rounded-sm bg-success"
+                      style={{ height: h, "--enter-delay": `${300 + i * 90}ms` } as React.CSSProperties}
                     />
                   ))}
                 </div>
@@ -99,10 +102,10 @@ export function Hero() {
               {trendDays.map((day, i) => (
                 <div key={day.label} className="flex flex-1 flex-col items-center gap-1.5">
                   <span
-                    className={`w-2.5 rounded-[4px] sm:w-3.5 ${
+                    className={`bar-grow w-2.5 rounded-[4px] sm:w-3.5 ${
                       i === trendDays.length - 1 ? "bg-brand" : "bg-line"
                     }`}
-                    style={{ height: day.height }}
+                    style={{ height: day.height, "--enter-delay": `${500 + i * 80}ms` } as React.CSSProperties}
                   />
                   <p className="text-[9px] text-ink-muted">{day.label}</p>
                 </div>
