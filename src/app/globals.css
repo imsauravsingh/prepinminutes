@@ -95,3 +95,14 @@ body {
     animation: none;
   }
 }
+
+/* Scroll reveal: hidden until the element enters the viewport.
+   Applied by RevealOnView only when reduced motion is not requested. */
+.reveal-pending {
+  opacity: 0;
+}
+
+.reveal-pending.in-view {
+  animation: rise-in 560ms ease-out both;
+  animation-delay: var(--enter-delay, 0ms);
+}

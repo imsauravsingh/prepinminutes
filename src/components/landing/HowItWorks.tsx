@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Blob, RuledLines } from "./decorative";
+import { RevealOnView } from "./RevealOnView";
 
 const steps: {
   icon: LucideIcon;
@@ -49,7 +50,7 @@ export function HowItWorks() {
 
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 lg:flex lg:items-center lg:gap-2">
           {steps.map((step, i) => (
-            <div key={step.number} className="flex items-center lg:flex-1">
+            <RevealOnView key={step.number} delay={i * 110} className="flex items-center lg:flex-1">
               <div
                 className="flex flex-1 flex-col gap-2.5 rounded-2xl border-[1.5px] bg-white p-4"
                 style={{
@@ -69,7 +70,7 @@ export function HowItWorks() {
               {i < steps.length - 1 && (
                 <ArrowRight className="mx-1 hidden size-3 shrink-0 text-ink-muted lg:block" />
               )}
-            </div>
+            </RevealOnView>
           ))}
         </div>
       </div>
