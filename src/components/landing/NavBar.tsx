@@ -9,7 +9,7 @@ import { BrandMark } from "@/components/BrandMark";
 const navLinks = [
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Features", href: "/#coach" },
-  { label: "Pricing", href: "#" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 type NavBarProps = {

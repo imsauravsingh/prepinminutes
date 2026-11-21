@@ -668,3 +668,90 @@ body {
     transition: none;
   }
 }
+
+/* ---------- Pricing (section 5) ---------- */
+
+.price-card {
+  border: 1.5px solid color-mix(in srgb, var(--c) 24%, transparent);
+  background: #fffdfa;
+  box-shadow: 0 12px 26px rgba(96, 60, 36, 0.08);
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 260ms ease, border-color 260ms ease;
+}
+
+.price-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  border-color: var(--c);
+  box-shadow: 0 24px 44px color-mix(in srgb, var(--c) 22%, transparent);
+}
+
+/* Best-value card: warm tint and a slowly turning glow around the edge. */
+.price-card-featured {
+  background: linear-gradient(180deg, #fff4ef 0%, #fffdfa 45%);
+  border-color: transparent;
+  box-shadow: 0 18px 40px rgba(255, 108, 71, 0.18);
+}
+
+.price-card-featured::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from var(--price-angle, 0deg), #ff6c47, #ffb199, #ffe27a, #ff6c47);
+  animation: price-spin 6s linear infinite;
+}
+
+@property --price-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes price-spin {
+  to {
+    --price-angle: 360deg;
+  }
+}
+
+.price-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--c) 10%, #fff);
+}
+
+.price-chip svg {
+  flex-shrink: 0;
+  color: var(--c);
+}
+
+.price-skeleton {
+  background: linear-gradient(100deg, #f3e8de 30%, #fbf4ee 50%, #f3e8de 70%);
+  background-size: 300% 100%;
+  animation: price-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes price-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .price-card,
+  .price-card:hover {
+    transition: none;
+    transform: none;
+  }
+  .price-card-featured::before,
+  .price-skeleton {
+    animation: none;
+  }
+}

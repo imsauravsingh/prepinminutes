@@ -4,6 +4,7 @@ import { Problem } from "@/components/landing/Problem";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { AiCoach } from "@/components/landing/AiCoach";
 import { ReadinessScore } from "@/components/landing/ReadinessScore";
+import { Pricing } from "@/components/landing/Pricing";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/landing/Footer";
 import { JourneyRail } from "@/components/landing/journey/JourneyRail";
@@ -18,6 +19,7 @@ export default function Home() {
         <HowItWorks />
         <AiCoach />
         <ReadinessScore />
+        <Pricing />
         <FinalCta />
       </JourneyRail>
       <Footer />
