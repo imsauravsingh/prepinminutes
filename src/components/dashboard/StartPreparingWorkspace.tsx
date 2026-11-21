@@ -882,7 +882,7 @@ export function StartPreparingWorkspace({
       </div>
 
       {/* 2. User Profile, Readiness Progress & Countdown Header Card */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)] divide-y lg:divide-y-0 lg:divide-x divide-line">
+      <div className="rise-in flex flex-col lg:flex-row lg:items-center justify-between rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)] divide-y lg:divide-y-0 lg:divide-x divide-line">
         {/* Left: Circular Readiness Progress Percentage Ring */}
         <div className="flex items-center gap-3.5 shrink-0 pb-4 lg:pb-0 lg:pr-6">
           <div className="relative flex size-14 shrink-0 items-center justify-center">
@@ -899,10 +899,16 @@ export function StartPreparingWorkspace({
                 cx="45"
                 cy="45"
                 r={radius}
-                className="stroke-brand transition-all duration-700 ease-out"
+                className="stroke-brand ring-draw"
                 strokeWidth="8"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
+                style={
+                  {
+                    "--ring-circ": circumference,
+                    "--ring-offset": strokeDashoffset,
+                  } as React.CSSProperties
+                }
                 strokeLinecap="round"
                 fill="transparent"
               />
@@ -1327,7 +1333,10 @@ export function StartPreparingWorkspace({
       {/* 5. Row 4: Bottom Two-Column Split (Quick Actions + Pro Tip) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
         {/* Left: Quick Actions (span 7) */}
-        <div className="lg:col-span-7 flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+        <div
+          className="rise-in lg:col-span-7 flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]"
+          style={{ "--enter-delay": "120ms" } as React.CSSProperties}
+        >
           <div className="flex items-center gap-2.5">
             <Zap className="size-5 text-amber fill-amber shrink-0" />
             <div className="flex flex-col gap-0.5">
