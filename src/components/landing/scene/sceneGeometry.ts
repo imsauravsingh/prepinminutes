@@ -46,10 +46,16 @@ export const CHAR_FRAMES = 95;
 /** Approximate centre of the character's head, used for gaze direction. */
 export const HEAD = { x: 640, y: 330 };
 
-/** Regions with greenery that sway in the wind. `baseY` stays still. */
+/**
+ * Regions with greenery that sway in the wind.
+ * - "outside": tree leaves seen through the window. They move everywhere and
+ *   are clipped to the glass, so they never draw over the window bars.
+ * - "plant": potted plants. `baseY` (the pot) stays still and the tips move most.
+ */
 export const GREENERY = [
-  { key: "left", x: 0, y: 0, w: 400, h: 790, baseY: 770, amp: 4.2, speed: 0.0011, phase: 0 },
-  { key: "right", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 3.2, speed: 0.0014, phase: 1.7 },
+  { key: "outside", kind: "outside", x: 0, y: 0, w: 340, h: 790, baseY: 0, amp: 6, speed: 0.0009, phase: 0.6 },
+  { key: "monstera", kind: "plant", x: 0, y: 0, w: 400, h: 790, baseY: 770, amp: 7, speed: 0.0011, phase: 0 },
+  { key: "desk-plant", kind: "plant", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 5, speed: 0.0014, phase: 1.7 },
 ] as const;
 
 /**

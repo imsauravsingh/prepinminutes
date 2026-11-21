@@ -152,15 +152,26 @@ export function HeroScene() {
     window.addEventListener("pointerdown", onPointer, { passive: true });
 
     // --- Greenery: leaf-only copies of the background, swayed row by row. ---
-    type Leaf = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; layer: HTMLCanvasElement; cfg: (typeof GREENERY)[number] };
+    type Leaf = {
+      ctx: CanvasRenderingContext2D;
+      layer: HTMLCanvasElement;
+      clip: HTMLCanvasElement | null;
+      cfg: (typeof GREENERY)[number];
+    };
     const leaves: Leaf[] = [];
+    // Potted-plant leaves: clearly green.
+    const plantAlpha = (r: number, g: number, b: number) => (g - Math.max(r * 0.92, b) - 14) * 9;
+    // Sunlit tree leaves outside: bright yellow-green, not pink wall, curtain, or wood.
+    const outsideAlpha = (r: number, g: number, b: number) =>
+      (r + g + b) / 3 > 110 && r < g * 1.18 ? (g - b - 30) * 6 : 0;
+    const clamp255 = (v: number) => Math.max(0, Math.min(255, v));
+
     const bg = new Image();
     bg.decoding = "async";
     bg.onload = () => {
       GREENERY.forEach((cfg, idx) => {
-        const canvas = leafRefs.current[idx];
-        const ctx = canvas?.getContext("2d");
-        if (!canvas || !ctx) return;
+        const ctx = leafRefs.current[idx]?.getContext("2d");
+        if (!ctx) return;
         const layer = document.createElement("canvas");
         layer.width = cfg.w;
         layer.height = cfg.h;
@@ -169,33 +180,77 @@ export function HeroScene() {
         lctx.drawImage(bg, cfg.x, cfg.y, cfg.w, cfg.h, 0, 0, cfg.w, cfg.h);
         const data = lctx.getImageData(0, 0, cfg.w, cfg.h);
         const p = data.data;
+
+        let clip: HTMLCanvasElement | null = null;
+        let clipData: ImageData | null = null;
+        if (cfg.kind === "outside") {
+          clip = document.createElement("canvas");
+          clip.width = cfg.w;
+          clip.height = cfg.h;
+          clipData = new ImageData(cfg.w, cfg.h);
+        }
+
         for (let j = 0; j < p.length; j += 4) {
           const r = p[j];
           const g = p[j + 1];
           const b = p[j + 2];
-          // Keep green and yellow-green foliage; drop wall, wood, pot, and frames.
-          const green = g - Math.max(r * 0.92, b) - 14;
-          p[j + 3] = Math.max(0, Math.min(255, green * 9));
+          if (cfg.kind === "outside") {
+            // Leave the monstera to its own layer; it sits in front of the window.
+            const a = plantAlpha(r, g, b) > 40 ? 0 : clamp255(outsideAlpha(r, g, b));
+            p[j + 3] = a;
+            if (clipData) clipData.data[j + 3] = a;
+          } else {
+            p[j + 3] = clamp255(plantAlpha(r, g, b));
+          }
         }
         lctx.putImageData(data, 0, 0);
-        leaves.push({ canvas, ctx, layer, cfg });
+
+        if (clip && clipData) {
+          const cctx = clip.getContext("2d");
+          if (cctx) {
+            // Grow the glass mask slightly so leaves can drift a few pixels.
+            const raw = document.createElement("canvas");
+            raw.width = cfg.w;
+            raw.height = cfg.h;
+            raw.getContext("2d")?.putImageData(clipData, 0, 0);
+            cctx.filter = "blur(3px)";
+            cctx.drawImage(raw, 0, 0);
+            cctx.drawImage(raw, 0, 0);
+            cctx.filter = "none";
+          }
+        }
+        leaves.push({ ctx, layer, clip, cfg });
       });
     };
     bg.src = BG_SRC;
 
     const drawLeaves = (t: number) => {
-      for (const { ctx, layer, cfg } of leaves) {
+      for (const { ctx, layer, clip, cfg } of leaves) {
         ctx.clearRect(0, 0, cfg.w, cfg.h);
+        const outside = cfg.kind === "outside";
         const span = cfg.baseY - cfg.y;
         for (let y = 0; y < cfg.h; y += 2) {
           const sceneY = cfg.y + y;
-          const lift = Math.max(0, Math.min(1, (cfg.baseY - sceneY) / span));
-          const fall = Math.pow(lift, 1.25);
-          const wave =
-            Math.sin(t * cfg.speed + cfg.phase + sceneY * 0.011) * 0.75 +
-            Math.sin(t * cfg.speed * 2.3 + cfg.phase * 2 + sceneY * 0.027) * 0.25;
+          let fall = 1;
+          if (!outside) {
+            const lift = Math.max(0, Math.min(1, (cfg.baseY - sceneY) / span));
+            fall = Math.pow(lift, 1.15);
+          }
+          const wave = outside
+            ? Math.sin(t * cfg.speed + cfg.phase + sceneY * 0.006) * 0.6 +
+              Math.sin(t * cfg.speed * 2.6 + cfg.phase * 3 + sceneY * 0.021) * 0.4
+            : Math.sin(t * cfg.speed + cfg.phase + sceneY * 0.011) * 0.75 +
+              Math.sin(t * cfg.speed * 2.3 + cfg.phase * 2 + sceneY * 0.027) * 0.25;
           const dx = cfg.amp * fall * wave;
-          ctx.drawImage(layer, 0, y, cfg.w, 2, dx, y, cfg.w, 2);
+          // Trees outside also bob gently, like branches lifting in the breeze.
+          const dy = outside ? Math.sin(t * cfg.speed * 1.7 + sceneY * 0.01) * 1.4 : 0;
+          ctx.drawImage(layer, 0, y, cfg.w, 2, dx, y + dy, cfg.w, 2);
+        }
+        if (clip) {
+          // Keep outside leaves inside the glass: never over the window bars.
+          ctx.globalCompositeOperation = "destination-in";
+          ctx.drawImage(clip, 0, 0);
+          ctx.globalCompositeOperation = "source-over";
         }
       }
     };
