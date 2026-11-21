@@ -8,7 +8,15 @@ import { BrandMark } from "@/components/BrandMark";
 
 const navLinks = ["How It Works", "Features", "Pricing"];
 
-export function NavBar() {
+type NavBarProps = {
+  /**
+   * Float the header over the page hero: fully transparent at the top of the
+   * page, turning into frosted glass once the visitor scrolls.
+   */
+  overlay?: boolean;
+};
+
+export function NavBar({ overlay = false }: NavBarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { isLoaded, isSignedIn, user, signOut } = useAppAuth();
@@ -27,12 +35,27 @@ export function NavBar() {
     };
   }, [menuOpen]);
 
-  return (
-    <header
-      className={`sticky top-0 z-50 border-b bg-white/95 backdrop-blur transition-shadow ${
+  const transparent = overlay && !scrolled && !menuOpen;
+
+  const headerClass = overlay
+    ? `fixed inset-x-0 top-0 z-50 border-b transition-[background-color,box-shadow,border-color,backdrop-filter] duration-300 ${
+        transparent
+          ? "border-transparent bg-transparent"
+          : "border-line/60 bg-white/80 shadow-sm backdrop-blur-md"
+      }`
+    : `sticky top-0 z-50 border-b bg-white/95 backdrop-blur transition-shadow ${
         scrolled ? "border-line shadow-sm" : "border-line/0"
-      }`}
-    >
+      }`;
+
+  return (
+    <header className={headerClass}>
+      {transparent && (
+        // Soft wash at the very top keeps the links readable over the bright window.
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-white/55 via-white/20 to-transparent"
+        />
+      )}
       <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-[120px] lg:py-5">
         <div className="flex items-center gap-3">
           <BrandMark />
@@ -46,7 +69,7 @@ export function NavBar() {
           </div>
         </div>
 
-        <nav className="hidden gap-8 text-sm font-medium text-ink-muted lg:flex">
+        <nav className="hidden gap-8 text-sm font-semibold text-ink/75 lg:flex">
           {navLinks.map((link) => (
             <a key={link} href="#" className="hover:text-ink">
               {link}
@@ -59,7 +82,7 @@ export function NavBar() {
             <div className="flex items-center gap-3">
               <a
                 href="/dashboard"
-                className="flex items-center gap-2 rounded-full border border-line bg-cream/50 px-4 py-2 text-sm font-semibold text-ink hover:bg-cream transition-colors"
+                className="flex items-center gap-2 rounded-full border border-line bg-white/75 px-4 py-2 text-sm font-semibold text-ink backdrop-blur hover:bg-cream transition-colors"
               >
                 {user?.avatarUrl ? (
                   <Image
@@ -79,7 +102,7 @@ export function NavBar() {
               <button
                 type="button"
                 onClick={() => signOut()}
-                className="flex size-9 items-center justify-center rounded-full border border-line text-ink-muted hover:text-ink hover:bg-cream transition-colors"
+                className="flex size-9 items-center justify-center rounded-full border border-line bg-white/75 text-ink-muted backdrop-blur hover:text-ink hover:bg-cream transition-colors"
                 title="Sign out"
               >
                 <LogOut className="size-4" />

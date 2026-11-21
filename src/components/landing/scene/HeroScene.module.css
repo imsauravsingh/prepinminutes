@@ -21,7 +21,7 @@
 
 @media (min-width: 1024px) {
   .hero {
-    height: min(calc(100svh - 72px), 56.25vw);
+    height: min(100svh, 56.25vw);
     min-height: 560px;
   }
 }
