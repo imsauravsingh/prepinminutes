@@ -1,6 +1,7 @@
 import { JOURNEY_TOTAL } from "./journey/PrepSection";
 import { RevealOnView } from "./RevealOnView";
 import { ParallaxImage } from "./motion/ParallaxImage";
+import { HERO_BG_URL } from "./scene/heroAssets";
 
 /**
  * The last stop: back at the same desk from the hero, now ready to start.
@@ -18,7 +19,7 @@ export function FinalCta() {
       </span>
 
       <div aria-hidden="true" className="absolute inset-0">
-        <ParallaxImage src="/hero/bg.webp" className="size-full object-cover object-[30%_45%] will-change-transform" />
+        <ParallaxImage src={HERO_BG_URL} className="size-full object-cover object-[30%_45%] will-change-transform" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(250,246,240,0.2)_0%,rgba(250,246,240,0.55)_45%,rgba(250,246,240,0.9)_70%)] max-lg:bg-[linear-gradient(180deg,rgba(250,246,240,0.35)_0%,rgba(250,246,240,0.92)_55%)]" />
       </div>
 

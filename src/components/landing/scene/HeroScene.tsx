@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { preload } from "react-dom";
 import {
   CHAR_BOX,
   CHAR_FRAMES,
@@ -20,8 +21,30 @@ import {
 import { SceneBookLabels, SceneClock, SceneMonitor, SceneNotes, SceneWhiteboard } from "./SceneBoards";
 import styles from "./HeroScene.module.css";
 
-const BG_SRC = "/hero/bg.webp";
-const frameSrc = (i: number) => `/hero/char/c${String(i).padStart(3, "0")}.avif`;
+import { HERO_BG_URL, heroFrameUrl } from "./heroAssets";
+
+const BG_SRC = HERO_BG_URL;
+const frameSrc = heroFrameUrl;
+
+/** Runs `fn` once the browser is idle, so heavy downloads never compete with first paint. */
+function whenIdle(fn: () => void): () => void {
+  const w = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(fn, { timeout: 2000 });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const id = window.setTimeout(fn, 400);
+  return () => window.clearTimeout(id);
+}
+
+/** On data-saver or slow connections, skip the extra gaze frames and keep only the typing loop. */
+function isConstrainedConnection(): boolean {
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  return !!c && (c.saveData === true || ["slow-2g", "2g", "3g"].includes(c.effectiveType ?? ""));
+}
 
 /** How long the pointer must rest before he goes back to typing. */
 const IDLE_AFTER_MS = 2600;
@@ -39,6 +62,9 @@ function focusFor(width: number) {
 }
 
 export function HeroScene() {
+  // The background is the largest paint on the page: fetch it first.
+  preload(BG_SRC, { as: "image", fetchPriority: "high" });
+
   const heroRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const charRef = useRef<HTMLCanvasElement>(null);
@@ -92,10 +118,15 @@ export function HeroScene() {
     if (!charCtx || !steamCtx) return;
 
     // --- Character frames: idle typing frames load first. ---
+    // The background already shows the character, so frames are an enhancement:
+    // they start downloading only once the page is idle, and slow connections
+    // get just the typing loop.
     const frames: (HTMLImageElement | null)[] = Array(CHAR_FRAMES).fill(null);
     const order: number[] = [];
     for (let i = 0; i <= IDLE_LENGTH; i++) order.push(wrapFrame(IDLE_START + i));
-    for (let i = 0; i < CHAR_FRAMES; i++) if (!order.includes(i)) order.push(i);
+    if (!isConstrainedConnection()) {
+      for (let i = 0; i < CHAR_FRAMES; i++) if (!order.includes(i)) order.push(i);
+    }
     let cancelled = false;
     let loadIdx = 0;
     const loadNext = () => {
@@ -104,14 +135,22 @@ export function HeroScene() {
       const img = new Image();
       img.decoding = "async";
       img.onload = () => {
-        frames[i] = img;
-        loadNext();
+        // Decode off the main thread before first draw, so scrubbing never stutters.
+        img
+          .decode()
+          .catch(() => undefined)
+          .then(() => {
+            if (!cancelled) frames[i] = img;
+            loadNext();
+          });
       };
       img.onerror = () => loadNext();
       img.src = frameSrc(i);
     };
     // A few parallel loaders keep the network busy without flooding it.
-    for (let k = 0; k < 4; k++) loadNext();
+    const cancelIdle = whenIdle(() => {
+      for (let k = 0; k < 4; k++) loadNext();
+    });
 
     const nearestLoaded = (i: number) => {
       for (let d = 0; d < CHAR_FRAMES / 2; d++) {
@@ -348,6 +387,7 @@ export function HeroScene() {
 
     return () => {
       cancelled = true;
+      cancelIdle();
       stop();
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
