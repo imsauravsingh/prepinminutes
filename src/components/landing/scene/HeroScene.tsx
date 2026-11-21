@@ -234,7 +234,7 @@ export function HeroScene() {
           let fall = 1;
           if (!outside) {
             const lift = Math.max(0, Math.min(1, (cfg.baseY - sceneY) / span));
-            fall = Math.pow(lift, 1.15);
+            fall = Math.pow(lift, 0.85);
           }
           const wave = outside
             ? Math.sin(t * cfg.speed + cfg.phase + sceneY * 0.006) * 0.6 +

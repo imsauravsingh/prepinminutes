@@ -54,8 +54,8 @@ export const HEAD = { x: 640, y: 330 };
  */
 export const GREENERY = [
   { key: "outside", kind: "outside", x: 0, y: 0, w: 340, h: 790, baseY: 0, amp: 6, speed: 0.0009, phase: 0.6 },
-  { key: "monstera", kind: "plant", x: 0, y: 0, w: 400, h: 790, baseY: 770, amp: 7, speed: 0.0011, phase: 0 },
-  { key: "desk-plant", kind: "plant", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 5, speed: 0.0014, phase: 1.7 },
+  { key: "monstera", kind: "plant", x: 0, y: 0, w: 400, h: 790, baseY: 725, amp: 11, speed: 0.0011, phase: 0 },
+  { key: "desk-plant", kind: "plant", x: 1700, y: 610, w: 220, h: 215, baseY: 812, amp: 7, speed: 0.0014, phase: 1.7 },
 ] as const;
 
 /**
