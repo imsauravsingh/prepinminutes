@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
+import { useNextStepFlow } from "@/lib/useNextStepFlow";
 import {
   InteractiveRoadmap,
   evaluateCandidateProfileDomains,
@@ -43,6 +44,7 @@ interface StartPreparingWorkspaceProps {
 export function StartPreparingWorkspace({
   onEditSetup,
 }: StartPreparingWorkspaceProps) {
+  const { enabled: showNextStep } = useNextStepFlow();
   const [profile, setProfile] = useState<Record<string, any> | null>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -863,7 +865,7 @@ export function StartPreparingWorkspace({
         {/* Left: Step kicker & Title */}
         <div className="flex flex-col gap-1.5 max-w-2xl">
           <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
-            Step 3 of 3
+            {showNextStep ? "Step 3 of 3" : "Step 2 of 2"}
           </span>
           <h1 className="font-display text-2xl font-extrabold text-ink sm:text-[32px] tracking-tight flex items-center gap-2">
             <span>Let&apos;s Start Preparing!</span>

@@ -3,9 +3,11 @@
 import { useAppAuth } from "@/components/providers/AuthProvider";
 import { toTitleCase } from "@/lib/format";
 import { DashboardStepper } from "@/components/dashboard/DashboardStepper";
+import { useNextStepFlow } from "@/lib/useNextStepFlow";
 
 export function OnboardingHeader() {
   const { user } = useAppAuth();
+  const { enabled: showNextStep } = useNextStepFlow();
   const userName = user?.fullName
     ? toTitleCase(user.fullName.split(" ")[0])
     : null;
@@ -15,7 +17,7 @@ export function OnboardingHeader() {
       {/* Left side: Step kicker, Heading, Subtitle */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
-          Step 1 of 3
+          Step 1 of {showNextStep ? 3 : 2}
         </span>
         <h1 className="font-display text-2xl font-extrabold text-ink sm:text-3xl lg:text-[30px] tracking-tight">
           Welcome {userName ? `${userName} ` : "to PrepInMinutes "}👋

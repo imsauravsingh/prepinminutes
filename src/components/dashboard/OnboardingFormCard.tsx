@@ -98,8 +98,8 @@ export function OnboardingFormCard() {
   const [showJdModal, setShowJdModal] = useState(false);
   const [tempJd, setTempJd] = useState("");
 
-  // Admin platform settings
-  const [enableNextStepFlow, setEnableNextStepFlow] = useState(true);
+  // Admin platform settings: Step 2 stays hidden unless explicitly enabled.
+  const [enableNextStepFlow, setEnableNextStepFlow] = useState(false);
 
   // Profile Reset modal
   const [showResetModal, setShowResetModal] = useState(false);
@@ -126,8 +126,8 @@ export function OnboardingFormCard() {
         backendApi
           .getPlatformConfig()
           .then((cfg) => {
-            if (isMounted && typeof cfg.enableNextStepFlow === "boolean") {
-              setEnableNextStepFlow(cfg.enableNextStepFlow);
+            if (isMounted) {
+              setEnableNextStepFlow(cfg.enableNextStepFlow === true);
             }
           })
           .catch((err) => console.warn("Failed to fetch platform config:", err));
@@ -785,7 +785,7 @@ export function OnboardingFormCard() {
             )}
           </button>
           <Link
-            href="/dashboard/plan-ready"
+            href={enableNextStepFlow ? "/dashboard/plan-ready" : "/dashboard?step=3"}
             className="text-sm font-medium text-[#6b6661] hover:text-ink hover:underline"
           >
             Skip for now

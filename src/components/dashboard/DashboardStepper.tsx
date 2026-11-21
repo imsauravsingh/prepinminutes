@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { useNextStepFlow } from "@/lib/useNextStepFlow";
 
 interface DashboardStepperProps {
   currentStep: 1 | 2 | 3;
@@ -12,6 +13,10 @@ export function DashboardStepper({
   currentStep,
   onEditSetup,
 }: DashboardStepperProps) {
+  // Step 2 ("Next Step") only appears when the admin has it turned on.
+  const { enabled: showNextStep } = useNextStepFlow();
+  const prepareNumber = showNextStep ? 3 : 2;
+
   return (
     <div className="inline-flex items-center gap-2 sm:gap-3 rounded-full border border-line/80 bg-white px-3 sm:px-4 py-1.5 sm:py-2 shadow-2xs shrink-0 max-w-full overflow-x-auto no-scrollbar">
       {/* 1. Step 1: Set Up */}
@@ -47,6 +52,8 @@ export function DashboardStepper({
         </div>
       )}
 
+      {showNextStep && (
+        <>
       {/* Connecting Line 1 */}
       <div
         className={`h-[2px] w-4 sm:w-6 shrink-0 rounded-full transition-colors ${
@@ -80,6 +87,8 @@ export function DashboardStepper({
           <span className="whitespace-nowrap">Next Step</span>
         </div>
       )}
+        </>
+      )}
 
       {/* Connecting Line 2 */}
       <div
@@ -92,14 +101,14 @@ export function DashboardStepper({
       {currentStep === 3 ? (
         <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-bold text-ink whitespace-nowrap shrink-0">
           <span className="flex size-5.5 sm:size-6 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-            3
+            {prepareNumber}
           </span>
           <span className="whitespace-nowrap">Start Preparing</span>
         </div>
       ) : (
         <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-medium text-ink-muted whitespace-nowrap shrink-0">
           <span className="flex size-5.5 sm:size-6 shrink-0 items-center justify-center rounded-full bg-[#f3f4f6] text-ink-muted border border-line">
-            3
+            {prepareNumber}
           </span>
           <span className="whitespace-nowrap">Start Preparing</span>
         </div>
