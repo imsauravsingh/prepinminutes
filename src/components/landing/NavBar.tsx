@@ -100,9 +100,13 @@ export function NavBar({ overlay = false }: NavBarProps) {
           </div>
         </div>
 
-        <nav className="hidden gap-8 text-sm font-semibold text-ink/75 lg:flex">
+        <nav className="hidden gap-2 text-sm font-semibold text-ink/75 lg:flex">
           {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className="hover:text-ink">
+            <a
+              key={link.label}
+              href={link.href}
+              className="rounded-full border border-transparent px-4 py-2 transition-colors hover:border-white/80 hover:bg-white/75 hover:text-ink hover:shadow-[0_4px_12px_rgba(96,60,36,0.08)]"
+            >
               {link.label}
             </a>
           ))}
@@ -113,11 +117,10 @@ export function NavBar({ overlay = false }: NavBarProps) {
             <div className="glass-pill flex items-center rounded-full p-1">
               <a
                 href="/dashboard"
-                className="group flex items-center gap-2 rounded-full py-1 pl-1 pr-3.5 text-sm font-semibold text-ink transition-colors hover:bg-white/50"
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-4 text-sm font-semibold text-ink transition-colors hover:bg-white/80"
               >
                 {avatar(28)}
                 <span>Dashboard</span>
-                <ArrowRight className="size-3.5 text-brand transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </a>
               <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-ink/10" />
               <button
@@ -125,9 +128,9 @@ export function NavBar({ overlay = false }: NavBarProps) {
                 onClick={() => signOut()}
                 aria-label="Sign out"
                 title="Sign out"
-                className="flex size-9 items-center justify-center rounded-full text-ink/70 transition-colors hover:bg-[#fde8e3]/80 hover:text-[#d9452a]"
+                className="flex size-9 items-center justify-center rounded-full border border-[#f6c9bd] bg-[#fdebe6]/80 text-[#d9452a] shadow-[0_2px_6px_rgba(217,69,42,0.15)] transition-colors hover:border-[#d9452a] hover:bg-[#d9452a] hover:text-white"
               >
-                <LogOut className="size-4" />
+                <LogOut className="size-[17px]" strokeWidth={2.4} />
               </button>
             </div>
           ) : isLoaded ? (
@@ -172,7 +175,7 @@ export function NavBar({ overlay = false }: NavBarProps) {
                   key={link.label}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold text-ink/85 transition-colors hover:bg-white/40 hover:text-ink"
+                  className="flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold text-ink/85 transition-colors hover:bg-white/75 hover:text-ink"
                 >
                   {link.label}
                   <ArrowRight className="size-4 text-ink/30" aria-hidden="true" />
@@ -207,9 +210,9 @@ export function NavBar({ overlay = false }: NavBarProps) {
                         setMenuOpen(false);
                         signOut();
                       }}
-                      className="flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/35 py-2.5 text-sm font-semibold text-ink/75 transition-colors hover:bg-[#fde8e3]/80 hover:text-[#d9452a]"
+                      className="flex items-center justify-center gap-2 rounded-full border border-[#f6c9bd] bg-[#fdebe6]/80 py-2.5 text-sm font-semibold text-[#d9452a] transition-colors hover:border-[#d9452a] hover:bg-[#d9452a] hover:text-white"
                     >
-                      <LogOut className="size-4" aria-hidden="true" />
+                      <LogOut className="size-4" strokeWidth={2.4} aria-hidden="true" />
                       Sign out
                     </button>
                   </div>
@@ -219,7 +222,7 @@ export function NavBar({ overlay = false }: NavBarProps) {
                   <a
                     href="/login"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-center rounded-full border border-white/70 bg-white/35 py-2.5 text-sm font-semibold text-ink"
+                    className="flex items-center justify-center rounded-full border border-white/70 bg-white/35 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-white/75"
                   >
                     Log in
                   </a>
