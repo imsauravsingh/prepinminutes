@@ -54,7 +54,7 @@ export function HowItWorks() {
 
         <ol className="relative grid w-full grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8 lg:gap-3">
           {steps.map((step, i) => (
-            <li key={step.title} className="flex">
+            <li key={step.title} className="relative z-0 flex hover:z-10">
               <RevealOnView variant="pop" delay={i * 140} className="flex w-full">
                 <div
                   className="flow-card group flex w-full flex-col items-center gap-2.5 rounded-2xl p-4 text-center"
