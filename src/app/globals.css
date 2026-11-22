@@ -871,3 +871,15 @@ body {
     animation: none;
   }
 }
+
+/* Dashboard hero character: a slow, gentle bob. */
+.hero-character {
+  animation: hero-bob 5s ease-in-out infinite;
+}
+@keyframes hero-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-character { animation: none; }
+}

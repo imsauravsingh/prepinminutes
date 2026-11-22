@@ -7,6 +7,7 @@ import {
   Users2,
   Briefcase,
   Calendar,
+  Clock,
   Building2,
   ChevronDown,
   UploadCloud,
@@ -80,6 +81,82 @@ export const FRESHER_FORTE_OPTIONS = [
   "QA & Test Automation (Selenium, Cypress & API Testing)",
 ];
 
+/** Most common roles get one-tap chips; the rest live under "More roles". */
+const POPULAR_ROLES = [
+  "Software Engineer / SDE",
+  "Frontend Engineer",
+  "Backend Engineer",
+  "Fullstack Engineer",
+  "Data Engineer",
+  "DevOps / SRE Engineer",
+  "AI / Machine Learning Engineer",
+  "Data Analyst",
+];
+
+const EXPERIENCE_OPTIONS = [
+  { value: "0 years (Fresher / Student)", label: "Fresher" },
+  { value: "1-3 years", label: "1–3 yrs" },
+  { value: "4-5 years", label: "4–5 yrs" },
+  { value: "6-8 years", label: "6–8 yrs" },
+  { value: "8+ years", label: "8+ yrs" },
+];
+
+/** Weeks per timeline option; matches the backend's plan length. */
+const TIMELINE_OPTIONS = [
+  { value: "1-2 weeks", label: "1–2 wks", weeks: 2 },
+  { value: "1 month", label: "1 month", weeks: 4 },
+  { value: "2-3 months", label: "2–3 months", weeks: 10 },
+  { value: "3+ months", label: "3+ months", weeks: 16 },
+];
+
+/** Weekly study time; the stored value is the range midpoint. */
+const HOURS_OPTIONS = [
+  { value: 2.5, label: "2–3 hrs" },
+  { value: 5, label: "4–6 hrs" },
+  { value: 8.5, label: "7–10 hrs" },
+  { value: 12, label: "10+ hrs" },
+];
+const DEFAULT_WEEKLY_HOURS = 5;
+
+/** Closest hours option for a saved value (older profiles default to 6). */
+function nearestHours(value: number) {
+  return HOURS_OPTIONS.reduce((best, o) =>
+    Math.abs(o.value - value) < Math.abs(best.value - value) ? o : best,
+  ).value;
+}
+
+function Chip({
+  selected,
+  onClick,
+  disabled,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-colors disabled:opacity-60 cursor-pointer ${
+        selected
+          ? "border-brand bg-brand text-white shadow-[0_4px_10px_rgba(255,108,71,0.25)]"
+          : "border-[#ede6db] bg-white text-ink hover:border-brand/50 hover:bg-[#fff7f3]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+const fieldLabel =
+  "flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal";
+
 export function OnboardingFormCard() {
   const router = useRouter();
 
@@ -89,6 +166,9 @@ export function OnboardingFormCard() {
   const [experience, setExperience] = useState("4-5 years");
   const [fresherForte, setFresherForte] = useState(FRESHER_FORTE_OPTIONS[0]);
   const [timeline, setTimeline] = useState("1 month");
+  const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
+  // Optional fields stay tucked away unless the candidate already filled them.
+  const [showOptional, setShowOptional] = useState(false);
   const [company, setCompany] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeName, setExistingResumeName] = useState<string | null>(null);
@@ -115,6 +195,14 @@ export function OnboardingFormCard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isFresher = experience.startsWith("0 years");
+
+  // "Your time" summary: total prep effort = weeks x hours per week.
+  const timelineWeeks = TIMELINE_OPTIONS.find((t) => t.value === timeline)?.weeks ?? 4;
+  const totalHours = Math.round(timelineWeeks * weeklyHours);
+  const minutesPerDay = Math.round((weeklyHours * 60) / 5 / 5) * 5; // 5 study days a week
+  const isSeniorRole = ["6-8 years", "8+ years"].includes(experience);
+  const isTightPlan = totalHours < 15 || (isSeniorRole && totalHours < 25);
+  const roleInMoreList = selectedRoleOption !== "custom" && !POPULAR_ROLES.includes(selectedRoleOption);
 
   // 1. Pre-fill with existing candidate profile data & platform config
   useEffect(() => {
@@ -154,17 +242,23 @@ export function OnboardingFormCard() {
           if (res.profile.timelineLabel) {
             setTimeline(String(res.profile.timelineLabel));
           }
+          if (typeof res.profile.weeklyGoalHours === "number") {
+            setWeeklyHours(nearestHours(res.profile.weeklyGoalHours));
+          }
           if (
             Array.isArray(res.profile.targetCompanies) &&
             res.profile.targetCompanies.length > 0
           ) {
             setCompany(res.profile.targetCompanies.join(", "));
+            setShowOptional(true);
           }
           if (res.profile.jobDescriptionText) {
             setJobDescription(String(res.profile.jobDescriptionText));
+            setShowOptional(true);
           }
           if (res.profile.resumeFileName) {
             setExistingResumeName(String(res.profile.resumeFileName));
+            setShowOptional(true);
           }
         } else if (res.activePlan) {
           if (res.activePlan.targetRole) {
@@ -257,6 +351,7 @@ export function OnboardingFormCard() {
       setExperience("4-5 years");
       setFresherForte(FRESHER_FORTE_OPTIONS[0]);
       setTimeline("1 month");
+      setWeeklyHours(DEFAULT_WEEKLY_HOURS);
       setCompany("");
       setResumeFile(null);
       setExistingResumeName(null);
@@ -303,6 +398,7 @@ export function OnboardingFormCard() {
         experienceLevel: experience,
         fresherForte: isFresher ? fresherForte : null,
         timelineLabel: timeline,
+        weeklyGoalHours: weeklyHours,
         targetCompanies,
         jobDescriptionText: jobDescription.trim() || null,
       });
@@ -316,6 +412,7 @@ export function OnboardingFormCard() {
               experienceLevel: experience,
               fresherForte: isFresher ? fresherForte : null,
               timelineLabel: timeline,
+              weeklyGoalHours: weeklyHours,
               targetCompanies,
               completedActivities: 0,
               completedDays: 0,
@@ -418,112 +515,127 @@ export function OnboardingFormCard() {
         </div>
       )}
 
-      {/* 2. Required Fields Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Field 1: Target Role Dropdown */}
-        <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-            <span>Target Role</span>
-            <span className="text-brand">*</span>
-          </label>
-          <div className="relative flex h-10 w-full items-center justify-between rounded-[10px] border border-[#ede6db] bg-white px-3 text-sm text-ink focus-within:border-brand focus-within:ring-1 focus-within:ring-brand/20 transition-all">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Users2 className="size-4 shrink-0 text-[#6b6661]" />
-              <select
-                value={selectedRoleOption}
-                onChange={(e) => setSelectedRoleOption(e.target.value)}
+      {/* 2. Required: role, experience and time, all one-tap chips. */}
+      <div className="flex flex-col gap-5">
+        {/* Target role */}
+        <div className="flex flex-col gap-2">
+          <span className={fieldLabel}>
+            <Users2 className="size-3.5 text-[#6b6661]" aria-hidden="true" />
+            Target role <span className="text-brand">*</span>
+          </span>
+          <div role="radiogroup" aria-label="Target role" className="flex flex-wrap gap-2">
+            {POPULAR_ROLES.map((role) => (
+              <Chip
+                key={role}
+                selected={selectedRoleOption === role}
+                onClick={() => setSelectedRoleOption(role)}
                 disabled={isSubmitting}
-                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer disabled:opacity-60 truncate"
               >
+                {role}
+              </Chip>
+            ))}
+            {/* Everything else, including a custom role, under one small dropdown. */}
+            <div
+              className={`relative flex items-center rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-colors ${
+                roleInMoreList || selectedRoleOption === "custom"
+                  ? "border-brand bg-brand text-white"
+                  : "border-dashed border-[#d6cfc4] bg-white text-ink-muted hover:border-brand/50"
+              }`}
+            >
+              <select
+                aria-label="More roles"
+                value={roleInMoreList || selectedRoleOption === "custom" ? selectedRoleOption : ""}
+                onChange={(e) => e.target.value && setSelectedRoleOption(e.target.value)}
+                disabled={isSubmitting}
+                className="appearance-none bg-transparent pr-5 outline-none cursor-pointer"
+              >
+                <option value="" disabled>
+                  More roles
+                </option>
                 {TARGET_ROLE_CATEGORIES.map((cat) => (
-                  <optgroup key={cat.category} label={`── ${cat.category} ──`}>
-                    {cat.roles.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
+                  <optgroup key={cat.category} label={cat.category}>
+                    {cat.roles
+                      .filter((r) => !POPULAR_ROLES.includes(r))
+                      .map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
                   </optgroup>
                 ))}
-                <option value="custom">── Other / Custom Role ──</option>
+                <option value="custom">Other (type your role)</option>
               </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 size-3.5" aria-hidden="true" />
             </div>
-            <ChevronDown className="size-3.5 shrink-0 text-[#6b6661] pointer-events-none" />
           </div>
-
-          {/* Conditional Custom Role Input */}
           {selectedRoleOption === "custom" && (
             <input
               type="text"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
-              placeholder="Enter custom role title..."
+              placeholder="Type your target role, e.g. Security Engineer"
               disabled={isSubmitting}
-              className="mt-1 h-9 w-full rounded-[8px] border border-brand/50 bg-[#fff9f6] px-3 text-xs sm:text-sm text-ink outline-none placeholder:text-[#b0a898] focus:border-brand"
+              autoFocus
+              className="h-10 w-full max-w-md rounded-[10px] border border-brand/50 bg-[#fff9f6] px-3 text-sm text-ink outline-none placeholder:text-[#b0a898] focus:border-brand"
             />
           )}
-
-          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
-            Select your target career track or specify custom.
-          </span>
         </div>
 
-        {/* Field 2: Years of Experience */}
-        <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-            <span>Years of Experience</span>
-            <span className="text-brand">*</span>
-          </label>
-          <div className="relative flex h-10 w-full items-center justify-between rounded-[10px] border border-[#ede6db] bg-white px-3 text-sm text-ink focus-within:border-brand focus-within:ring-1 focus-within:ring-brand/20 transition-all">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Briefcase className="size-4 shrink-0 text-[#6b6661]" />
-              <select
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                disabled={isSubmitting}
-                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer disabled:opacity-60"
-              >
-                <option value="0 years (Fresher / Student)">Fresher / Student (0 years)</option>
-                <option value="1-3 years">1-3 years (Junior / Mid level)</option>
-                <option value="4-5 years">4-5 years (Senior)</option>
-                <option value="6-8 years">6-8 years (Lead)</option>
-                <option value="8+ years">8+ years (Staff / Principal)</option>
-              </select>
-            </div>
-            <ChevronDown className="size-3.5 shrink-0 text-[#6b6661] pointer-events-none" />
-          </div>
-          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
-            {isFresher
-              ? "Fresher mode unlocks entry-level forte specialization."
-              : "Helps us calibrate interview depth and problem sets."}
+        {/* Experience */}
+        <div className="flex flex-col gap-2">
+          <span className={fieldLabel}>
+            <Briefcase className="size-3.5 text-[#6b6661]" aria-hidden="true" />
+            Experience <span className="text-brand">*</span>
           </span>
+          <div role="radiogroup" aria-label="Experience" className="flex flex-wrap gap-2">
+            {EXPERIENCE_OPTIONS.map((o) => (
+              <Chip key={o.value} selected={experience === o.value} onClick={() => setExperience(o.value)} disabled={isSubmitting}>
+                {o.label}
+              </Chip>
+            ))}
+          </div>
         </div>
 
-        {/* Field 3: Prep Timeline */}
-        <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-[0.5px] text-[#1e1c1a] leading-normal">
-            <span>Prep Timeline</span>
-            <span className="text-brand">*</span>
-          </label>
-          <div className="relative flex h-10 w-full items-center justify-between rounded-[10px] border border-[#ede6db] bg-white px-3 text-sm text-ink focus-within:border-brand focus-within:ring-1 focus-within:ring-brand/20 transition-all">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Calendar className="size-4 shrink-0 text-[#6b6661]" />
-              <select
-                value={timeline}
-                onChange={(e) => setTimeline(e.target.value)}
-                disabled={isSubmitting}
-                className="w-full bg-transparent text-sm text-ink outline-none appearance-none cursor-pointer disabled:opacity-60"
-              >
-                <option value="1-2 weeks">1-2 weeks (Express)</option>
-                <option value="1 month">1 month (Standard)</option>
-                <option value="2-3 months">2-3 months (Thorough)</option>
-                <option value="3+ months">3+ months (Comprehensive)</option>
-              </select>
+        {/* Your time: timeline and weekly hours side by side, with a live summary. */}
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#ede6db] bg-[#fbf9f4] p-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <span className={fieldLabel}>
+                <Calendar className="size-3.5 text-[#6b6661]" aria-hidden="true" />
+                Time until your interview
+              </span>
+              <div role="radiogroup" aria-label="Time until your interview" className="flex flex-wrap gap-2">
+                {TIMELINE_OPTIONS.map((o) => (
+                  <Chip key={o.value} selected={timeline === o.value} onClick={() => setTimeline(o.value)} disabled={isSubmitting}>
+                    {o.label}
+                  </Chip>
+                ))}
+              </div>
             </div>
-            <ChevronDown className="size-3.5 shrink-0 text-[#6b6661] pointer-events-none" />
+            <div className="flex flex-col gap-2">
+              <span className={fieldLabel}>
+                <Clock className="size-3.5 text-[#6b6661]" aria-hidden="true" />
+                Study time per week
+              </span>
+              <div role="radiogroup" aria-label="Study time per week" className="flex flex-wrap gap-2">
+                {HOURS_OPTIONS.map((o) => (
+                  <Chip key={o.value} selected={weeklyHours === o.value} onClick={() => setWeeklyHours(o.value)} disabled={isSubmitting}>
+                    {o.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
           </div>
-          <span className="font-sans text-[11px] font-normal text-[#b0a898] leading-normal">
-            How much time do you have to prepare?
-          </span>
+          <p className="text-[13px] text-ink">
+            📅 <b>{timelineWeeks} weeks × {weeklyHours} hrs/week ≈ {totalHours} hours of prep</b>
+            <span className="text-ink-muted"> · about {minutesPerDay} min a day, 5 days a week</span>
+          </p>
+          {isTightPlan && (
+            <p className="flex items-start gap-1.5 text-[12.5px] text-[#b4570f]">
+              <span aria-hidden="true">⚡</span>
+              That&rsquo;s a tight schedule. We&rsquo;ll focus on your highest-priority topics first.
+            </p>
+          )}
         </div>
       </div>
 
@@ -564,6 +676,20 @@ export function OnboardingFormCard() {
         </div>
       )}
 
+      {/* 3. Optional details, tucked away so setup stays quick. */}
+      <div className="flex flex-col gap-4">
+        <button
+          type="button"
+          onClick={() => setShowOptional((v) => !v)}
+          aria-expanded={showOptional}
+          className="flex w-fit items-center gap-2 text-sm font-semibold text-brand hover:underline cursor-pointer"
+        >
+          <ChevronDown className={`size-4 transition-transform ${showOptional ? "rotate-180" : ""}`} aria-hidden="true" />
+          Make it more personal (optional)
+          <span className="font-normal text-ink-muted">· resume, target company, job description</span>
+        </button>
+        {showOptional && (
+          <div className="flex flex-col gap-5">
       {/* 3. Target Company (Full Width) */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
@@ -764,6 +890,10 @@ export function OnboardingFormCard() {
         </div>
       </div>
 
+          </div>
+        )}
+      </div>
+
       {/* 5. CTA Area */}
       <div className="flex flex-col gap-3.5 pt-2">
         <div className="flex flex-wrap items-center gap-4 sm:gap-5">
@@ -790,6 +920,7 @@ export function OnboardingFormCard() {
           >
             Skip for now
           </Link>
+          <span className="text-xs text-ink-muted">You can change this anytime.</span>
         </div>
 
         {/* Security assurance */}

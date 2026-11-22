@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useSyncExternalStore } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OnboardingHeader } from "@/components/dashboard/OnboardingHeader";
 import { OnboardingFormCard } from "@/components/dashboard/OnboardingFormCard";
 import { OnboardingHelpCard } from "@/components/dashboard/OnboardingHelpCard";
@@ -31,7 +31,7 @@ export function DashboardView() {
     searchParams.get("setup") === "true" || searchParams.get("edit") === "true";
   const explicitStep3 = searchParams.get("step") === "3";
 
-  const [manualSetupMode, setManualSetupMode] = useState(false);
+  const router = useRouter();
   const storedCompleted = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -49,13 +49,12 @@ export function DashboardView() {
   // If completed and not explicitly in setup mode, show Step 3 "Let's Start Preparing!"
   const isCompleted =
     (explicitStep3 || storedCompleted === "true") &&
-    !explicitSetup &&
-    !manualSetupMode;
+    !explicitSetup;
 
   if (isCompleted) {
     return (
       <StudyRoom phase="prepare">
-        <StartPreparingWorkspace onEditSetup={() => setManualSetupMode(true)} />
+        <StartPreparingWorkspace onEditSetup={() => router.push("/dashboard?setup=true")} />
       </StudyRoom>
     );
   }
