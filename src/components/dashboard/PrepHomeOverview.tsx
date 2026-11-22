@@ -86,6 +86,23 @@ function areaIcon(name: string) {
   return hit ? `/icons/dashboard/${hit[1]}` : null;
 }
 
+/** One-line description per prep area, matched by keywords in its name. */
+const AREA_BLURBS: [RegExp, string][] = [
+  [/cloud|kubernetes|ci\/cd|devops|infrastructure/i, "Deploy, scale and run reliable cloud systems."],
+  [/system design|architecture|microservice/i, "Design scalable, reliable, real-world systems."],
+  [/coding|algorithm|dsa/i, "Master core data structures and algorithms."],
+  [/node|api|backend/i, "Build scalable and efficient backend services."],
+  [/react|frontend|typescript/i, "Build fast, scalable and maintainable UIs."],
+  [/javascript/i, "Strengthen your core JS and modern ES features."],
+  [/sql|database|data|python/i, "Learn data modeling, SQL and analysis."],
+  [/behavioral|leadership|communication|collaboration/i, "Tell clear, confident stories about your impact."],
+];
+const areaBlurb = (name: string) => AREA_BLURBS.find(([re]) => re.test(name))?.[1] ?? "Core topics for your target role.";
+
+/** Shared type styles so every card reads the same. */
+const cardTitle = "flex items-center gap-2 font-display text-lg font-extrabold leading-tight text-ink";
+const cardSub = "text-[13px] leading-snug text-ink-muted";
+
 const card = "rounded-3xl border border-[#f0e8de] bg-white shadow-[0_8px_24px_rgba(64,38,25,0.06)]";
 
 /** Half-circle gauge, red to green, for interview readiness. */
@@ -224,13 +241,13 @@ export function PrepHomeOverview({
             {nextTask && (
               <div className={`${card} overflow-hidden`}>
                 <div className="bg-gradient-to-br from-[#eef5ff] to-[#f7faff] p-5">
-                  <p className="flex items-center gap-2 font-display text-[15px] font-bold text-ink">
+                  <h2 className={cardTitle}>
                     <Target className="size-5 text-brand" aria-hidden="true" /> Next Up for You
-                  </p>
+                  </h2>
                   <div className="mt-3 flex items-center gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="font-display text-base font-extrabold leading-snug text-ink">{nextTask.title}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-ink-muted">{nextTask.subtitle}</p>
+                      <p className={`mt-1 line-clamp-2 ${cardSub}`}>{nextTask.subtitle}</p>
                     </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -290,14 +307,15 @@ export function PrepHomeOverview({
                     )}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <h3 className="font-display text-lg font-extrabold leading-tight text-ink">{a.name}</h3>
-                    <p className="text-[13px] text-ink-muted">{a.remaining}</p>
-                    <div className="mt-1 flex items-center gap-2">
+                    <h3 className={cardTitle}>{a.name}</h3>
+                    <p className={cardSub}>{areaBlurb(a.name)}</p>
+                    <div className="mt-1 flex items-center gap-2" title={a.remaining}>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#eceae6]">
                         <div className="h-full rounded-full bg-emerald-500" style={{ width: `${a.progress}%` }} />
                       </div>
                       <span className="text-xs font-bold text-ink">{a.progress}%</span>
                     </div>
+                    <p className="text-[11px] font-medium text-ink-muted">{a.remaining}</p>
                     <Link
                       href="/practice"
                       className="mt-1.5 inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full bg-[#fff1ec] px-4 py-2 text-[13px] font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
@@ -316,7 +334,7 @@ export function PrepHomeOverview({
       <aside className="flex flex-col gap-5">
         <section className={`${card} p-5`}>
           <div className="flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+            <h2 className={cardTitle}>
               <Target className="size-5 text-brand" aria-hidden="true" /> Interview Readiness
               <span title="Share of your roadmap topics you've completed">
                 <Info className="size-4 text-ink-muted" aria-hidden="true" />
@@ -331,6 +349,7 @@ export function PrepHomeOverview({
               {completedTopics}/{totalTopics}
             </button>
           </div>
+          <p className={`mt-1 ${cardSub}`}>How much of your roadmap you&apos;ve covered.</p>
           <div className="mt-3">
             <ReadinessGauge value={progressPercent} />
           </div>
@@ -351,14 +370,15 @@ export function PrepHomeOverview({
 
         <section className={`${card} p-5`}>
           <div className="flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 font-display text-lg font-extrabold text-ink">
+            <h2 className={cardTitle}>
               <CalendarDays className="size-5 text-brand" aria-hidden="true" /> Daily Preparation
             </h2>
             <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
               {finished}/{total} Today
             </span>
           </div>
-          <ul className="mt-3 flex flex-col">
+          <p className={`mt-1 ${cardSub}`}>Small steps today keep your streak going.</p>
+          <ul className="mt-2 flex flex-col">
             {today.map((t) => {
               const checked = doneToday.includes(t.title);
               return (
@@ -391,19 +411,20 @@ export function PrepHomeOverview({
 
         <section className={`${card} grid grid-cols-2 divide-x divide-[#f0e8de] py-4`}>
           <div className="flex flex-col items-center gap-1 px-3 text-center">
-            <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
+            <h2 className="flex items-center gap-1.5 font-display text-[15px] font-extrabold text-ink">
               <CalendarDays className="size-4 text-brand" aria-hidden="true" /> Countdown
-            </span>
+            </h2>
             <span className="font-display text-2xl font-black text-ink">{daysRemaining} Days</span>
-            <span className="text-xs text-ink-muted">({displayTimeline})</span>
+            <span className="text-xs text-ink-muted">left · {displayTimeline} plan</span>
           </div>
           <div className="flex min-w-0 flex-col items-center gap-1 px-3 text-center">
-            <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
+            <h2 className="flex items-center gap-1.5 font-display text-[15px] font-extrabold text-ink">
               <Target className="size-4 text-brand" aria-hidden="true" /> Target Company
-            </span>
+            </h2>
             <span className="mt-1 max-w-full truncate font-display text-xl font-extrabold text-ink" title={targetCompany}>
               {targetCompany}
             </span>
+            <span className="text-xs text-ink-muted">Prep matched to their bar</span>
           </div>
         </section>
 
