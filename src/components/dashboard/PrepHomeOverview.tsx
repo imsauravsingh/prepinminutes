@@ -2,9 +2,11 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
+  CalendarCheck2,
   CalendarDays,
   Check,
   Clock,
@@ -103,6 +105,20 @@ const areaBlurb = (name: string) => AREA_BLURBS.find(([re]) => re.test(name))?.[
 const cardTitle = "flex items-center gap-2 font-display text-lg font-extrabold leading-tight text-ink";
 const cardSub = "text-[13px] leading-snug text-ink-muted";
 
+const WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** Monday-first dates of the current week. */
+function currentWeek() {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  return WEEK.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
 const card = "rounded-3xl border border-[#f0e8de] bg-white shadow-[0_8px_24px_rgba(64,38,25,0.06)]";
 
 /** Half-circle gauge, red to green, for interview readiness. */
@@ -141,10 +157,6 @@ function ReadinessGauge({ value }: { value: number }) {
   );
 }
 
-/** The full topic list now lives on the My Plan page. */
-const goToPlan = () => {
-  window.location.href = "/preparation-plan";
-};
 
 /**
  * Top of the "Start preparing" dashboard: hero with the next task, the
@@ -163,6 +175,9 @@ export function PrepHomeOverview({
   onEditSetup,
   onReset,
 }: Props) {
+  const router = useRouter();
+  // The full topic list lives on the My Plan page.
+  const goToPlan = () => router.push("/preparation-plan");
   const todayKey = dateKey(new Date());
   const [showCharacter, setShowCharacter] = useState(true);
 
@@ -188,6 +203,14 @@ export function PrepHomeOverview({
 
   const total = today.length;
   const finished = today.filter((t) => doneToday.includes(t.title)).length;
+  // This week: green = all of the day's tasks done, yellow = some, white = none yet.
+  const week = currentWeek().map((d, i) => {
+    const key = dateKey(d);
+    const count = (done[key] ?? []).length;
+    const status = total > 0 && count >= total ? "full" : count > 0 ? "partial" : "none";
+    return { key, label: WEEK[i], day: d.getDate(), status, isToday: key === todayKey, isFuture: key > todayKey };
+  });
+  const fullDays = week.filter((d) => d.status === "full").length;
   const nextTask = today.find((t) => !doneToday.includes(t.title)) ?? today[0];
 
   return (
@@ -196,22 +219,23 @@ export function PrepHomeOverview({
       <div className="flex min-w-0 flex-col gap-8">
         <section className="rise-in relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#fff1e8] via-[#fffaf6] to-[#fdf7f2] p-6 sm:p-7">
           <div aria-hidden="true" className="pointer-events-none absolute -left-10 top-6 size-64 rounded-full bg-[#ffd9c7]/60 blur-2xl" />
+          {showCharacter && (
+            // Background layer: sits behind the content, anchored bottom-left.
+            // Hidden if the artwork is missing, so the hero never shows a broken image.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={CHARACTER_SRC}
+              alt=""
+              aria-hidden="true"
+              onError={() => setShowCharacter(false)}
+              className="pointer-events-none absolute -bottom-3 left-0 hidden h-[calc(100%+12px)] max-h-[290px] w-auto select-none 2xl:max-h-[330px] drop-shadow-[0_18px_24px_rgba(64,38,25,0.16)] xl:block"
+            />
+          )}
           <div
             className={`relative grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${
-              showCharacter ? "xl:grid-cols-[170px_minmax(0,1fr)_270px] 2xl:grid-cols-[230px_minmax(0,1fr)_300px]" : ""
+              showCharacter ? "xl:min-h-[270px] xl:grid-cols-[minmax(0,1fr)_270px] xl:pl-[300px] 2xl:grid-cols-[minmax(0,1fr)_300px] 2xl:pl-[320px]" : ""
             }`}
           >
-            {showCharacter && (
-              // Hidden if the artwork is missing, so the hero never shows a broken image.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={CHARACTER_SRC}
-                alt=""
-                aria-hidden="true"
-                onError={() => setShowCharacter(false)}
-                className="hero-character hidden w-full max-w-[240px] select-none drop-shadow-[0_18px_24px_rgba(64,38,25,0.18)] xl:block"
-              />
-            )}
 
             <div className="flex flex-col gap-4">
               <h1 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[40px]">
@@ -409,6 +433,44 @@ export function PrepHomeOverview({
               );
             })}
           </ul>
+        </section>
+
+        <section className={`${card} p-5`}>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={cardTitle}>
+              <CalendarCheck2 className="size-5 text-brand" aria-hidden="true" /> This Week
+            </h2>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
+              {fullDays}/7 Days
+            </span>
+          </div>
+          <p className={`mt-1 ${cardSub}`}>Finish every task in a day to turn it green.</p>
+          <ol className="mt-4 grid grid-cols-7 gap-1.5">
+            {week.map((d) => (
+              <li key={d.key} className="flex flex-col items-center gap-1.5">
+                <span className={`text-[11px] ${d.isToday ? "font-bold text-ink" : "text-ink-muted"}`}>{d.label}</span>
+                <span
+                  title={
+                    d.status === "full" ? "All tasks done" : d.status === "partial" ? "Some tasks done" : d.isFuture ? "Upcoming" : "No tasks done"
+                  }
+                  className={`flex size-9 items-center justify-center rounded-xl border-2 text-xs font-bold ${
+                    d.status === "full"
+                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      : d.status === "partial"
+                        ? "border-amber-400 bg-amber-300 text-amber-900"
+                        : "border-[#e8e1d7] bg-white text-ink-muted"
+                  } ${d.isToday ? "ring-2 ring-brand/40 ring-offset-2" : ""}`}
+                >
+                  {d.status === "full" ? <Check className="size-4" strokeWidth={3} aria-hidden="true" /> : d.day}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-3 flex items-center gap-3 text-[11px] text-ink-muted">
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-500" /> Done</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-amber-300" /> Partial</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm border border-[#e8e1d7] bg-white" /> Not yet</span>
+          </div>
         </section>
 
         <section className={`${card} grid grid-cols-2 divide-x divide-[#f0e8de] py-4`}>
