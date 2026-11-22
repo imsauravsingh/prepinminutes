@@ -5,36 +5,19 @@ import Link from "next/link";
 import { PrepHomeOverview } from "@/components/dashboard/PrepHomeOverview";
 import { useNextStepFlow } from "@/lib/useNextStepFlow";
 import {
-  InteractiveRoadmap,
   evaluateCandidateProfileDomains,
 } from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
 import {
-  Clock,
-  Building2,
-  Pencil,
   Lightbulb,
-  Calendar,
   BookOpen,
   Code2,
   MessageSquare,
   Users2,
   Layers,
-  Zap,
-  Mic,
-  FileText,
-  BarChart3,
-  ChevronRight,
   Settings,
   RotateCcw,
   Loader2,
-  Target,
-  Sparkles,
-  AlertTriangle,
-  Flame,
-  ArrowRight,
-  Trophy,
-  X,
 } from "lucide-react";
 
 interface StartPreparingWorkspaceProps {
@@ -875,238 +858,10 @@ export function StartPreparingWorkspace({
         onReset={() => setShowResetModal(true)}
       />
 
-      {/* 2.5 FRESHER PRIMARY STACK CALIBRATION PROMPT (Choose or Skip at Step 3) */}
-      {isFresher && showFresherPrompt && (
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5 rounded-2xl border border-brand/30 bg-gradient-to-r from-[#fff7f3] via-white to-[#fffaf6] p-5 sm:p-6 shadow-[0_4px_20px_rgba(255,108,71,0.06)] animate-in fade-in slide-in-from-top-3 duration-200">
-          <div className="flex items-start gap-4 max-w-2xl">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand shadow-xs">
-              <Code2 className="size-6" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-0.5 text-[11px] font-extrabold text-brand uppercase tracking-wider">
-                  <Sparkles className="size-3" />
-                  Fresher Calibration
-                </span>
-                <span className="text-[11px] font-semibold text-ink-muted">
-                  · 1 Primary Language Required
-                </span>
-              </div>
-
-              <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
-                Choose your primary language for coding & DSA rounds
-              </h3>
-
-              <p className="text-xs sm:text-[13px] text-ink-muted leading-relaxed">
-                Technical interviewers evaluate freshers in one main language.{" "}
-                {detectedLanguageInfo.detectedLanguages.length > 1 ? (
-                  <>
-                    Multiple skills found in your profile. AI evaluated strongest
-                    experience in{" "}
-                    <strong className="text-brand font-bold">
-                      {detectedLanguageInfo.recommendedLanguage}
-                    </strong>
-                    . Confirm or choose below:
-                  </>
-                ) : (
-                  <>
-                    {detectedLanguageInfo.rationale}. Confirm or choose your
-                    preferred language:
-                  </>
-                )}
-              </p>
-
-              {/* Language Choice Chips */}
-              <div className="flex items-center gap-2 pt-1.5 flex-wrap">
-                {["Python", "Java", "C++", "Node.js", "Go"].map((lang) => {
-                  const isSelected = selectedLanguage === lang;
-                  const isAiTop =
-                    detectedLanguageInfo.recommendedLanguage === lang;
-                  return (
-                    <button
-                      key={lang}
-                      type="button"
-                      onClick={() => setSelectedLanguage(lang)}
-                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                        isSelected
-                          ? "border-2 border-brand bg-brand text-white shadow-xs"
-                          : "border border-line bg-white text-ink hover:bg-cream"
-                      }`}
-                    >
-                      <span>{lang}</span>
-                      {isAiTop && (
-                        <span
-                          className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase ${
-                            isSelected
-                              ? "bg-white/20 text-white"
-                              : "bg-brand-soft text-brand"
-                          }`}
-                        >
-                          AI Pick
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Buttons: Confirm vs Skip */}
-          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center gap-2.5 shrink-0 self-start md:self-center">
-            <button
-              type="button"
-              onClick={() => handleConfirmLanguage(selectedLanguage)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-brand/90 transition-all cursor-pointer active:scale-[0.99]"
-            >
-              <span>Confirm {selectedLanguage} →</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSkipLanguagePrompt}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-4 py-2.5 text-xs font-semibold text-ink-muted hover:text-ink hover:bg-cream transition-all cursor-pointer"
-            >
-              <span>Skip for now</span>
-            </button>
-          </div>
-
-          {/* Dismiss X button */}
-          <button
-            type="button"
-            onClick={handleSkipLanguagePrompt}
-            className="absolute top-3.5 right-3.5 p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-cream transition-colors cursor-pointer"
-            title="Dismiss prompt"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-      )}
-
-      {/* 3. MAIN DASHBOARD CENTERPIECE: Visual Branching Skill Tree (Matching Uploaded UI) */}
-      <div id="roadmap-curriculum-tree" className="w-full scroll-mt-6">
-        <InteractiveRoadmap
-          targetRole={displayRole}
-          experienceLevel={displayExperience}
-          targetCompany={displayCompany}
-          timelineLabel={displayTimeline}
-          isFresher={isFresher}
-          completedActivities={completedActivities}
-          initialLanguage={selectedLanguage}
-          onLanguageChange={handleLanguageChange}
-        />
-      </div>
-
-      {/* 5. Row 4: Bottom Two-Column Split (Quick Actions + Pro Tip) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-        {/* Left: Quick Actions (span 7) */}
-        <div
-          className="rise-in lg:col-span-7 flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]"
-          style={{ "--enter-delay": "120ms" } as React.CSSProperties}
-        >
-          <div className="flex items-center gap-2.5">
-            <Zap className="size-5 text-amber fill-amber shrink-0" />
-            <div className="flex flex-col gap-0.5">
-              <h3 className="font-display text-lg font-extrabold text-ink sm:text-xl">
-                Quick Actions
-              </h3>
-              <span className="text-xs text-ink-muted sm:text-sm">
-                Other ways to practice and improve.
-              </span>
-            </div>
-          </div>
-
-          {/* 2x2 Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {/* 1. Practice by Topic */}
-            <Link
-              href="/practice/topics"
-              className="flex items-center justify-between rounded-xl border border-line bg-[#fbf9f4] p-3.5 hover:bg-cream hover:border-brand/30 transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue shadow-2xs">
-                  <BookOpen className="size-4" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xs font-bold text-ink group-hover:text-brand transition-colors">
-                    Practice by Topic
-                  </span>
-                  <span className="text-[11px] text-ink-muted">
-                    Choose a topic and start practicing.
-                  </span>
-                </div>
-              </div>
-              <ChevronRight className="size-4 text-ink-muted/60 group-hover:text-brand transition-colors" />
-            </Link>
-
-            {/* 2. AI Mock Interview */}
-            <Link
-              href="/practice/session"
-              className="flex items-center justify-between rounded-xl border border-line bg-[#fbf9f4] p-3.5 hover:bg-cream hover:border-brand/30 transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-purple shadow-2xs">
-                  <Mic className="size-4" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xs font-bold text-ink group-hover:text-brand transition-colors">
-                    AI Mock Interview
-                  </span>
-                  <span className="text-[11px] text-ink-muted">
-                    Simulate a real interview.
-                  </span>
-                </div>
-              </div>
-              <ChevronRight className="size-4 text-ink-muted/60 group-hover:text-brand transition-colors" />
-            </Link>
-
-            {/* 3. Revise Notes */}
-            <Link
-              href="/practice"
-              className="flex items-center justify-between rounded-xl border border-line bg-[#fbf9f4] p-3.5 hover:bg-cream hover:border-brand/30 transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue shadow-2xs">
-                  <FileText className="size-4" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xs font-bold text-ink group-hover:text-brand transition-colors">
-                    Revise Notes
-                  </span>
-                  <span className="text-[11px] text-ink-muted">
-                    Review your saved notes.
-                  </span>
-                </div>
-              </div>
-              <ChevronRight className="size-4 text-ink-muted/60 group-hover:text-brand transition-colors" />
-            </Link>
-
-            {/* 4. Track Progress */}
-            <Link
-              href="/preparation-plan"
-              className="flex items-center justify-between rounded-xl border border-line bg-[#fbf9f4] p-3.5 hover:bg-cream hover:border-brand/30 transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-purple shadow-2xs">
-                  <BarChart3 className="size-4" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xs font-bold text-ink group-hover:text-brand transition-colors">
-                    Track Progress
-                  </span>
-                  <span className="text-[11px] text-ink-muted">
-                    See detailed analytics.
-                  </span>
-                </div>
-              </div>
-              <ChevronRight className="size-4 text-ink-muted/60 group-hover:text-brand transition-colors" />
-            </Link>
-          </div>
-        </div>
-
+      {/* 2. Pro Tip */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Right: Pro Tip (span 5) */}
-        <div className="lg:col-span-5 flex flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
           {/* Top: Pro Tip */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">

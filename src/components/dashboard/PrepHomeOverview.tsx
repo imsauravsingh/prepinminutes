@@ -55,7 +55,7 @@ type Props = {
 
 /** Transparent illustration of the candidate at a laptop. */
 // Bump the version whenever the artwork changes so browsers fetch the new file.
-const CHARACTER_SRC = "/images/dashboard/prep-hero-character.webp?v=2";
+const CHARACTER_SRC = "/images/dashboard/prep-hero-character.webp?v=3";
 const DONE_KEY = "pim_today_done"; // { [yyyy-mm-dd]: string[] } of finished task titles
 
 function dateKey(d: Date) {
@@ -141,8 +141,10 @@ function ReadinessGauge({ value }: { value: number }) {
   );
 }
 
-const scrollToRoadmap = () =>
-  document.getElementById("roadmap-curriculum-tree")?.scrollIntoView({ behavior: "smooth" });
+/** The full topic list now lives on the My Plan page. */
+const goToPlan = () => {
+  window.location.href = "/preparation-plan";
+};
 
 /**
  * Top of the "Start preparing" dashboard: hero with the next task, the
@@ -279,7 +281,7 @@ export function PrepHomeOverview({
             <h2 className="font-display text-xl font-extrabold text-ink sm:text-2xl">Continue Your Preparation</h2>
             <button
               type="button"
-              onClick={scrollToRoadmap}
+              onClick={goToPlan}
               className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline cursor-pointer"
             >
               View All Topics <ArrowRight className="size-4" aria-hidden="true" />
@@ -342,8 +344,8 @@ export function PrepHomeOverview({
             </h2>
             <button
               type="button"
-              onClick={scrollToRoadmap}
-              title="Topics completed — view the roadmap"
+              onClick={goToPlan}
+              title="Topics completed — view your plan"
               className="rounded-full bg-[#fff1ec] px-2.5 py-0.5 text-sm font-bold text-brand cursor-pointer hover:bg-brand hover:text-white"
             >
               {completedTopics}/{totalTopics}
