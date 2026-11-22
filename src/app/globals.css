@@ -809,24 +809,6 @@ body {
 
 /* ---------- Glass header controls and mobile menu ---------- */
 
-/* Frosted glass: light tint, strong blur, bright rim and a soft top sheen. */
-.glass-header {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18));
-  backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-}
-
-.glass-pill {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.2));
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    0 6px 18px rgba(96, 60, 36, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(16px) saturate(1.8);
-  -webkit-backdrop-filter: blur(16px) saturate(1.8);
-}
-
 .glass-panel {
   position: relative;
   overflow: hidden;

@@ -6,6 +6,7 @@ import { OnboardingHeader } from "@/components/dashboard/OnboardingHeader";
 import { OnboardingFormCard } from "@/components/dashboard/OnboardingFormCard";
 import { OnboardingHelpCard } from "@/components/dashboard/OnboardingHelpCard";
 import { StartPreparingWorkspace } from "@/components/dashboard/StartPreparingWorkspace";
+import { StudyRoom } from "@/components/dashboard/room/StudyRoom";
 
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -53,18 +54,18 @@ export function DashboardView() {
 
   if (isCompleted) {
     return (
-      <main className="flex flex-1 flex-col gap-8 px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10 min-w-0">
+      <StudyRoom phase="prepare">
         <StartPreparingWorkspace onEditSetup={() => setManualSetupMode(true)} />
-      </main>
+      </StudyRoom>
     );
   }
 
   // Otherwise, show Step 1 "Set Up" onboarding
   return (
-    <main className="flex flex-1 flex-col gap-7 px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-9 min-w-0">
+    <StudyRoom phase="setup">
       <OnboardingHeader />
       <OnboardingFormCard />
       <OnboardingHelpCard />
-    </main>
+    </StudyRoom>
   );
 }

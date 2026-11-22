@@ -1,0 +1,400 @@
+/* ---------- Room shell ---------- */
+
+.room {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 100svh;
+  flex: 1;
+  flex-direction: column;
+  color: var(--color-ink);
+  background: #fbf9f4;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  flex: 1;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .content {
+    padding: 28px 28px 64px;
+  }
+}
+
+/* Leave room for the phone tab bar. */
+.contentWithTabs {
+  padding-bottom: 104px;
+}
+
+@media (min-width: 1024px) {
+  .contentWithTabs {
+    padding-bottom: 64px;
+  }
+}
+
+/* ---------- Floating glass dock (replaces the sidebar) ---------- */
+
+.dockWrap {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 12px 12px 0;
+}
+
+@media (min-width: 640px) {
+  .dockWrap {
+    padding: 16px 20px 0;
+  }
+}
+
+.dock {
+  display: flex;
+  max-width: 1200px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 8px 8px 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.32));
+  box-shadow: 0 12px 30px rgba(64, 38, 25, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px) saturate(1.7);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  animation: dock-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.brandName {
+  display: none;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+@media (min-width: 640px) {
+  .brandName {
+    display: inline;
+  }
+}
+
+/* Setup phase: a calm status pill instead of menus. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c24a2c;
+  background: rgba(255, 240, 236, 0.75);
+  border: 1px solid rgba(255, 108, 71, 0.25);
+}
+
+@media (max-width: 479px) {
+  .status {
+    display: none;
+  }
+}
+
+.status svg {
+  animation: sparkle 2.4s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.18) rotate(12deg);
+    opacity: 1;
+  }
+}
+
+/* Prepare phase: learning menus in the dock (desktop). */
+.nav {
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (min-width: 1024px) {
+  .nav {
+    display: flex;
+  }
+}
+
+.navItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgba(30, 28, 26, 0.72);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.navItem:hover {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(96, 60, 36, 0.08);
+}
+
+.navActive,
+.navActive:hover {
+  color: #fff;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  box-shadow: 0 6px 14px rgba(255, 108, 71, 0.32);
+}
+
+/* ---------- Account menu ---------- */
+
+.account {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.accountButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.5);
+  padding: 4px 10px 4px 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background-color 180ms ease;
+  cursor: pointer;
+}
+
+.accountButton:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.avatar {
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.accountName {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .accountName {
+    display: inline;
+  }
+}
+
+.chevron {
+  width: 15px;
+  height: 15px;
+  color: var(--color-ink-muted);
+  transition: transform 200ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.accountPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  display: flex;
+  width: 260px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  /* Mostly opaque so menu text never competes with the page behind it. */
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 245, 0.92));
+  box-shadow: 0 22px 44px rgba(64, 38, 25, 0.2), inset 0 1px 0 #fff;
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  animation: panel-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.accountHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 6px;
+}
+
+.accountTitle {
+  overflow: hidden;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountEmail {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planChip {
+  align-self: flex-start;
+  margin: 0 4px 4px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b7a53;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--color-ink);
+  transition: background-color 160ms ease, color 160ms ease;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.signOut {
+  color: #d9452a;
+}
+
+.signOut:hover {
+  background: #fdebe6;
+}
+
+/* ---------- Phone tab bar (prepare phase) ---------- */
+
+.tabbar {
+  position: fixed;
+  right: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: 10px;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  padding: 6px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
+  box-shadow: 0 14px 34px rgba(64, 38, 25, 0.18), inset 0 1px 0 #fff;
+  backdrop-filter: blur(20px) saturate(1.7);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+}
+
+@media (min-width: 1024px) {
+  .tabbar {
+    display: none;
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-radius: 16px;
+  padding: 7px 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(30, 28, 26, 0.65);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-ink);
+}
+
+.tabActive,
+.tabActive:hover {
+  color: #fff;
+  background: var(--color-brand);
+  box-shadow: 0 6px 14px rgba(255, 108, 71, 0.3);
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .dock,
+  .accountPanel,
+  .status svg {
+    animation: none;
+  }
+}
