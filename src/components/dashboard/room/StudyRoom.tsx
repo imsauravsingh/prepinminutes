@@ -136,10 +136,19 @@ export function AccountMenu({ phase, showDashboardLink = false }: { phase: RoomP
 export function StudyRoom({ phase, children }: { phase: RoomPhase; children: ReactNode }) {
   const pathname = usePathname() ?? "/dashboard";
 
+  // Like the home page: the dock's glass bar only appears once the page scrolls.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className={styles.room}>
       <header className={styles.dockWrap}>
-        <div className={styles.dock}>
+        <div className={`${styles.dock} ${scrolled ? "" : styles.dockBare}`}>
           <Link href="/" className={styles.brand} aria-label="PrepInMinutes home">
             <BrandMark className="size-8" />
             <span className={styles.brandName}>PrepInMinutes</span>
