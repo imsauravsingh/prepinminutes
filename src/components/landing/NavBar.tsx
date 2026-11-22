@@ -25,7 +25,18 @@ type NavBarProps = {
  */
 export function NavBar({ overlay = false }: NavBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { isLoaded, isSignedIn } = useAppAuth();
+
+  // Home page: the dock's glass bar only appears once the visitor scrolls.
+  useEffect(() => {
+    if (!overlay) return;
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [overlay]);
+  const bare = overlay && !scrolled && !menuOpen;
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -41,7 +52,14 @@ export function NavBar({ overlay = false }: NavBarProps) {
 
   return (
     <header className={`${overlay ? "fixed inset-x-0 top-0" : "sticky top-0"} z-50 px-3 pt-3 sm:px-5 sm:pt-4`}>
-      <div className={dock.dock}>
+      {bare && (
+        // Soft wash at the top keeps the menus readable over the hero scene.
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-white/50 via-white/15 to-transparent"
+        />
+      )}
+      <div className={`${dock.dock} ${bare ? dock.dockBare : ""}`}>
         <Link href="/" className={dock.brand} aria-label="PrepInMinutes home">
           <BrandMark className="size-8" />
           <span className={dock.brandName}>PrepInMinutes</span>
