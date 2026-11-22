@@ -54,7 +54,8 @@ type Props = {
 };
 
 /** Transparent illustration of the candidate at a laptop. */
-const CHARACTER_SRC = "/images/dashboard/prep-hero-character.webp";
+// Bump the version whenever the artwork changes so browsers fetch the new file.
+const CHARACTER_SRC = "/images/dashboard/prep-hero-character.webp?v=2";
 const DONE_KEY = "pim_today_done"; // { [yyyy-mm-dd]: string[] } of finished task titles
 
 function dateKey(d: Date) {
@@ -178,7 +179,7 @@ export function PrepHomeOverview({
           <div aria-hidden="true" className="pointer-events-none absolute -left-10 top-6 size-64 rounded-full bg-[#ffd9c7]/60 blur-2xl" />
           <div
             className={`relative grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${
-              showCharacter ? "2xl:grid-cols-[230px_minmax(0,1fr)_300px]" : ""
+              showCharacter ? "xl:grid-cols-[170px_minmax(0,1fr)_270px] 2xl:grid-cols-[230px_minmax(0,1fr)_300px]" : ""
             }`}
           >
             {showCharacter && (
@@ -189,7 +190,7 @@ export function PrepHomeOverview({
                 alt=""
                 aria-hidden="true"
                 onError={() => setShowCharacter(false)}
-                className="hero-character hidden w-full max-w-[240px] select-none drop-shadow-[0_18px_24px_rgba(64,38,25,0.18)] 2xl:block"
+                className="hero-character hidden w-full max-w-[240px] select-none drop-shadow-[0_18px_24px_rgba(64,38,25,0.18)] xl:block"
               />
             )}
 
