@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { PrepHomeOverview } from "@/components/dashboard/PrepHomeOverview";
 import { useNextStepFlow } from "@/lib/useNextStepFlow";
 import {
@@ -9,13 +8,11 @@ import {
 } from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
 import {
-  Lightbulb,
   BookOpen,
   Code2,
   MessageSquare,
   Users2,
   Layers,
-  Settings,
   RotateCcw,
   Loader2,
 } from "lucide-react";
@@ -857,88 +854,6 @@ export function StartPreparingWorkspace({
         onEditSetup={onEditSetup}
         onReset={() => setShowResetModal(true)}
       />
-
-      {/* 2. Pro Tip */}
-      <div className="grid grid-cols-1 gap-6">
-        {/* Right: Pro Tip (span 5) */}
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
-          {/* Top: Pro Tip */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Lightbulb className="size-5 text-amber fill-amber/20" />
-              <h3 className="font-display text-base font-extrabold text-ink">
-                Pro Tip
-              </h3>
-            </div>
-
-            <h4 className="font-display text-sm font-bold text-ink mt-1">
-              Consistency beats cramming.
-            </h4>
-            <p className="text-xs text-ink-muted leading-relaxed">
-              Spend 30–60 minutes daily, and let the plan guide you.
-            </p>
-          </div>
-
-          {/* Bottom: Need to adjust your plan? */}
-          <div className="flex flex-col gap-2.5 pt-3 border-t border-line">
-            <div className="flex flex-col gap-0.5">
-              <span className="font-display text-xs font-bold text-ink">
-                Need to adjust your plan?
-              </span>
-              <span className="text-[11px] text-ink-muted leading-tight">
-                You can always update your timeline or target role from
-                settings.
-              </span>
-            </div>
-
-            {onEditSetup ? (
-              <button
-                type="button"
-                onClick={onEditSetup}
-                className="inline-flex items-center gap-1.5 self-start rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs font-semibold text-ink shadow-xs hover:bg-cream transition-colors"
-              >
-                <Settings className="size-3.5 text-ink-muted" />
-                <span>Update Plan</span>
-              </button>
-            ) : (
-              <Link
-                href="/dashboard?setup=true"
-                className="inline-flex items-center gap-1.5 self-start rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs font-semibold text-ink shadow-xs hover:bg-cream transition-colors"
-              >
-                <Settings className="size-3.5 text-ink-muted" />
-                <span>Update Plan</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 6. Celebration Banner ("You're all set!") */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-[0_4px_16px_rgba(30,28,26,0.03)]">
-        {/* Left: Confetti + Copy */}
-        <div className="flex items-center gap-3.5">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-2xl shadow-xs">
-            🎉
-          </div>
-          <div className="flex flex-col gap-0.5">
-            <h3 className="font-display text-base font-bold text-ink sm:text-lg">
-              You&apos;re all set!
-            </h3>
-            <p className="text-xs text-ink-muted sm:text-sm">
-              Keep going, stay consistent, and make the most of your preparation
-              journey.
-            </p>
-          </div>
-        </div>
-
-        {/* Right: Continue CTA */}
-        <Link
-          href="/preparation-plan"
-          className="flex items-center justify-center rounded-full bg-brand px-8 py-3 text-[15px] font-semibold text-white shadow-[0_4px_12px_rgba(255,108,71,0.2)] transition-opacity hover:opacity-95 active:scale-[0.99] whitespace-nowrap self-start sm:self-auto"
-        >
-          Continue to My Preparation Plan →
-        </Link>
-      </div>
 
       {/* Reset Profile Confirmation Modal */}
       {showResetModal && (
