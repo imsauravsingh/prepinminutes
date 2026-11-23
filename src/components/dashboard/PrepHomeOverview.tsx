@@ -3,6 +3,7 @@
 import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAppAuth } from "@/components/providers/AuthProvider";
 import {
   ArrowRight,
   BarChart3,
@@ -71,8 +72,9 @@ type Props = {
 };
 
 // Bump the version whenever the artwork changes so browsers fetch the new file.
-/** Neutral study-desk illustration, the same for every candidate. */
-const HERO_SRC = "/images/dashboard/prep-hero-desk.webp?v=1";
+/** Male character when the candidate picked "Male" in Edit Profile; neutral desk otherwise. */
+const HERO_MALE_SRC = "/images/dashboard/prep-hero-character.webp?v=3";
+const HERO_DEFAULT_SRC = "/images/dashboard/prep-hero-desk.webp?v=1";
 const DONE_KEY = "pim_today_done"; // { [yyyy-mm-dd]: string[] } of finished task titles
 
 function dateKey(d: Date) {
@@ -208,6 +210,8 @@ export function PrepHomeOverview({
   weekProgress,
 }: Props) {
   const router = useRouter();
+  const { user } = useAppAuth();
+  const heroSrc = user?.gender === "male" ? HERO_MALE_SRC : HERO_DEFAULT_SRC;
   // The full topic list lives on the My Plan page.
   const goToPlan = () => router.push("/preparation-plan");
   const todayKey = dateKey(new Date());
@@ -270,7 +274,8 @@ export function PrepHomeOverview({
             // Hidden if the artwork is missing, so the hero never shows a broken image.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={HERO_SRC}
+              key={heroSrc}
+              src={heroSrc}
               alt=""
               aria-hidden="true"
               onError={() => setShowCharacter(false)}

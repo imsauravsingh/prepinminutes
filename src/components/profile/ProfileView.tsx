@@ -19,6 +19,13 @@ import {
   RotateCw,
   ExternalLink,
 } from "lucide-react";
+import type { CandidateGender } from "@/lib/api-client";
+
+const GENDER_CHOICES: { value: CandidateGender; label: string }[] = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+];
 
 const PRESET_AVATARS = [
   { id: "tech-1", label: "Dev 1", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Alex" },
@@ -59,6 +66,7 @@ export function ProfileView() {
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [username, setUsername] = useState(user?.username || "");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl || null);
+  const [gender, setGender] = useState<CandidateGender | null>(user?.gender ?? null);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   // Profile save feedback
@@ -83,6 +91,7 @@ export function ProfileView() {
       setFullName(user.fullName || "");
       setUsername(user.username || "");
       setAvatarUrl(user.avatarUrl || null);
+      setGender(user.gender ?? null);
     }
   }, [user]);
 
@@ -90,11 +99,13 @@ export function ProfileView() {
   const initialFullName = user?.fullName || "";
   const initialUsername = user?.username || "";
   const initialAvatarUrl = user?.avatarUrl || null;
+  const initialGender = user?.gender ?? null;
 
   const isProfileDirty =
     fullName.trim() !== initialFullName.trim() ||
     username.trim() !== initialUsername.trim() ||
-    avatarUrl !== initialAvatarUrl;
+    avatarUrl !== initialAvatarUrl ||
+    gender !== initialGender;
 
   const usernameValid =
     !username.trim() || /^[a-zA-Z0-9_.-]{3,30}$/.test(username.trim());
@@ -126,6 +137,7 @@ export function ProfileView() {
         fullName: fullName.trim(),
         username: username.trim() || undefined,
         avatarUrl,
+        gender,
       });
 
       setProfileSuccessMessage(res.message || "Profile updated successfully!");
@@ -400,6 +412,37 @@ export function ProfileView() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Gender (optional) */}
+          <div className="flex flex-col gap-1.5">
+            <span id="gender-label" className="text-xs font-semibold text-ink">
+              Gender <span className="font-normal text-ink-muted">(optional)</span>
+            </span>
+            <div role="radiogroup" aria-labelledby="gender-label" className="flex flex-wrap gap-2">
+              {GENDER_CHOICES.map((choice) => {
+                const selected = gender === choice.value;
+                return (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setGender(selected ? null : choice.value)}
+                    className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                      selected
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-line bg-white text-ink hover:border-brand/40"
+                    }`}
+                  >
+                    {choice.label}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="text-[11px] text-ink-muted">
+              Only used to personalise your dashboard illustration. Click again to clear.
+            </span>
           </div>
 
           {/* Field 3: Email Address (Read-Only) */}

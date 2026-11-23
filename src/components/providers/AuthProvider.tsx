@@ -14,6 +14,7 @@ import {
   AUTH_USER_STORAGE_KEY,
   backendApi,
   AuthenticatedCandidateUser,
+  CandidateGender,
   SsoConfigResponse,
 } from "@/lib/api-client";
 import {
@@ -71,6 +72,7 @@ export interface AppAuthContextValue {
     fullName?: string;
     username?: string;
     avatarUrl?: string | null;
+    gender?: CandidateGender | null;
   }) => Promise<{
     success: boolean;
     message: string;
@@ -367,6 +369,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       fullName?: string;
       username?: string;
       avatarUrl?: string | null;
+      gender?: CandidateGender | null;
     }) => {
       const res = await backendApi.updateUserProfile(data, token);
       if (res.success && res.user) {

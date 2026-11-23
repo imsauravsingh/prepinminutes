@@ -33,6 +33,8 @@ export const API_BASE_URL =
     ? "https://api.prepinminutes.com"
     : "http://localhost:8787");
 
+export type CandidateGender = "male" | "female" | "prefer_not_to_say";
+
 export interface AuthenticatedCandidateUser {
   id: string;
   username?: string | null;
@@ -42,6 +44,8 @@ export interface AuthenticatedCandidateUser {
   emailVerified?: boolean;
   fullName: string | null;
   avatarUrl: string | null;
+  /** Set by the candidate in Edit Profile; used to pick dashboard artwork. */
+  gender?: CandidateGender | null;
   authProvider: "google" | "credentials" | "clerk";
   hasCompletedOnboarding?: boolean;
   createdAt?: string | Date;
@@ -552,13 +556,14 @@ export const backendApi = {
 
   /**
    * PATCH /api/user/profile
-   * Updates personal profile information (fullName, username, avatarUrl).
+   * Updates personal profile information (fullName, username, avatarUrl, gender).
    */
   async updateUserProfile(
     payload: {
       fullName?: string;
       username?: string;
       avatarUrl?: string | null;
+      gender?: CandidateGender | null;
     },
     token?: string | null,
   ) {
