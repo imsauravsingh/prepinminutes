@@ -883,3 +883,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hero-character { animation: none; }
 }
+
+/* App menu (components/dashboard/Sidebar): make room for the top bar,
+   and on phones for the bottom tab bar. */
+[data-app-rail] ~ * {
+  margin-top: 76px;
+}
+@media (max-width: 1023px) {
+  [data-app-rail] ~ * {
+    margin-bottom: 84px;
+  }
+}

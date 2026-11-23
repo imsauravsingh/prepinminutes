@@ -403,10 +403,57 @@
   box-shadow: 0 6px 14px rgba(255, 108, 71, 0.3);
 }
 
+/* ---------- Side layout (every page except the dashboard and home) ---------- */
+
+/* Top bar for brand and account scrolls away with the page (only the dashboard
+   and home keep a sticky bar); the menu moves to a left rail. */
+.dockWrapFixed {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .rail {
+    position: sticky;
+    top: 20px;
+    z-index: 30;
+    display: block;
+    flex-shrink: 0;
+    align-self: flex-start;
+    width: 212px;
+    margin: 92px 0 20px 20px;
+  }
+}
+
+.railNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.32));
+  box-shadow: 0 12px 30px rgba(64, 38, 25, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px) saturate(1.7);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  animation: dock-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.railNav .navItem {
+  display: flex;
+}
+
 /* ---------- Reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
   .dock,
+  .railNav,
   .accountPanel,
   .status svg {
     animation: none;

@@ -27,7 +27,7 @@ export type RoomPhase = "setup" | "prepare";
 type NavItem = { icon: LucideIcon; label: string; short: string; href: string; match: (p: string) => boolean };
 
 /** Learning menus, shown once setup is done (Start Preparing phase). */
-const PREP_NAV: NavItem[] = [
+export const PREP_NAV: NavItem[] = [
   { icon: Home, label: "Today", short: "Today", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") },
   { icon: CalendarRange, label: "My Plan", short: "Plan", href: "/preparation-plan", match: (p) => p.startsWith("/preparation-plan") },
   {
