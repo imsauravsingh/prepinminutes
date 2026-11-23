@@ -28,7 +28,7 @@ type NavItem = { icon: LucideIcon; label: string; short: string; href: string; m
 
 /** Learning menus, shown once setup is done (Start Preparing phase). */
 export const PREP_NAV: NavItem[] = [
-  { icon: Home, label: "Today", short: "Today", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") },
+  { icon: Home, label: "Today", short: "Today", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") || p.startsWith("/prepare/") },
   { icon: CalendarRange, label: "My Plan", short: "Plan", href: "/preparation-plan", match: (p) => p.startsWith("/preparation-plan") },
   {
     icon: Target,

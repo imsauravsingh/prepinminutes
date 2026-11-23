@@ -20,7 +20,7 @@ import {
  */
 
 /** Roadmap domain keys (role rules) → curriculum domain slugs. */
-const KEY_TO_SLUG: Record<string, string | null> = {
+export const KEY_TO_SLUG: Record<string, string | null> = {
   "system-design": "system-design",
   "ai-system-design": "ai-system-design",
   dsa: "dsa",
@@ -38,7 +38,7 @@ const KEY_TO_SLUG: Record<string, string | null> = {
 };
 
 /** Plan weight keys (from plan generation) → curriculum slugs. */
-const WEIGHT_TO_SLUG: Record<string, string> = {
+export const WEIGHT_TO_SLUG: Record<string, string> = {
   "system-design": "system-design",
   coding: "dsa",
   dsa: "dsa",
@@ -54,7 +54,7 @@ const WEIGHT_TO_SLUG: Record<string, string> = {
 };
 
 /** Short card names for long curriculum area names. */
-const SHORT_NAME: Record<string, string> = {
+export const SHORT_NAME: Record<string, string> = {
   "system-design": "System Design",
   "ai-system-design": "AI System Design",
   "low-level-design": "Low-Level Design",
@@ -128,19 +128,19 @@ type Input = {
 
 const PRACTICED = "Practiced";
 
-function todayKey() {
+export function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** Monday of the current week, "YYYY-MM-DD". */
-function weekStartKey() {
+export function weekStartKey() {
   const d = new Date();
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function readJSON<T>(key: string): T | null {
+export function readJSON<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : null;
@@ -150,7 +150,7 @@ function readJSON<T>(key: string): T | null {
 }
 
 /** Topics a candidate at this level should cover: P0 always, P1 from mid-level, P2 for senior. */
-function priorityAllowed(experience: string) {
+export function priorityAllowed(experience: string) {
   // Works for every stored format: "6-8 years", "8+ years", "6-9", "10+", "STUDENT_FRESHER", "0 years (Fresher)".
   const e = experience.toLowerCase();
   const years = Number(e.match(/\d+/)?.[0] ?? 0);
@@ -160,7 +160,7 @@ function priorityAllowed(experience: string) {
   return (p: string) => p === "P0" || (mid && p === "P1") || (senior && p === "P2");
 }
 
-function daysSince(iso: unknown) {
+export function daysSince(iso: unknown) {
   const t = typeof iso === "string" ? Date.parse(iso) : NaN;
   if (Number.isNaN(t)) return 0;
   return Math.max(0, Math.floor((Date.now() - t) / 86_400_000));

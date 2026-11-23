@@ -112,7 +112,7 @@ const SLUG_ICONS: Record<string, string> = {
   "data-engineering": "3d/databases.webp",
   "mobile-engineering": "3d/react.webp",
 };
-function areaIcon(name: string) {
+export function areaIcon(name: string) {
   if (SLUG_ICONS[name]) return `/icons/dashboard/${SLUG_ICONS[name]}`;
   const hit = AREA_ICONS.find(([re]) => re.test(name));
   return hit ? `/icons/dashboard/${hit[1]}` : null;
@@ -372,7 +372,7 @@ export function PrepHomeOverview({
               return (
                 <article
                   key={a.name}
-                  className={`${card} group flex gap-4 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(64,38,25,0.1)]`}
+                  className={`${card} group relative flex gap-4 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(64,38,25,0.1)]`}
                 >
                   <div className={`flex size-[92px] shrink-0 items-center justify-center rounded-[22px] border ${a.border} ${a.bg}`}>
                     {areaIcon(a.slug ?? a.name) ? (
@@ -388,7 +388,16 @@ export function PrepHomeOverview({
                     )}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <h3 className={cardTitle}>{a.name}</h3>
+                    <h3 className={cardTitle}>
+                      {a.slug ? (
+                        // The whole card opens the area's topic list; the button below still jumps straight to practice.
+                        <Link href={`/prepare/${a.slug}`} className="after:absolute after:inset-0 after:rounded-3xl after:content-['']">
+                          {a.name}
+                        </Link>
+                      ) : (
+                        a.name
+                      )}
+                    </h3>
                     <p className={`line-clamp-2 ${cardSub}`}>{a.description || areaBlurb(a.name)}</p>
                     <div className="mt-1 flex items-center gap-2" title={a.remaining}>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#eceae6]">
@@ -399,7 +408,7 @@ export function PrepHomeOverview({
                     <p className="text-[11px] font-medium text-ink-muted">{a.remaining}</p>
                     <Link
                       href={a.href ?? "/practice"}
-                      className="mt-1.5 inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full bg-[#fff1ec] px-4 py-2 text-[13px] font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
+                      className="relative z-10 mt-1.5 inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full bg-[#fff1ec] px-4 py-2 text-[13px] font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
                     >
                       {a.progress > 0 ? "Continue Learning" : "Start Learning"} <ArrowRight className="size-3.5" aria-hidden="true" />
                     </Link>
