@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { PrepHomeOverview } from "@/components/dashboard/PrepHomeOverview";
+import { usePrepDashboard } from "@/hooks/usePrepDashboard";
 import { useNextStepFlow } from "@/lib/useNextStepFlow";
 import {
   evaluateCandidateProfileDomains,
@@ -838,18 +839,54 @@ export function StartPreparingWorkspace({
 
   const preparationAreas = getPreparationAreas();
 
+  // Real dashboard data: setup + generated plan + published curriculum + progress.
+  const prep = usePrepDashboard({
+    profile,
+    activePlan,
+    roleDomainKeys: evaluatedDomains.identifiedKeys,
+    ready: !isLoading,
+  });
+  const realAreas = prep.areas.map((a) => ({
+    slug: a.slug,
+    name: a.name,
+    description: a.description,
+    href: a.nextHref,
+    progress: a.progress,
+    remaining: `${a.total - a.done} of ${a.total} topics left`,
+    color: "bg-brand",
+    border: "border-[#f0e8de]",
+    bg: "bg-[#fbf7f2]",
+    iconColor: "text-brand",
+    icon: Layers,
+  }));
+  const realToday = prep.todayTasks.map((t) => ({
+    id: t.id,
+    title: t.title,
+    subtitle: t.subtitle,
+    duration: t.duration,
+    href: t.href,
+    icon: BookOpen,
+    badge: "",
+  }));
+  const useReal = realAreas.length > 0;
+
   return (
     <div className="flex w-full flex-col gap-8">
       {/* 1. Overview: welcome hero, prep areas, readiness and today's plan */}
       <PrepHomeOverview
         displayRole={displayRole}
         displayTimeline={displayTimeline}
-        daysRemaining={daysRemaining}
-        progressPercent={progressPercent}
-        completedTopics={completedActivities}
-        totalTopics={totalRoadmapTopics}
-        areas={preparationAreas}
-        today={todayActivities}
+        daysRemaining={useReal ? prep.daysRemaining : daysRemaining}
+        progressPercent={useReal ? prep.readiness : progressPercent}
+        completedTopics={useReal ? prep.doneTopics : completedActivities}
+        totalTopics={useReal ? prep.totalTopics : totalRoadmapTopics}
+        areas={useReal ? realAreas : preparationAreas}
+        today={useReal && realToday.length ? realToday : todayActivities}
+        onTaskToggle={(id, isDone) => prep.setTopicDone(id, isDone)}
+        milestone={prep.milestone}
+        loading={prep.loading}
+        doneTodayIds={useReal ? prep.doneTodayIds : undefined}
+        weekProgress={useReal ? prep.weekProgress : undefined}
         // Only the candidate's own target company; no "Google" fallback here.
         targetCompany={
           Array.isArray(targetCompanies) && targetCompanies.length > 0 ? String(targetCompanies[0]).trim() : ""

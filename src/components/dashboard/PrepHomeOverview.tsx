@@ -29,6 +29,10 @@ export type PrepArea = {
   border: string;
   iconColor: string;
   icon: IconType;
+  /** Real-data extras (curriculum area). */
+  slug?: string;
+  description?: string;
+  href?: string;
 };
 
 export type TodayActivity = {
@@ -38,6 +42,8 @@ export type TodayActivity = {
   href: string;
   icon: IconType;
   badge: string;
+  /** Topic slug when the task comes from the curriculum. */
+  id?: string;
 };
 
 type Props = {
@@ -53,6 +59,15 @@ type Props = {
   onEditSetup?: () => void;
   /** Reset now lives in the setup form; kept so callers don't break. */
   onReset?: () => void;
+  /** Called when a task is ticked or unticked (marks the topic practiced). */
+  onTaskToggle?: (id: string, done: boolean) => void;
+  /** This week's plan milestone, if the plan has one. */
+  milestone?: { weekNumber: number; totalWeeks: number; title: string } | null;
+  /** True while the curriculum is still loading. */
+  loading?: boolean;
+  /** Saved progress: today's finished task ids and per-day totals for this week. */
+  doneTodayIds?: string[];
+  weekProgress?: Record<string, { total: number; done: number }>;
 };
 
 /** Transparent illustration of the candidate at a laptop. */
@@ -83,7 +98,20 @@ const AREA_ICONS: [RegExp, string][] = [
   [/sql|database|data|python/i, "3d/databases.webp"],
   [/behavioral|leadership|communication|collaboration/i, "3d/behavioral.webp"],
 ];
+const SLUG_ICONS: Record<string, string> = {
+  "system-design": "3d/system-design.webp",
+  "ai-system-design": "3d/system-design.webp",
+  "low-level-design": "3d/javascript.webp",
+  dsa: "3d/dsa.webp",
+  "backend-engineering": "3d/nodejs.webp",
+  "frontend-engineering": "3d/react.webp",
+  "cloud-devops": "3d/cloud.webp",
+  "behavioral-leadership": "3d/behavioral.webp",
+  "data-engineering": "3d/databases.webp",
+  "mobile-engineering": "3d/react.webp",
+};
 function areaIcon(name: string) {
+  if (SLUG_ICONS[name]) return `/icons/dashboard/${SLUG_ICONS[name]}`;
   const hit = AREA_ICONS.find(([re]) => re.test(name));
   return hit ? `/icons/dashboard/${hit[1]}` : null;
 }
@@ -173,6 +201,11 @@ export function PrepHomeOverview({
   today,
   targetCompany,
   onEditSetup,
+  onTaskToggle,
+  milestone,
+  loading,
+  doneTodayIds,
+  weekProgress,
 }: Props) {
   const router = useRouter();
   // The full topic list lives on the My Plan page.
@@ -187,8 +220,19 @@ export function PrepHomeOverview({
     setDone(readDone());
   }, []);
 
+  // Saved progress (database) takes over from the browser copy once it arrives.
+  const doneTodayKey = (doneTodayIds ?? []).join(",");
+  useEffect(() => {
+    if (!doneTodayIds) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- adopt saved ticks for today
+    setDone((prev) => ({ ...prev, [todayKey]: doneTodayIds }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneTodayKey, todayKey]);
   const doneToday = done[todayKey] ?? [];
+  const taskKey = (t: TodayActivity) => t.id ?? t.title;
   const toggle = (title: string) => {
+    const nowDone = !(done[todayKey] ?? []).includes(title);
+    onTaskToggle?.(title, nowDone);
     setDone((prev) => {
       const list = prev[todayKey] ?? [];
       const nextList = list.includes(title) ? list.filter((t) => t !== title) : [...list, title];
@@ -201,16 +245,19 @@ export function PrepHomeOverview({
   };
 
   const total = today.length;
-  const finished = today.filter((t) => doneToday.includes(t.title)).length;
+  const finished = today.filter((t) => doneToday.includes(taskKey(t))).length;
   // This week: green = all of the day's tasks done, yellow = some, white = none yet.
   const week = currentWeek().map((d, i) => {
     const key = dateKey(d);
-    const count = (done[key] ?? []).length;
-    const status = total > 0 && count >= total ? "full" : count > 0 ? "partial" : "none";
+    const saved = weekProgress?.[key];
+    const isTodayKey = key === todayKey;
+    const count = isTodayKey || !saved ? (done[key] ?? []).length : saved.done;
+    const dayTotal = isTodayKey || !saved ? total : saved.total;
+    const status = dayTotal > 0 && count >= dayTotal ? "full" : count > 0 ? "partial" : "none";
     return { key, label: WEEK[i], day: d.getDate(), status, isToday: key === todayKey, isFuture: key > todayKey };
   });
   const fullDays = week.filter((d) => d.status === "full").length;
-  const nextTask = today.find((t) => !doneToday.includes(t.title)) ?? today[0];
+  const nextTask = today.find((t) => !doneToday.includes(taskKey(t))) ?? today[0];
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -307,6 +354,9 @@ export function PrepHomeOverview({
               View All Topics <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </div>
+          {loading && areas.length === 0 && (
+            <p className={`${card} p-6 text-sm text-ink-muted`}>Loading your preparation areas…</p>
+          )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {areas.map((a) => {
               const Icon = a.icon;
@@ -316,13 +366,13 @@ export function PrepHomeOverview({
                   className={`${card} group flex gap-4 p-4 transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(64,38,25,0.1)]`}
                 >
                   <div className={`flex size-[92px] shrink-0 items-center justify-center rounded-[22px] border ${a.border} ${a.bg}`}>
-                    {areaIcon(a.name) ? (
+                    {areaIcon(a.slug ?? a.name) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={areaIcon(a.name)!}
+                        src={areaIcon(a.slug ?? a.name)!}
                         alt=""
                         aria-hidden="true"
-                        className={`transition-transform group-hover:scale-110 ${areaIcon(a.name)!.endsWith(".svg") ? "size-12" : "size-[76px] drop-shadow-[0_8px_10px_rgba(64,38,25,0.15)]"}`}
+                        className={`transition-transform group-hover:scale-110 ${areaIcon(a.slug ?? a.name)!.endsWith(".svg") ? "size-12" : "size-[76px] drop-shadow-[0_8px_10px_rgba(64,38,25,0.15)]"}`}
                       />
                     ) : (
                       <Icon className={`size-11 ${a.iconColor} transition-transform group-hover:scale-110`} />
@@ -330,7 +380,7 @@ export function PrepHomeOverview({
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <h3 className={cardTitle}>{a.name}</h3>
-                    <p className={cardSub}>{areaBlurb(a.name)}</p>
+                    <p className={`line-clamp-2 ${cardSub}`}>{a.description || areaBlurb(a.name)}</p>
                     <div className="mt-1 flex items-center gap-2" title={a.remaining}>
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#eceae6]">
                         <div className="h-full rounded-full bg-emerald-500" style={{ width: `${a.progress}%` }} />
@@ -339,7 +389,7 @@ export function PrepHomeOverview({
                     </div>
                     <p className="text-[11px] font-medium text-ink-muted">{a.remaining}</p>
                     <Link
-                      href="/practice"
+                      href={a.href ?? "/practice"}
                       className="mt-1.5 inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full bg-[#fff1ec] px-4 py-2 text-[13px] font-semibold text-brand transition-colors hover:bg-brand hover:text-white"
                     >
                       {a.progress > 0 ? "Continue Learning" : "Start Learning"} <ArrowRight className="size-3.5" aria-hidden="true" />
@@ -398,7 +448,18 @@ export function PrepHomeOverview({
               {fullDays}/7 Days
             </span>
           </div>
-          <p className={`mt-1 ${cardSub}`}>Finish every task in a day to turn it green.</p>
+          <p className={`mt-1 ${cardSub}`}>
+            {milestone ? (
+              <>
+                <span className="font-semibold text-ink">
+                  Week {milestone.weekNumber} of {milestone.totalWeeks}:
+                </span>{" "}
+                {milestone.title}
+              </>
+            ) : (
+              "Finish every task in a day to turn it green."
+            )}
+          </p>
           <ol className="mt-4 grid grid-cols-7 gap-1.5">
             {week.map((d) => (
               <li key={d.key} className="flex flex-col items-center gap-1.5">
@@ -474,15 +535,15 @@ export function PrepHomeOverview({
           <p className={`mt-1 ${cardSub}`}>Small steps today keep your streak going.</p>
           <ul className="mt-2 flex flex-col">
             {today.map((t) => {
-              const checked = doneToday.includes(t.title);
+              const checked = doneToday.includes(taskKey(t));
               return (
-                <li key={t.title} className="flex items-center gap-3 py-2">
+                <li key={taskKey(t)} className="flex items-center gap-3 py-2">
                   <button
                     type="button"
                     role="checkbox"
                     aria-checked={checked}
                     aria-label={`Mark "${t.title}" done`}
-                    onClick={() => toggle(t.title)}
+                    onClick={() => toggle(taskKey(t))}
                     className={`flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors cursor-pointer ${
                       checked ? "border-emerald-500 bg-emerald-500 text-white" : "border-[#d6cfc4] hover:border-emerald-400"
                     }`}

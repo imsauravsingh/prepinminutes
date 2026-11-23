@@ -183,6 +183,28 @@ export class ApiError extends Error {
   }
 }
 
+export type DashboardTaskRow = {
+  taskId: string;
+  id: string;
+  title: string;
+  subtitle: string;
+  duration: string;
+  durationMin: number;
+  href: string;
+  domainSlug: string;
+  isCompleted: boolean;
+};
+
+export type DashboardProgressResponse = {
+  success: boolean;
+  practicedTopicSlugs: string[];
+  todayTasks: DashboardTaskRow[];
+  week: Record<string, { total: number; done: number }>;
+  completedHours: number;
+  streakDays: number;
+  readinessScore: number;
+};
+
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
@@ -576,6 +598,62 @@ export const backendApi = {
       message: string;
       hasPassword?: boolean;
     }>(res);
+  },
+
+  /**
+   * GET /api/dashboard/progress — practiced topics, today's saved tasks, this week's totals.
+   */
+  async getDashboardProgress(today: string, weekStart: string, options: RequestOptions = {}) {
+    const qs = new URLSearchParams({ today, weekStart }).toString();
+    const res = await fetch(`${API_BASE_URL}/api/dashboard/progress?${qs}`, {
+      method: "GET",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<DashboardProgressResponse>(res);
+  },
+
+  /**
+   * POST /api/dashboard/today — save today's task list (first call of the day wins).
+   */
+  async saveDashboardToday(
+    payload: {
+      date: string;
+      tasks: {
+        topicSlug: string;
+        domainSlug: string;
+        title: string;
+        subtitle?: string;
+        durationMin: number;
+        practiceHref: string;
+      }[];
+    },
+    options: RequestOptions = {},
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/dashboard/today`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<{ success: boolean; created: boolean; todayTasks: DashboardTaskRow[] }>(res);
+  },
+
+  /**
+   * POST /api/dashboard/tasks/:id/toggle — tick or untick one of today's tasks.
+   */
+  async toggleDashboardTask(
+    taskId: string,
+    payload: { done: boolean; today: string; readinessScore?: number },
+    options: RequestOptions = {},
+  ) {
+    const res = await fetch(`${API_BASE_URL}/api/dashboard/tasks/${encodeURIComponent(taskId)}/toggle`, {
+      method: "POST",
+      headers: buildHeaders(options),
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    return handleResponse<{ success: boolean; isCompleted?: boolean; streakDays?: number; completedHours?: number }>(res);
   },
 
   /**
