@@ -14,7 +14,6 @@ import {
   Info,
   Pencil,
   Play,
-  RotateCcw,
   Target,
   Trophy,
 } from "lucide-react";
@@ -52,7 +51,8 @@ type Props = {
   today: TodayActivity[];
   targetCompany: string;
   onEditSetup?: () => void;
-  onReset: () => void;
+  /** Reset now lives in the setup form; kept so callers don't break. */
+  onReset?: () => void;
 };
 
 /** Transparent illustration of the candidate at a laptop. */
@@ -173,7 +173,6 @@ export function PrepHomeOverview({
   today,
   targetCompany,
   onEditSetup,
-  onReset,
 }: Props) {
   const router = useRouter();
   // The full topic list lives on the My Plan page.
@@ -228,75 +227,72 @@ export function PrepHomeOverview({
               alt=""
               aria-hidden="true"
               onError={() => setShowCharacter(false)}
-              className="pointer-events-none absolute -bottom-3 left-0 hidden h-[calc(100%+12px)] max-h-[290px] w-auto select-none 2xl:max-h-[330px] drop-shadow-[0_18px_24px_rgba(64,38,25,0.16)] xl:block"
+              className="pointer-events-none absolute bottom-0 left-0 hidden h-[92%] max-h-[300px] w-auto select-none drop-shadow-[0_18px_24px_rgba(64,38,25,0.16)] xl:block 2xl:max-h-[370px]"
             />
           )}
-          <div
-            className={`relative grid grid-cols-1 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_300px] ${
-              showCharacter ? "xl:min-h-[270px] xl:grid-cols-[minmax(0,1fr)_270px] xl:pl-[300px] 2xl:grid-cols-[minmax(0,1fr)_300px] 2xl:pl-[320px]" : ""
-            }`}
-          >
+          <div className={`relative flex min-h-[260px] flex-col justify-center gap-5 ${showCharacter ? "xl:pl-[300px] 2xl:pl-[380px]" : ""}`}>
+            <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-[52px]">
+              Your interview prep
+              <br />
+              <span className="relative inline-block text-brand">
+                starts here
+                <svg aria-hidden="true" viewBox="0 0 200 12" className="absolute -bottom-2 left-[18%] w-[64%]" preserveAspectRatio="none">
+                  <path d="M2 9 Q100 1 198 7" stroke="currentColor" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h1>
+            <p className="text-base leading-relaxed text-ink sm:text-[17px]">
+              Structured learning, hands-on practice, and real interview experience — all in one place.
+            </p>
 
-            <div className="flex flex-col gap-4">
-              <h1 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[40px]">
-                Your interview prep
-                <br />
-                <span className="relative inline-block text-brand">
-                  starts here
-                  <svg aria-hidden="true" viewBox="0 0 200 12" className="absolute -bottom-2 left-[30%] w-[70%]" preserveAspectRatio="none">
-                    <path d="M2 9 Q100 1 198 7" stroke="currentColor" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-                  </svg>
+            {/* Countdown · Target company · Start learning · Edit setup */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <div className="flex flex-col items-center gap-1 text-center">
+                <span className="flex items-center gap-1.5 font-display text-sm font-extrabold text-ink">
+                  <CalendarDays className="size-4 text-brand" aria-hidden="true" /> Countdown
                 </span>
-              </h1>
-              <p className="max-w-md text-[15px] leading-relaxed text-ink-muted">
-                Structured learning, hands-on practice, and real interview experience — all in one place.
-              </p>
-              <Link
-                href="/preparation-plan"
-                className="inline-flex w-fit items-center gap-3 whitespace-nowrap rounded-full bg-brand py-3 pl-3 pr-6 text-[15px] font-bold text-white shadow-[0_12px_24px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5"
-              >
-                <span className="flex size-7 items-center justify-center rounded-full bg-white/20">
-                  <Play className="size-3.5 fill-white" aria-hidden="true" />
+                <span className="font-display text-2xl font-black text-ink" title={`${displayTimeline} plan`}>
+                  {daysRemaining} Days
                 </span>
-                Start Learning
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            {/* Next up: the first unfinished task of today */}
-            {nextTask && (
-              <div className={`${card} overflow-hidden`}>
-                <div className="bg-gradient-to-br from-[#eef5ff] to-[#f7faff] p-5">
-                  <h2 className={cardTitle}>
-                    <Target className="size-5 text-brand" aria-hidden="true" /> Next Up for You
-                  </h2>
-                  <div className="mt-3 flex items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display text-base font-extrabold leading-snug text-ink">{nextTask.title}</p>
-                      <p className={`mt-1 line-clamp-2 ${cardSub}`}>{nextTask.subtitle}</p>
-                    </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/icons/dashboard/3d/next-up-server.webp"
-                      alt=""
-                      aria-hidden="true"
-                      className="size-20 shrink-0 drop-shadow-[0_10px_14px_rgba(59,130,246,0.25)]"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-3 px-5 py-3.5">
-                  <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-                    <Clock className="size-4 text-ink-muted" aria-hidden="true" /> {nextTask.duration}
-                  </span>
-                  <Link
-                    href={nextTask.href}
-                    className="inline-flex items-center gap-1 rounded-full bg-[#fff1ec] px-4 py-2 text-sm font-bold text-brand shadow-2xs transition-colors hover:bg-brand hover:text-white"
-                  >
-                    Start Now <ArrowRight className="size-4" aria-hidden="true" />
-                  </Link>
-                </div>
               </div>
-            )}
+              {targetCompany && (
+                <>
+                <span aria-hidden="true" className="hidden h-12 w-px bg-[#eadfd3] sm:block" />
+                <div className="flex min-w-0 flex-col items-center gap-1 text-center">
+                  <span className="flex items-center gap-1.5 font-display text-sm font-extrabold text-ink">
+                    <Target className="size-4 text-brand" aria-hidden="true" /> Target Company
+                  </span>
+                  <span className="max-w-[180px] truncate font-display text-2xl font-black text-ink" title={targetCompany}>
+                    {targetCompany}
+                  </span>
+                </div>
+                </>
+              )}
+              <span aria-hidden="true" className="hidden h-12 w-px bg-[#eadfd3] sm:block" />
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/preparation-plan"
+                  className="inline-flex items-center gap-3 whitespace-nowrap rounded-full bg-brand py-3 pl-3 pr-7 text-base font-bold text-white shadow-[0_12px_24px_rgba(255,108,71,0.35)] transition-transform hover:-translate-y-0.5 sm:text-lg"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full bg-white/20">
+                    <Play className="size-4 fill-white" aria-hidden="true" />
+                  </span>
+                  Start Learning
+                  <ArrowRight className="size-5" aria-hidden="true" />
+                </Link>
+                {onEditSetup && (
+                  <button
+                    type="button"
+                    onClick={onEditSetup}
+                    aria-label="Edit your setup"
+                    title="Edit your setup"
+                    className="flex size-14 shrink-0 items-center justify-center rounded-full border-[1.5px] border-brand/50 bg-white text-brand transition-colors hover:bg-[#fff1ec] cursor-pointer"
+                  >
+                    <Pencil className="size-5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -311,7 +307,7 @@ export function PrepHomeOverview({
               View All Topics <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {areas.map((a) => {
               const Icon = a.icon;
               return (
@@ -355,8 +351,7 @@ export function PrepHomeOverview({
           </div>
         </section>
       </div>
-
-      {/* ---------- Right rail ---------- */}
+      {/* ---------- Right rail: readiness, this week, next up, today ---------- */}
       <aside className="flex flex-col gap-5">
         <section className={`${card} p-5`}>
           <div className="flex items-center justify-between gap-2">
@@ -393,6 +388,79 @@ export function PrepHomeOverview({
             ))}
           </div>
         </section>
+
+        <section className={`${card} p-5`}>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={cardTitle}>
+              <CalendarCheck2 className="size-5 text-brand" aria-hidden="true" /> This Week
+            </h2>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
+              {fullDays}/7 Days
+            </span>
+          </div>
+          <p className={`mt-1 ${cardSub}`}>Finish every task in a day to turn it green.</p>
+          <ol className="mt-4 grid grid-cols-7 gap-1.5">
+            {week.map((d) => (
+              <li key={d.key} className="flex flex-col items-center gap-1.5">
+                <span className={`text-[11px] ${d.isToday ? "font-bold text-ink" : "text-ink-muted"}`}>{d.label}</span>
+                <span
+                  title={
+                    d.status === "full" ? "All tasks done" : d.status === "partial" ? "Some tasks done" : d.isFuture ? "Upcoming" : "No tasks done"
+                  }
+                  className={`flex size-9 items-center justify-center rounded-xl border-2 text-xs font-bold ${
+                    d.status === "full"
+                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      : d.status === "partial"
+                        ? "border-amber-400 bg-amber-300 text-amber-900"
+                        : "border-[#e8e1d7] bg-white text-ink-muted"
+                  } ${d.isToday ? "ring-2 ring-brand/40 ring-offset-2" : ""}`}
+                >
+                  {d.status === "full" ? <Check className="size-4" strokeWidth={3} aria-hidden="true" /> : d.day}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-3 flex items-center gap-3 text-[11px] text-ink-muted">
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-500" /> Done</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-amber-300" /> Partial</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm border border-[#e8e1d7] bg-white" /> Not yet</span>
+          </div>
+        </section>
+
+        {/* Next up: the first unfinished task of today */}
+            {nextTask && (
+              <div className={`${card} overflow-hidden`}>
+                <div className="bg-gradient-to-br from-[#eef5ff] to-[#f7faff] p-5">
+                  <h2 className={cardTitle}>
+                    <Target className="size-5 text-brand" aria-hidden="true" /> Next Up for You
+                  </h2>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-base font-extrabold leading-snug text-ink">{nextTask.title}</p>
+                      <p className={`mt-1 line-clamp-2 ${cardSub}`}>{nextTask.subtitle}</p>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/icons/dashboard/3d/next-up-server.webp"
+                      alt=""
+                      aria-hidden="true"
+                      className="size-20 shrink-0 drop-shadow-[0_10px_14px_rgba(59,130,246,0.25)]"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-5 py-3.5">
+                  <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                    <Clock className="size-4 text-ink-muted" aria-hidden="true" /> {nextTask.duration}
+                  </span>
+                  <Link
+                    href={nextTask.href}
+                    className="inline-flex items-center gap-1 rounded-full bg-[#fff1ec] px-4 py-2 text-sm font-bold text-brand shadow-2xs transition-colors hover:bg-brand hover:text-white"
+                  >
+                    Start Now <ArrowRight className="size-4" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            )}
 
         <section className={`${card} p-5`}>
           <div className="flex items-center justify-between gap-2">
@@ -434,84 +502,6 @@ export function PrepHomeOverview({
             })}
           </ul>
         </section>
-
-        <section className={`${card} p-5`}>
-          <div className="flex items-center justify-between gap-2">
-            <h2 className={cardTitle}>
-              <CalendarCheck2 className="size-5 text-brand" aria-hidden="true" /> This Week
-            </h2>
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
-              {fullDays}/7 Days
-            </span>
-          </div>
-          <p className={`mt-1 ${cardSub}`}>Finish every task in a day to turn it green.</p>
-          <ol className="mt-4 grid grid-cols-7 gap-1.5">
-            {week.map((d) => (
-              <li key={d.key} className="flex flex-col items-center gap-1.5">
-                <span className={`text-[11px] ${d.isToday ? "font-bold text-ink" : "text-ink-muted"}`}>{d.label}</span>
-                <span
-                  title={
-                    d.status === "full" ? "All tasks done" : d.status === "partial" ? "Some tasks done" : d.isFuture ? "Upcoming" : "No tasks done"
-                  }
-                  className={`flex size-9 items-center justify-center rounded-xl border-2 text-xs font-bold ${
-                    d.status === "full"
-                      ? "border-emerald-500 bg-emerald-500 text-white"
-                      : d.status === "partial"
-                        ? "border-amber-400 bg-amber-300 text-amber-900"
-                        : "border-[#e8e1d7] bg-white text-ink-muted"
-                  } ${d.isToday ? "ring-2 ring-brand/40 ring-offset-2" : ""}`}
-                >
-                  {d.status === "full" ? <Check className="size-4" strokeWidth={3} aria-hidden="true" /> : d.day}
-                </span>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-3 flex items-center gap-3 text-[11px] text-ink-muted">
-            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-500" /> Done</span>
-            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-amber-300" /> Partial</span>
-            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm border border-[#e8e1d7] bg-white" /> Not yet</span>
-          </div>
-        </section>
-
-        <section className={`${card} grid grid-cols-2 divide-x divide-[#f0e8de] py-4`}>
-          <div className="flex flex-col items-center gap-1 px-3 text-center">
-            <h2 className="flex items-center gap-1.5 font-display text-[15px] font-extrabold text-ink">
-              <CalendarDays className="size-4 text-brand" aria-hidden="true" /> Countdown
-            </h2>
-            <span className="font-display text-2xl font-black text-ink">{daysRemaining} Days</span>
-            <span className="text-xs text-ink-muted">left · {displayTimeline} plan</span>
-          </div>
-          <div className="flex min-w-0 flex-col items-center gap-1 px-3 text-center">
-            <h2 className="flex items-center gap-1.5 font-display text-[15px] font-extrabold text-ink">
-              <Target className="size-4 text-brand" aria-hidden="true" /> Target Company
-            </h2>
-            <span className="mt-1 max-w-full truncate font-display text-xl font-extrabold text-ink" title={targetCompany}>
-              {targetCompany}
-            </span>
-            <span className="text-xs text-ink-muted">Prep matched to their bar</span>
-          </div>
-        </section>
-
-        <div className="grid grid-cols-2 gap-3">
-          {onEditSetup && (
-            <button
-              type="button"
-              onClick={onEditSetup}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border-[1.5px] border-brand bg-white px-3 py-3 text-sm font-bold text-brand transition-colors hover:bg-[#fff1ec] cursor-pointer"
-            >
-              <Pencil className="size-4" aria-hidden="true" /> Edit Details
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onReset}
-            className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-[#f0e8de] bg-white px-3 py-3 text-sm font-bold text-brand shadow-2xs transition-colors hover:bg-[#fff1ec] cursor-pointer ${
-              onEditSetup ? "" : "col-span-2"
-            }`}
-          >
-            <RotateCcw className="size-4" aria-hidden="true" /> Reset Profile
-          </button>
-        </div>
       </aside>
     </div>
   );

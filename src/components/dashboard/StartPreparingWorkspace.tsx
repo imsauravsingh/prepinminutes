@@ -850,7 +850,10 @@ export function StartPreparingWorkspace({
         totalTopics={totalRoadmapTopics}
         areas={preparationAreas}
         today={todayActivities}
-        targetCompany={displayCompany}
+        // Only the candidate's own target company; no "Google" fallback here.
+        targetCompany={
+          Array.isArray(targetCompanies) && targetCompanies.length > 0 ? String(targetCompanies[0]).trim() : ""
+        }
         onEditSetup={onEditSetup}
         onReset={() => setShowResetModal(true)}
       />
