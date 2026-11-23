@@ -70,9 +70,9 @@ type Props = {
   weekProgress?: Record<string, { total: number; done: number }>;
 };
 
-/** Transparent illustration of the candidate at a laptop. */
 // Bump the version whenever the artwork changes so browsers fetch the new file.
-const CHARACTER_SRC = "/images/dashboard/prep-hero-character.webp?v=3";
+/** Neutral study-desk illustration, the same for every candidate. */
+const HERO_SRC = "/images/dashboard/prep-hero-desk.webp?v=1";
 const DONE_KEY = "pim_today_done"; // { [yyyy-mm-dd]: string[] } of finished task titles
 
 function dateKey(d: Date) {
@@ -270,7 +270,7 @@ export function PrepHomeOverview({
             // Hidden if the artwork is missing, so the hero never shows a broken image.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={CHARACTER_SRC}
+              src={HERO_SRC}
               alt=""
               aria-hidden="true"
               onError={() => setShowCharacter(false)}
