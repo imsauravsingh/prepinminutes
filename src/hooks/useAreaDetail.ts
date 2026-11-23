@@ -17,8 +17,14 @@ import {
 } from "@/hooks/usePrepDashboard";
 
 /**
- * Data for one preparation area page (/prepare/[area]):
- * the area's curriculum grouped by category, with this candidate's status per topic.
+ * Data for one preparation area page (/prepare/[area]): a time-budgeted plan.
+ *
+ * The core PrepInMinutes promise: tell the candidate exactly which topics to do
+ * in the time they have left. Every topic in the area is ranked for this
+ * candidate, then split into three buckets by their remaining study time:
+ *   - Must do         : fits the time this area gets before the interview
+ *   - If time allows  : next in line, worth doing if they get ahead
+ *   - Skip for now    : lower priority for this timeline (shown, not hidden)
  *
  * Sources (all existing, nothing new is stored):
  * - profile + active plan       → experience, plan weight, this week's focus, days left
@@ -28,6 +34,7 @@ import {
  */
 
 export type TopicStatus = "done" | "in-progress" | "not-started";
+export type Bucket = "must" | "maybe" | "skip";
 
 export type AreaTopic = {
   slug: string;
@@ -36,10 +43,7 @@ export type AreaTopic = {
   priority: string;
   difficulty: string;
   href: string;
-  /** Part of this candidate's must-do set (priority fits their experience). */
-  mustDo: boolean;
-  /** Stretch topic, shown in the Advanced section. */
-  advanced: boolean;
+  bucket: Bucket;
   status: TopicStatus;
   /** Readiness from practice, 0-100, when known. */
   score: number | null;
@@ -59,28 +63,41 @@ export type AreaDetail = {
   weightPct: number;
   isWeekFocus: boolean;
   categories: AreaCategory[];
-  mustDoTotal: number;
-  mustDoDone: number;
-  allTotal: number;
-  allDone: number;
-  /** Minutes of must-do work left. */
-  minutesLeft: number;
+  counts: Record<Bucket, number>;
+  mustDone: number;
+  /** Minutes of Must do work left / total Must do minutes. */
+  mustMinutesLeft: number;
+  mustMinutesTotal: number;
+  /** Study minutes this area gets before the interview; null when the plan has no timeline or hours. */
+  minutesAvailable: number | null;
   daysRemaining: number | null;
-  /** Must-do work left needs more time than the candidate's study hours give this area before the interview. */
-  behind: boolean;
   next: AreaTopic | null;
-  /** Lowest-readiness practiced topic, if any score is below 70. */
-  weakSpot: AreaTopic | null;
-  advancedCount: number;
-  advancedUnlocked: boolean;
+  /** Context for "Why these topics?". */
+  why: { level: string; role: string; company: string; hours: number | null };
 };
 
-const ADVANCED_UNLOCK_PCT = 80;
+/** "If time allows" covers roughly this much extra time beyond the budget. */
+const MAYBE_EXTRA = 0.75;
+const PRIORITY_RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2 };
 
 function yearsOf(experience: string) {
   const e = experience.toLowerCase();
   if (e.includes("fresher") || e.includes("student")) return 0;
   return Number(e.match(/\d+/)?.[0] ?? 0);
+}
+
+function levelLabel(years: number) {
+  if (years === 0) return "fresher";
+  if (years < 3) return "junior engineer";
+  if (years < 6) return "mid-level engineer";
+  return "senior engineer";
+}
+
+/** Difficulty that's a poor fit for this level gets pushed down the ranking. */
+function difficultyPenalty(years: number, difficulty: string) {
+  if (years < 3) return difficulty === "ADVANCED" || difficulty === "EXPERT" ? 1 : 0;
+  if (years < 6) return difficulty === "EXPERT" ? 1 : 0;
+  return 0;
 }
 
 export function useAreaDetail(slug: string) {
@@ -146,40 +163,7 @@ export function useAreaDetail(slug: string) {
     const years = yearsOf(experience);
     const overlays = typeof window === "undefined" ? {} : getStoredCandidateOverlays();
 
-    const categories: AreaCategory[] = hierarchy.categories
-      .slice()
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map((c) => ({
-        slug: c.slug,
-        name: c.name,
-        topics: c.topics.map((t) => {
-          const priority = String(t.priority);
-          const mustDo = allowed(priority);
-          const ov = overlays[t.slug];
-          const done = practiced.has(t.slug) || ov?.status === "Practiced";
-          const score = typeof ov?.readiness === "number" && ov.readiness > 0 ? Math.round(ov.readiness) : null;
-          return {
-            slug: t.slug,
-            title: t.title,
-            durationMin: Number(t.durationMin) || 15,
-            priority,
-            difficulty: String(t.difficulty ?? ""),
-            href: t.practiceHref || getPracticeSessionUrl(slug, t.slug),
-            mustDo,
-            advanced: !mustDo && (priority === "P2" || t.difficulty === "EXPERT"),
-            status: done ? "done" : ov?.status === "In Progress" || ov?.status === "Needs Practice" ? "in-progress" : "not-started",
-            score,
-          } satisfies AreaTopic;
-        }),
-      }))
-      .filter((c) => c.topics.length > 0);
-
-    const all = categories.flatMap((c) => c.topics);
-    const must = all.filter((t) => t.mustDo);
-    const mustDoDone = must.filter((t) => t.status === "done").length;
-    const pct = must.length ? (mustDoDone / must.length) * 100 : 0;
-
-    // Plan weight and this week's focus.
+    // 1. Time this area gets before the interview: weekly hours × days left × plan share.
     const rawWeights = (plan?.domainWeights ?? {}) as Record<string, number>;
     let weight = 0;
     for (const [k, v] of Object.entries(rawWeights)) {
@@ -187,23 +171,107 @@ export function useAreaDetail(slug: string) {
     }
     const totalWeeks = Number(plan?.timelineWeeks ?? profile?.timelineWeeks ?? 0) || 0;
     const elapsed = daysSince(plan?.createdAt);
+    const daysRemaining = totalWeeks ? Math.max(0, totalWeeks * 7 - elapsed) : null;
+    const weeklyHours = Number(profile?.weeklyGoalHours ?? 0) || 0;
+    const share = weight > 0 ? Math.min(1, weight) : 1;
+    const minutesAvailable =
+      daysRemaining !== null && weeklyHours > 0 ? Math.round((weeklyHours * 60 * share * daysRemaining) / 7) : null;
+
+    // 2. Every topic with this candidate's status, in curriculum order.
+    type Raw = Omit<AreaTopic, "bucket"> & { category: string; order: number; eligible: boolean; penalty: number };
+    const cats = hierarchy.categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    let order = 0;
+    const raw: Raw[] = cats.flatMap((c) =>
+      c.topics.map((t) => {
+        const priority = String(t.priority);
+        const ov = overlays[t.slug];
+        const done = practiced.has(t.slug) || ov?.status === "Practiced";
+        return {
+          slug: t.slug,
+          title: t.title,
+          durationMin: Number(t.durationMin) || 15,
+          priority,
+          difficulty: String(t.difficulty ?? ""),
+          href: t.practiceHref || getPracticeSessionUrl(slug, t.slug),
+          status: (done
+            ? "done"
+            : ov?.status === "In Progress" || ov?.status === "Needs Practice"
+              ? "in-progress"
+              : "not-started") as TopicStatus,
+          score: typeof ov?.readiness === "number" && ov.readiness > 0 ? Math.round(ov.readiness) : null,
+          category: c.slug,
+          order: order++,
+          eligible: allowed(priority),
+          penalty: difficultyPenalty(years, String(t.difficulty ?? "")),
+        };
+      }),
+    );
+
+    // 3. Rank: priority that fits their level first, then difficulty fit, then curriculum order
+    //    (so foundations come before what builds on them).
+    const ranked = raw
+      .slice()
+      .sort(
+        (a, b) =>
+          Number(!a.eligible) - Number(!b.eligible) ||
+          (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3) ||
+          a.penalty - b.penalty ||
+          a.order - b.order,
+      );
+
+    // 4. Fill the buckets. Finished topics always count as Must do (time already spent);
+    //    the rest fill the remaining budget in rank order.
+    const bucket = new Map<string, Bucket>();
+    let left = minutesAvailable ?? Infinity;
+    let maybeLeft = minutesAvailable !== null ? minutesAvailable * MAYBE_EXTRA : 0;
+    for (const t of ranked) {
+      if (t.status === "done") {
+        bucket.set(t.slug, "must");
+        continue;
+      }
+      if (minutesAvailable === null) {
+        // No timeline or hours yet: fall back to what fits their level.
+        bucket.set(t.slug, t.eligible ? "must" : "skip");
+      } else if (t.eligible && t.durationMin <= left) {
+        bucket.set(t.slug, "must");
+        left -= t.durationMin;
+      } else if (t.durationMin <= maybeLeft) {
+        bucket.set(t.slug, "maybe");
+        maybeLeft -= t.durationMin;
+      } else {
+        bucket.set(t.slug, "skip");
+      }
+    }
+
+    const all: AreaTopic[] = raw.map((r) => ({
+      slug: r.slug,
+      title: r.title,
+      durationMin: r.durationMin,
+      priority: r.priority,
+      difficulty: r.difficulty,
+      href: r.href,
+      status: r.status,
+      score: r.score,
+      bucket: bucket.get(r.slug) ?? "skip",
+    }));
+    const bySlug = new Map(all.map((t) => [t.slug, t]));
+    const categories: AreaCategory[] = cats
+      .map((c) => ({ slug: c.slug, name: c.name, topics: c.topics.map((t) => bySlug.get(t.slug)!).filter(Boolean) }))
+      .filter((c) => c.topics.length > 0);
+
+    const must = all.filter((t) => t.bucket === "must");
+    const mustLeft = must.filter((t) => t.status !== "done");
+    // Next: an unfinished Must do topic in rank order (one in progress first).
+    const rankedMust = ranked.map((r) => bySlug.get(r.slug)!).filter((t) => t.bucket === "must" && t.status !== "done");
+    const next = rankedMust.find((t) => t.status === "in-progress") ?? rankedMust[0] ?? null;
+
+    // This week's focus (from the plan's weekly milestones).
     const milestones = (Array.isArray(plan?.weeklyMilestones) ? plan.weeklyMilestones : []) as Record<string, unknown>[];
     const m = milestones[Math.min(Math.floor(elapsed / 7), Math.max(0, milestones.length - 1))];
     const focus = String(m?.focusDomain ?? "").toLowerCase();
     const isWeekFocus = Boolean(focus) && ((WEIGHT_TO_SLUG[focus] ?? KEY_TO_SLUG[focus]) === slug || focus === slug);
 
-    const remaining = must.filter((t) => t.status !== "done");
-    const daysRemaining = totalWeeks ? Math.max(0, totalWeeks * 7 - elapsed) : null;
-    // Time this area gets before the interview: weekly study hours × its plan share (whole time if unweighted).
-    const weeklyHours = Number(profile?.weeklyGoalHours ?? 0) || 0;
-    const share = weight > 0 ? Math.min(1, weight) : 1;
-    const minutesAvailable = daysRemaining !== null ? (weeklyHours * 60 * share * daysRemaining) / 7 : null;
-    const minutesLeft = remaining.reduce((s, t) => s + t.durationMin, 0);
-    const behind = minutesAvailable !== null && weeklyHours > 0 && minutesLeft > minutesAvailable;
-    const next = must.find((t) => t.status === "in-progress") ?? remaining[0] ?? all.find((t) => t.status !== "done") ?? null;
-    const weak = all
-      .filter((t) => t.score !== null && t.score < 70)
-      .sort((a, b) => (a.score ?? 0) - (b.score ?? 0))[0] ?? null;
+    const companies = (Array.isArray(profile?.targetCompanies) ? profile.targetCompanies : []) as unknown[];
 
     return {
       slug,
@@ -212,17 +280,23 @@ export function useAreaDetail(slug: string) {
       weightPct: Math.round(weight * 100),
       isWeekFocus,
       categories,
-      mustDoTotal: must.length,
-      mustDoDone,
-      allTotal: all.length,
-      allDone: all.filter((t) => t.status === "done").length,
-      minutesLeft,
+      counts: {
+        must: must.length,
+        maybe: all.filter((t) => t.bucket === "maybe").length,
+        skip: all.filter((t) => t.bucket === "skip").length,
+      },
+      mustDone: must.length - mustLeft.length,
+      mustMinutesLeft: mustLeft.reduce((s, t) => s + t.durationMin, 0),
+      mustMinutesTotal: must.reduce((s, t) => s + t.durationMin, 0),
+      minutesAvailable,
       daysRemaining,
-      behind,
       next,
-      weakSpot: weak,
-      advancedCount: all.filter((t) => t.advanced).length,
-      advancedUnlocked: pct >= ADVANCED_UNLOCK_PCT || years >= 8,
+      why: {
+        level: levelLabel(years),
+        role: String(profile?.targetRole ?? plan?.targetRole ?? ""),
+        company: companies.length ? String(companies[0]) : "",
+        hours: minutesAvailable !== null ? Math.round(minutesAvailable / 60) : null,
+      },
     };
   }, [hierarchy, profile, plan, practiced, slug]);
 
