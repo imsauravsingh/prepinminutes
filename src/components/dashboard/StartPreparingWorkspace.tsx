@@ -41,6 +41,7 @@ export function StartPreparingWorkspace({
   const [isLoading, setIsLoading] = useState(true);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -362,7 +363,7 @@ export function StartPreparingWorkspace({
   const displayCompany =
     Array.isArray(targetCompanies) && targetCompanies.length > 0
       ? targetCompanies[0]
-      : "Google";
+      : ""; // no made-up default company
 
   // Dynamic Candidate Domains Evaluation to derive exact curriculum topics
   const evaluatedDomains = useMemo(() => {
@@ -868,25 +869,57 @@ export function StartPreparingWorkspace({
     icon: BookOpen,
     badge: "",
   }));
-  const useReal = realAreas.length > 0;
 
   return (
     <div className="flex w-full flex-col gap-8">
       {/* 1. Overview: welcome hero, prep areas, readiness and today's plan */}
+      {/* No generated plan yet (e.g. generation failed during setup): offer to create it. */}
+      {!isLoading && !activePlan && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-[#fff6f2] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-base font-extrabold text-ink">Your weekly plan isn&apos;t ready yet</p>
+            <p className="text-[13px] text-ink-muted">
+              Your topics below come from your setup. Generate your plan to get a week-by-week focus.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={isGeneratingPlan}
+            onClick={async () => {
+              setIsGeneratingPlan(true);
+              try {
+                await backendApi.generatePlan({});
+                const res = await backendApi.getProfile();
+                if (res.activePlan) setActivePlan(res.activePlan);
+              } catch (err) {
+                console.warn("Plan generation failed:", err);
+              } finally {
+                setIsGeneratingPlan(false);
+              }
+            }}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60 cursor-pointer"
+          >
+            {isGeneratingPlan ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
+            {isGeneratingPlan ? "Generating…" : "Generate my plan"}
+          </button>
+        </div>
+      )}
+
       <PrepHomeOverview
         displayRole={displayRole}
         displayTimeline={displayTimeline}
-        daysRemaining={useReal ? prep.daysRemaining : daysRemaining}
-        progressPercent={useReal ? prep.readiness : progressPercent}
-        completedTopics={useReal ? prep.doneTopics : completedActivities}
-        totalTopics={useReal ? prep.totalTopics : totalRoadmapTopics}
-        areas={useReal ? realAreas : preparationAreas}
-        today={useReal && realToday.length ? realToday : todayActivities}
+        // Always the candidate's own data; no hard-coded sample cards.
+        daysRemaining={prep.daysRemaining}
+        progressPercent={prep.readiness}
+        completedTopics={prep.doneTopics}
+        totalTopics={prep.totalTopics}
+        areas={realAreas}
+        today={realToday}
         onTaskToggle={(id, isDone) => prep.setTopicDone(id, isDone)}
         milestone={prep.milestone}
         loading={prep.loading}
-        doneTodayIds={useReal ? prep.doneTodayIds : undefined}
-        weekProgress={useReal ? prep.weekProgress : undefined}
+        doneTodayIds={prep.doneTodayIds}
+        weekProgress={prep.weekProgress}
         // Only the candidate's own target company; no "Google" fallback here.
         targetCompany={
           Array.isArray(targetCompanies) && targetCompanies.length > 0 ? String(targetCompanies[0]).trim() : ""

@@ -151,9 +151,12 @@ function readJSON<T>(key: string): T | null {
 
 /** Topics a candidate at this level should cover: P0 always, P1 from mid-level, P2 for senior. */
 function priorityAllowed(experience: string) {
+  // Works for every stored format: "6-8 years", "8+ years", "6-9", "10+", "STUDENT_FRESHER", "0 years (Fresher)".
   const e = experience.toLowerCase();
-  const senior = e.includes("6-8") || e.includes("8+");
-  const mid = senior || e.includes("4-5") || e.includes("3-5");
+  const years = Number(e.match(/\d+/)?.[0] ?? 0);
+  const fresher = e.includes("fresher") || e.includes("student");
+  const senior = !fresher && years >= 6;
+  const mid = !fresher && years >= 3;
   return (p: string) => p === "P0" || (mid && p === "P1") || (senior && p === "P2");
 }
 

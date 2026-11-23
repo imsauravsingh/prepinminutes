@@ -354,8 +354,12 @@ export function PrepHomeOverview({
               View All Topics <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </div>
-          {loading && areas.length === 0 && (
-            <p className={`${card} p-6 text-sm text-ink-muted`}>Loading your preparation areas…</p>
+          {areas.length === 0 && (
+            <p className={`${card} p-6 text-sm text-ink-muted`}>
+              {loading
+                ? "Loading your preparation areas…"
+                : "We couldn't load your topics right now. Please refresh the page in a moment."}
+            </p>
           )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {areas.map((a) => {

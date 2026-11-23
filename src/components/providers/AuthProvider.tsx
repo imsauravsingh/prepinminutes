@@ -20,6 +20,7 @@ import {
   setClientAuthSession,
   clearClientAuthSession,
   getClientAuthToken,
+  claimBrowserDataFor,
 } from "@/lib/auth-cookie";
 
 export interface AppAuthContextValue {
@@ -119,6 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthenticatedCandidateUser | null>(null);
+  // Wipe another candidate's leftover browser data before any page reads it.
+  // Runs during render (idempotent) so it happens before child components initialise from storage.
+  if (user?.id) claimBrowserDataFor(user.id);
 
   const [activeProvider, setActiveProvider] = useState<
     "google" | "clerk" | "both"

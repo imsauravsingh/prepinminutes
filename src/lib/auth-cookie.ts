@@ -40,6 +40,53 @@ export function setClientAuthSession(token: string, user?: unknown): void {
   }
 }
 
+/** Browser key recording which candidate the stored dashboard data belongs to. */
+const DATA_OWNER_KEY = "pim_data_owner";
+
+/** Shared, non-personal caches that are safe to keep across candidates. */
+function isSharedKey(key: string) {
+  return key.startsWith("pim_curriculum_cache");
+}
+
+/**
+ * Removes every candidate-specific value this app keeps in the browser
+ * (profile cache, ticks, topic progress, setup flags, drafts), keeping only
+ * the shared curriculum cache. Auth keys are left to the caller.
+ */
+export function clearCandidateBrowserData(): void {
+  if (typeof window === "undefined") return;
+  for (const store of [window.localStorage, window.sessionStorage]) {
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        if (!k) continue;
+        if (k === AUTH_TOKEN_STORAGE_KEY || k === AUTH_USER_STORAGE_KEY) continue;
+        if ((k.startsWith("pim_") || k.startsWith("prep_")) && !isSharedKey(k)) keys.push(k);
+      }
+      keys.forEach((k) => store.removeItem(k));
+    } catch {
+      // Storage may be unavailable (private mode); nothing to clear.
+    }
+  }
+}
+
+/**
+ * Call when a candidate is known. If the browser holds another candidate's
+ * data (e.g. they never signed out), wipe it before anything reads it.
+ */
+export function claimBrowserDataFor(userId: string): void {
+  if (typeof window === "undefined" || !userId) return;
+  try {
+    const owner = window.localStorage.getItem(DATA_OWNER_KEY);
+    if (owner === userId) return;
+    clearCandidateBrowserData();
+    window.localStorage.setItem(DATA_OWNER_KEY, userId);
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
 /**
  * Clears the authenticated session token from both localStorage and cookies.
  */
@@ -49,6 +96,8 @@ export function clearClientAuthSession(): void {
   try {
     localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    // Candidate data must never carry over to the next person on this browser.
+    clearCandidateBrowserData();
 
     const isHttps = window.location.protocol === "https:";
     const secureFlag = isHttps ? "; Secure" : "";
