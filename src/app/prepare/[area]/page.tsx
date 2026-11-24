@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AuthGate } from "@/components/dashboard/AuthGate";
-import { Sidebar } from "@/components/dashboard/Sidebar";
+import { StudyRoom } from "@/components/dashboard/room/StudyRoom";
 import { AreaDetailWorkspace } from "@/components/prepare/AreaDetailWorkspace";
 
 export const metadata: Metadata = {
@@ -8,16 +8,17 @@ export const metadata: Metadata = {
   description: "Every topic in this preparation area, with your progress and what to do next.",
 };
 
+/**
+ * Area page (System Design, DSA, …): the main menu sits in the top bar (as on the
+ * dashboard, but not sticky) so the left column can hold this area's own navigation.
+ */
 export default async function PrepareAreaPage({ params }: { params: Promise<{ area: string }> }) {
   const { area } = await params;
   return (
     <AuthGate>
-      <div className="flex flex-1 flex-col bg-[#fbf9f4] lg:flex-row lg:items-start min-h-screen">
-        <Sidebar />
-        <main className="flex flex-1 flex-col px-4 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10 min-w-0">
-          <AreaDetailWorkspace slug={area} />
-        </main>
-      </div>
+      <StudyRoom phase="prepare" stickyDock={false}>
+        <AreaDetailWorkspace slug={area} />
+      </StudyRoom>
     </AuthGate>
   );
 }

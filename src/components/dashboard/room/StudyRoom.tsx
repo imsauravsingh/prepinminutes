@@ -28,7 +28,7 @@ type NavItem = { icon: LucideIcon; label: string; short: string; href: string; m
 
 /** Learning menus, shown once setup is done (Start Preparing phase). */
 export const PREP_NAV: NavItem[] = [
-  { icon: Home, label: "Today", short: "Today", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") || p.startsWith("/prepare/") },
+  { icon: Home, label: "My Focus", short: "Focus", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") || p.startsWith("/prepare/") },
   { icon: CalendarRange, label: "My Plan", short: "Plan", href: "/preparation-plan", match: (p) => p.startsWith("/preparation-plan") },
   {
     icon: Target,
@@ -133,7 +133,16 @@ export function AccountMenu({ phase, showDashboardLink = false }: { phase: RoomP
  * - prepare: all learning menus, as a top dock on desktop and a thumb-friendly
  *   tab bar on phones.
  */
-export function StudyRoom({ phase, children }: { phase: RoomPhase; children: ReactNode }) {
+export function StudyRoom({
+  phase,
+  children,
+  stickyDock = true,
+}: {
+  phase: RoomPhase;
+  children: ReactNode;
+  /** False on inner pages (e.g. an area page): the bar scrolls away with the page. */
+  stickyDock?: boolean;
+}) {
   const pathname = usePathname() ?? "/dashboard";
 
   // Like the home page: the dock's glass bar only appears once the page scrolls.
@@ -147,8 +156,8 @@ export function StudyRoom({ phase, children }: { phase: RoomPhase; children: Rea
 
   return (
     <div className={styles.room}>
-      <header className={styles.dockWrap}>
-        <div className={`${styles.dock} ${scrolled ? "" : styles.dockBare}`}>
+      <header className={`${styles.dockWrap} ${stickyDock ? "" : styles.dockWrapStatic}`}>
+        <div className={`${styles.dock} ${scrolled || !stickyDock ? "" : styles.dockBare}`}>
           <Link href="/" className={styles.brand} aria-label="PrepInMinutes home">
             <BrandMark className="size-8" />
             <span className={styles.brandName}>PrepInMinutes</span>

@@ -403,6 +403,11 @@
   box-shadow: 0 6px 14px rgba(255, 108, 71, 0.3);
 }
 
+/* Inner pages: the top bar scrolls with the page instead of sticking. */
+.dockWrapStatic {
+  position: relative;
+}
+
 /* ---------- Side layout (every page except the dashboard and home) ---------- */
 
 /* Top bar for brand and account scrolls away with the page (only the dashboard
