@@ -20,6 +20,8 @@ export function AreaNav({
   onPickCategory,
   currentTopic,
   overviewHref,
+  variant = "rail",
+  onNavigate,
 }: {
   detail: AreaDetail;
   onPickCategory: (slug: string) => void;
@@ -27,6 +29,10 @@ export function AreaNav({
   currentTopic?: string;
   /** When set, Overview is a link to the area page instead of "scroll to top". */
   overviewHref?: string;
+  /** "rail" = sticky left column on large screens; "drawer" = inside the mobile menu. */
+  variant?: "rail" | "drawer";
+  /** Called after any navigation (closes the mobile menu). */
+  onNavigate?: () => void;
 }) {
   // While learning a topic, its category starts open.
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
@@ -37,20 +43,32 @@ export function AreaNav({
     "mb-1 flex items-center gap-2.5 rounded-full px-4 py-2.5 text-[14px] font-semibold transition-colors";
 
   return (
-    <aside className="hidden lg:block">
+    <aside className={variant === "rail" ? "hidden lg:block" : ""}>
       <nav
         aria-label={`${detail.name} sections`}
-        className="sticky top-4 flex max-h-[calc(100vh-2rem)] flex-col gap-1 overflow-y-auto rounded-[26px] border border-white/70 bg-white/55 p-3 shadow-[0_12px_30px_rgba(64,38,25,0.12)] backdrop-blur-xl"
+        className={
+          variant === "rail"
+            ? "sticky top-4 flex max-h-[calc(100vh-2rem)] flex-col gap-1 overflow-y-auto rounded-[26px] border border-white/70 bg-white/55 p-3 shadow-[0_12px_30px_rgba(64,38,25,0.12)] backdrop-blur-xl"
+            : "flex flex-col gap-1"
+        }
       >
         {overviewHref ? (
-          <Link href={overviewHref} className={`${overviewCls} text-ink hover:bg-white/80`}>
+          // Same "Overview" item on the area page and on topic pages; here it goes back to the area page.
+          <Link
+            href={overviewHref}
+            onClick={onNavigate}
+            className={`${overviewCls} bg-brand text-white shadow-[0_6px_14px_rgba(255,108,71,0.32)]`}
+          >
             <Home className="size-4" aria-hidden="true" />
-            {detail.name} overview
+            Overview
           </Link>
         ) : (
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              onNavigate?.();
+            }}
             aria-current="page"
             className={`${overviewCls} bg-brand text-white shadow-[0_6px_14px_rgba(255,108,71,0.32)]`}
           >
@@ -69,7 +87,10 @@ export function AreaNav({
                 <div className="flex items-center rounded-xl hover:bg-white/80">
                   <button
                     type="button"
-                    onClick={() => onPickCategory(c.slug)}
+                    onClick={() => {
+                      onPickCategory(c.slug);
+                      onNavigate?.();
+                    }}
                     title={c.name}
                     className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-2 text-left"
                   >
@@ -103,6 +124,7 @@ export function AreaNav({
                       <li key={t.slug}>
                         <Link
                           href={t.href}
+                          onClick={onNavigate}
                           aria-current={t.slug === currentTopic ? "page" : undefined}
                           className={`flex items-start gap-2 rounded-lg px-1.5 py-1.5 text-[12.5px] leading-snug hover:bg-white/80 hover:text-ink ${
                             t.slug === currentTopic ? "bg-[#fff1ea] font-semibold text-brand" : "text-ink-muted"

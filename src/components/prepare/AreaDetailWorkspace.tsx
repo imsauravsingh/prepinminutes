@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AreaNav } from "@/components/prepare/AreaNav";
+import { AreaNavMobile } from "@/components/prepare/AreaNavMobile";
 import { categoryIcon } from "@/components/prepare/categoryIcon";
 import Link from "next/link";
 import {
@@ -162,6 +163,9 @@ export function AreaDetailWorkspace({ slug }: { slug: string }) {
       <AreaNav detail={detail} onPickCategory={goToCategory} />
 
       <div className="flex min-w-0 flex-col gap-5">
+        {/* Phones and tablets: the left navigation opens from this menu button. */}
+        <AreaNavMobile detail={detail} onPickCategory={goToCategory} className="lg:hidden" />
+
         {/* Hero */}
         <section className="relative overflow-hidden rounded-3xl border border-[#f6e2d6] bg-gradient-to-br from-[#fff1e8] via-[#fffaf6] to-[#fdf2ea] p-5 sm:p-7">
           <div className="relative z-10 flex max-w-[620px] items-center gap-5">

@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BrandMark } from "@/components/BrandMark";
 import { AccountMenu, PREP_NAV } from "@/components/dashboard/room/StudyRoom";
 import styles from "@/components/dashboard/room/StudyRoom.module.css";
 import { AreaNav } from "@/components/prepare/AreaNav";
+import { AreaNavMobile } from "@/components/prepare/AreaNavMobile";
 import { useAreaDetail } from "@/hooks/useAreaDetail";
 import { HIERARCHY_CACHE_PREFIX } from "@/hooks/useCurriculum";
 import { backendApi } from "@/lib/api-client";
@@ -18,22 +19,35 @@ import { backendApi } from "@/lib/api-client";
  * - while learning a topic (practice session pages): the area's own navigation
  *   on the left (Overview + categories + topics). The area comes from ?domain=,
  *   or is looked up from ?topic= when the link doesn't say;
+ *   On smaller screens that navigation opens from a menu button before the logo;
  * - phones: the bottom tab bar.
  *
  * Pages render it as the first child of their row (`<Sidebar /><main>…`).
  * globals.css offsets the sibling content for the top bar and the phone tab bar.
  */
 export function Sidebar() {
+  return (
+    <Suspense fallback={<Chrome />}>
+      <ChromeForPage />
+    </Suspense>
+  );
+}
+
+/** Top bar, optional left column and phone tab bar. */
+function Chrome({ menu, rail }: { menu?: ReactNode; rail?: ReactNode }) {
   const pathname = usePathname() ?? "";
 
   return (
     <>
       <header className={`${styles.dockWrap} ${styles.dockWrapFixed}`}>
         <div className={styles.dock}>
-          <Link href="/" className={styles.brand} aria-label="PrepInMinutes home">
-            <BrandMark className="size-8" />
-            <span className={styles.brandName}>PrepInMinutes</span>
-          </Link>
+          <div className="flex min-w-0 items-center gap-2">
+            {menu}
+            <Link href="/" className={styles.brand} aria-label="PrepInMinutes home">
+              <BrandMark className="size-8" />
+              <span className={styles.brandName}>PrepInMinutes</span>
+            </Link>
+          </div>
           <nav aria-label="Main menu" className={styles.nav}>
             {PREP_NAV.map((item) => {
               const active = item.match(pathname);
@@ -56,9 +70,7 @@ export function Sidebar() {
 
       {/* Left column: only while learning a topic. Empty (zero width) everywhere else. */}
       <aside data-app-rail="" className="sticky top-4 shrink-0 self-start">
-        <Suspense fallback={null}>
-          <TopicAreaRail />
-        </Suspense>
+        {rail}
       </aside>
 
       <nav aria-label="Main menu" className={styles.tabbar}>
@@ -103,8 +115,8 @@ function areaFromCache(topic: string): string | null {
   return null;
 }
 
-/** On a practice session page, the area navigation for the topic being learned. */
-function TopicAreaRail() {
+/** Chrome for the current page; on a practice session page, with the topic's area navigation. */
+function ChromeForPage() {
   const pathname = usePathname() ?? "";
   const params = useSearchParams();
   const onSession = pathname.startsWith("/practice/session");
@@ -138,22 +150,29 @@ function TopicAreaRail() {
   }, [onSession, fromLink, topic, workspace, lookupKey]);
 
   const domain = fromLink || (lookedUp?.key === lookupKey ? lookedUp.area : "");
-  if (!domain) return null;
-  return <TopicAreaNav domain={domain} topic={topic} />;
+  if (!domain) return <Chrome />;
+  return <TopicChrome domain={domain} topic={topic} />;
 }
 
-function TopicAreaNav({ domain, topic }: { domain: string; topic: string }) {
+function TopicChrome({ domain, topic }: { domain: string; topic: string }) {
   const router = useRouter();
   const { detail } = useAreaDetail(domain);
-  if (!detail) return null;
+  if (!detail) return <Chrome />;
+  const nav = {
+    detail,
+    currentTopic: topic,
+    overviewHref: `/prepare/${domain}`,
+    onPickCategory: (cat: string) => router.push(`/prepare/${domain}#cat-${cat}`),
+  };
   return (
-    <div className="ml-5 mt-[92px] hidden w-[260px] xl:block">
-      <AreaNav
-        detail={detail}
-        currentTopic={topic}
-        overviewHref={`/prepare/${domain}`}
-        onPickCategory={(cat) => router.push(`/prepare/${domain}#cat-${cat}`)}
-      />
-    </div>
+    <Chrome
+      // Below 1280px the left column is hidden, so the menu button opens it instead.
+      menu={<AreaNavMobile {...nav} compact className="xl:hidden" />}
+      rail={
+        <div className="ml-5 mt-[92px] hidden w-[260px] xl:block">
+          <AreaNav {...nav} />
+        </div>
+      }
+    />
   );
 }
