@@ -6,7 +6,7 @@ import { Building2, Check, Clock, Mic, X } from "lucide-react";
 import type { PlanWeek } from "@/hooks/usePlanOverview";
 
 /**
- * Side panel with one week of the plan: its goal, progress, a day-by-day split
+ * Centred popup with one week of the plan: its goal, progress, a day-by-day split
  * and every topic with its area, time, company tag and Start/Review.
  */
 export function WeekDrawer({ week: w, color, onClose }: { week: PlanWeek; color: (slug: string) => string; onClose: () => void }) {
@@ -42,9 +42,14 @@ export function WeekDrawer({ week: w, color, onClose }: { week: PlanWeek; color:
           : "Buffer time to catch up on anything left from earlier weeks.";
 
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-labelledby="week-drawer-title">
-      <button type="button" aria-label="Close week details" onClick={onClose} className="absolute inset-0 bg-[#1e1c1a]/30 backdrop-blur-[2px]" />
-      <div className="relative flex h-full w-full max-w-[480px] flex-col bg-[#fbf9f4] shadow-[-20px_0_40px_rgba(30,28,26,0.18)]">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="week-drawer-title"
+    >
+      <button type="button" aria-label="Close week details" onClick={onClose} className="absolute inset-0 bg-[#1e1c1a]/40 backdrop-blur-[2px]" />
+      <div className="relative flex max-h-[88vh] w-full max-w-[640px] flex-col overflow-hidden rounded-3xl bg-[#fbf9f4] shadow-[0_24px_60px_rgba(30,28,26,0.28)]">
         <header className="flex items-start gap-3 border-b border-[#f0e8de] bg-white px-5 py-4">
           <div className="min-w-0 flex-1">
             <p className="text-[12.5px] font-semibold text-brand">
