@@ -854,6 +854,10 @@ export function StartPreparingWorkspace({
     href: a.nextHref,
     progress: a.progress,
     remaining: `${a.total - a.done} of ${a.total} topics left`,
+    companyNote:
+      a.companyTopics > 0
+        ? `${a.companyNames.length === 1 ? a.companyNames[0] : "Company"} focus: ${a.companyTopics} topic${a.companyTopics === 1 ? "" : "s"}`
+        : undefined,
     color: "bg-brand",
     border: "border-[#f0e8de]",
     bg: "bg-[#fbf7f2]",

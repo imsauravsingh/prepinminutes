@@ -15,6 +15,7 @@ import {
   todayKey,
   weekStartKey,
 } from "@/hooks/usePrepDashboard";
+import { companyAreaShares, targetCompanyNames, useCompanyFocus } from "@/hooks/useCompanyFocus";
 
 /**
  * Data for one preparation area page (/prepare/[area]): a time-budgeted plan.
@@ -47,6 +48,8 @@ export type AreaTopic = {
   status: TopicStatus;
   /** Readiness from practice, 0-100, when known. */
   score: number | null;
+  /** Target companies that ask this topic often (only when set in setup). */
+  companies: string[] | null;
 };
 
 export type AreaCategory = {
@@ -74,6 +77,18 @@ export type AreaDetail = {
   next: AreaTopic | null;
   /** Context for "Why these topics?". */
   why: { level: string; role: string; company: string; hours: number | null };
+  /**
+   * Target-company personalisation; null when no target company is set in setup.
+   * matched = companies we have interview data for; unmatched = names we don't know yet.
+   */
+  company: {
+    matched: string[];
+    unmatched: string[];
+    /** Topics in this area the matched companies ask often (that fit the candidate's level). */
+    topicCount: number;
+    /** This area's share of the matched companies' interviews, 0-100; null if no matched data. */
+    interviewSharePct: number | null;
+  } | null;
 };
 
 /** "If time allows" covers roughly this much extra time beyond the budget. */
@@ -110,6 +125,8 @@ export function useAreaDetail(slug: string) {
   const [practiced, setPracticed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const companyNames = useMemo(() => targetCompanyNames(profile), [profile]);
+  const { focus: companyFocus } = useCompanyFocus(companyNames);
 
   useEffect(() => {
     let alive = true;
@@ -165,10 +182,21 @@ export function useAreaDetail(slug: string) {
 
     // 1. Time this area gets before the interview: weekly hours × days left × plan share.
     const rawWeights = (plan?.domainWeights ?? {}) as Record<string, number>;
-    let weight = 0;
+    const planWeights: Record<string, number> = {};
     for (const [k, v] of Object.entries(rawWeights)) {
-      if ((WEIGHT_TO_SLUG[k] ?? KEY_TO_SLUG[k]) === slug) weight += Number(v || 0);
+      const s = WEIGHT_TO_SLUG[k] ?? KEY_TO_SLUG[k];
+      if (s) planWeights[s] = (planWeights[s] ?? 0) + Number(v || 0);
     }
+    // Target company (only if set in setup): blend the plan's split 50/50 with how the
+    // company's interview loop is weighted across the candidate's areas.
+    const matched = companyFocus?.matched.length ? companyFocus : null;
+    const companyShares = matched
+      ? companyAreaShares(matched, Object.keys(planWeights).length ? Object.keys(planWeights) : [slug])
+      : {};
+    const planWeight = planWeights[slug] ?? 0;
+    const companyShare = companyShares[slug];
+    const weight =
+      companyShare === undefined ? planWeight : planWeight > 0 ? 0.5 * planWeight + 0.5 * companyShare : companyShare;
     const totalWeeks = Number(plan?.timelineWeeks ?? profile?.timelineWeeks ?? 0) || 0;
     const elapsed = daysSince(plan?.createdAt);
     const daysRemaining = totalWeeks ? Math.max(0, totalWeeks * 7 - elapsed) : null;
@@ -178,7 +206,14 @@ export function useAreaDetail(slug: string) {
       daysRemaining !== null && weeklyHours > 0 ? Math.round((weeklyHours * 60 * share * daysRemaining) / 7) : null;
 
     // 2. Every topic with this candidate's status, in curriculum order.
-    type Raw = Omit<AreaTopic, "bucket"> & { category: string; order: number; eligible: boolean; penalty: number };
+    type Raw = Omit<AreaTopic, "bucket"> & {
+      category: string;
+      order: number;
+      eligible: boolean;
+      penalty: number;
+      /** Company frequency (0-100) when a target company asks this often and it fits the level. */
+      boost: number;
+    };
     const cats = hierarchy.categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
     let order = 0;
     const raw: Raw[] = cats.flatMap((c) =>
@@ -186,6 +221,10 @@ export function useAreaDetail(slug: string) {
         const priority = String(t.priority);
         const ov = overlays[t.slug];
         const done = practiced.has(t.slug) || ov?.status === "Practiced";
+        const penalty = difficultyPenalty(years, String(t.difficulty ?? ""));
+        const asked = matched?.topics[t.slug];
+        // Company topics are boosted only when they suit the candidate's level.
+        const boost = asked && penalty === 0 ? asked.frequency : 0;
         return {
           slug: t.slug,
           title: t.title,
@@ -199,10 +238,12 @@ export function useAreaDetail(slug: string) {
               ? "in-progress"
               : "not-started") as TopicStatus,
           score: typeof ov?.readiness === "number" && ov.readiness > 0 ? Math.round(ov.readiness) : null,
+          companies: asked ? asked.companies : null,
           category: c.slug,
           order: order++,
-          eligible: allowed(priority),
-          penalty: difficultyPenalty(years, String(t.difficulty ?? "")),
+          eligible: allowed(priority) || boost > 0,
+          penalty,
+          boost,
         };
       }),
     );
@@ -214,6 +255,8 @@ export function useAreaDetail(slug: string) {
       .sort(
         (a, b) =>
           Number(!a.eligible) - Number(!b.eligible) ||
+          // Topics the target company asks often come first (most frequent first).
+          b.boost - a.boost ||
           (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3) ||
           a.penalty - b.penalty ||
           a.order - b.order,
@@ -252,6 +295,7 @@ export function useAreaDetail(slug: string) {
       href: r.href,
       status: r.status,
       score: r.score,
+      companies: r.companies,
       bucket: bucket.get(r.slug) ?? "skip",
     }));
     const bySlug = new Map(all.map((t) => [t.slug, t]));
@@ -297,8 +341,16 @@ export function useAreaDetail(slug: string) {
         company: companies.length ? String(companies[0]) : "",
         hours: minutesAvailable !== null ? Math.round(minutesAvailable / 60) : null,
       },
+      company: companyNames.length
+        ? {
+            matched: matched?.matched.map((m) => m.name) ?? [],
+            unmatched: companyFocus?.unmatched ?? [],
+            topicCount: raw.filter((r) => r.boost > 0).length,
+            interviewSharePct: companyShare !== undefined ? Math.round(companyShare * 100) : null,
+          }
+        : null,
     };
-  }, [hierarchy, profile, plan, practiced, slug]);
+  }, [hierarchy, profile, plan, practiced, slug, companyFocus, companyNames]);
 
   return { loading, failed, detail };
 }

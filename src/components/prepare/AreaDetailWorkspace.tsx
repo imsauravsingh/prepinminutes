@@ -8,6 +8,7 @@ import {
   Ban,
   Boxes,
   Brain,
+  Building2,
   CalendarDays,
   Check,
   ChevronDown,
@@ -34,6 +35,7 @@ import {
 } from "lucide-react";
 import { areaIcon } from "@/components/dashboard/PrepHomeOverview";
 import { useAreaDetail, type AreaTopic, type Bucket } from "@/hooks/useAreaDetail";
+import { joinNames } from "@/hooks/useCompanyFocus";
 
 /**
  * One preparation area as a time-budgeted plan: which topics to do in the time
@@ -127,7 +129,7 @@ export function AreaDetailWorkspace({ slug }: { slug: string }) {
 
   const subtitle =
     detail.daysRemaining !== null
-      ? `A time-budgeted plan tailored to your experience${detail.why.company ? ", target company," : ""} and ${detail.daysRemaining} days left.`
+      ? `A time-budgeted plan tailored to your experience${detail.company?.matched.length ? ", target company," : ""} and ${detail.daysRemaining} days left.`
       : "A plan tailored to your experience. Finish your setup to fit it to your timeline.";
 
   const bucketSub: Record<Bucket, string> = {
@@ -214,6 +216,15 @@ export function AreaDetailWorkspace({ slug }: { slug: string }) {
         <Stat icon={Target} tone="text-emerald-600" highlight>
           <b>{counts.must} topics</b> fit your time
         </Stat>
+        {detail.company && detail.company.topicCount > 0 && (
+          <Stat icon={Building2} tone="text-[#4f46e5]" title={`Topics ${joinNames(detail.company.matched)} ask often come first`}>
+            <b>
+              {detail.company.topicCount} {detail.company.matched.length === 1 ? detail.company.matched[0] : "company"} topic
+              {detail.company.topicCount === 1 ? "" : "s"}
+            </b>{" "}
+            first
+          </Stat>
+        )}
         {counts.skip > 0 && (
           <Stat>
             <b>{counts.skip} topics</b> skipped for now
@@ -221,7 +232,7 @@ export function AreaDetailWorkspace({ slug }: { slug: string }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
         {/* Left: buckets + topic list */}
         <div className="flex min-w-0 flex-col gap-4">
           <div role="tablist" aria-label="Topic groups" className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -366,14 +377,35 @@ export function AreaDetailWorkspace({ slug }: { slug: string }) {
             <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">
               They cover the highest-impact concepts for a {detail.why.level}
               {detail.why.role ? ` preparing for a ${detail.why.role} role` : ""}
-              {detail.why.company ? (
+              {detail.company?.matched.length ? (
                 <>
-                  {" "}
-                  targeting <b className="text-ink">{detail.why.company}</b>
+                  {" "}targeting <b className="text-ink">{joinNames(detail.company.matched)}</b>
                 </>
               ) : null}
               {detail.why.hours !== null ? `, and fit within your ${detail.why.hours} hours for this area.` : "."}
             </p>
+            {detail.company && detail.company.matched.length > 0 && (
+              <ul className="mt-2 flex flex-col gap-1 text-[13px] leading-relaxed text-ink-muted">
+                {detail.company.topicCount > 0 && (
+                  <li>
+                    • <b className="text-ink">{detail.company.topicCount}</b> topic{detail.company.topicCount === 1 ? "" : "s"}{" "}
+                    {joinNames(detail.company.matched)} ask{detail.company.matched.length === 1 ? "s" : ""} often come first.
+                  </li>
+                )}
+                {detail.company.interviewSharePct !== null && detail.company.interviewSharePct > 0 && (
+                  <li>
+                    • {detail.name} is about <b className="text-ink">{detail.company.interviewSharePct}%</b> of their interview, so
+                    your time here is set with that in mind.
+                  </li>
+                )}
+              </ul>
+            )}
+            {detail.company && detail.company.unmatched.length > 0 && (
+              <p className="mt-2 text-[12.5px] leading-relaxed text-ink-muted">
+                We don&rsquo;t have interview data for {joinNames(detail.company.unmatched)} yet, so{" "}
+                {detail.company.matched.length ? "it doesn't change this plan" : "this plan uses your experience and timeline"}.
+              </p>
+            )}
           </section>
 
           {detail.next && (
@@ -494,6 +526,16 @@ function TopicRow({ topic: t, icon: Icon, current }: { topic: AreaTopic; icon: L
       )}
       <Icon className="hidden size-5 shrink-0 text-brand sm:block" aria-hidden="true" />
       <span className={`min-w-0 flex-1 text-[14px] font-semibold ${done ? "text-ink-muted" : "text-ink"}`}>{t.title}</span>
+      {t.companies && (
+        <span
+          title={`Asked often at ${t.companies.join(", ")}`}
+          className="hidden items-center gap-1 rounded-full bg-[#eef0ff] px-2.5 py-1 text-[11.5px] font-semibold text-[#4338ca] md:inline-flex"
+        >
+          <Building2 className="size-3" aria-hidden="true" />
+          {t.companies[0]}
+          {t.companies.length > 1 ? ` +${t.companies.length - 1}` : ""}
+        </span>
+      )}
       {badge && (
         <span className={`hidden items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-semibold md:inline-flex ${badge.cls}`}>
           {badge.hot && <Flame className="size-3" aria-hidden="true" />}

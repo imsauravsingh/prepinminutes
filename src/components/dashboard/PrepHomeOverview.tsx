@@ -7,6 +7,7 @@ import { useAppAuth } from "@/components/providers/AuthProvider";
 import {
   ArrowRight,
   BarChart3,
+  Building2,
   CalendarCheck2,
   CalendarDays,
   Check,
@@ -34,6 +35,8 @@ export type PrepArea = {
   slug?: string;
   description?: string;
   href?: string;
+  /** e.g. "Google focus: 3 topics", only when a target company is set and asks topics here. */
+  companyNote?: string;
 };
 
 export type TodayActivity = {
@@ -405,7 +408,15 @@ export function PrepHomeOverview({
                       </div>
                       <span className="text-xs font-bold text-ink">{a.progress}%</span>
                     </div>
-                    <p className="text-[11px] font-medium text-ink-muted">{a.remaining}</p>
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-ink-muted">
+                      {a.remaining}
+                      {a.companyNote && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#eef0ff] px-2 py-0.5 font-semibold text-[#4338ca]">
+                          <Building2 className="size-3" aria-hidden="true" />
+                          {a.companyNote}
+                        </span>
+                      )}
+                    </p>
                     <Link
                       href={a.href ?? "/practice"}
                       className="relative z-10 mt-1.5 inline-flex w-fit items-center gap-1 whitespace-nowrap rounded-full bg-[#fff1ec] px-4 py-2 text-[13px] font-semibold text-brand transition-colors hover:bg-brand hover:text-white"

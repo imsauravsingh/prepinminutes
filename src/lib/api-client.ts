@@ -243,6 +243,15 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+/** Interview intelligence for a candidate's target companies (GET /api/companies/focus). */
+export interface CompanyFocusResponse {
+  success: boolean;
+  matched: { slug: string; name: string; pillars: string[] }[];
+  unmatched: string[];
+  rounds: { stage: string; weight: number; domains: string[] }[];
+  topics: Record<string, { frequency: number; companies: string[] }>;
+}
+
 export interface CandidateProfilePayload {
   targetRole: string;
   experienceLevel: string;
@@ -616,6 +625,19 @@ export const backendApi = {
       credentials: "include",
     });
     return handleResponse<DashboardProgressResponse>(res);
+  },
+
+  /**
+   * GET /api/companies/focus — interview rounds and frequently asked topics for target companies.
+   */
+  async getCompanyFocus(names: string[], options: RequestOptions = {}) {
+    const qs = new URLSearchParams({ names: names.join(",") }).toString();
+    const res = await fetch(`${API_BASE_URL}/api/companies/focus?${qs}`, {
+      method: "GET",
+      headers: buildHeaders(options),
+      credentials: "include",
+    });
+    return handleResponse<CompanyFocusResponse>(res);
   },
 
   /**

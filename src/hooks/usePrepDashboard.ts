@@ -10,6 +10,7 @@ import {
   setStoredCandidateOverlay,
   type CachedItem,
 } from "@/hooks/useCurriculum";
+import { targetCompanyNames, useCompanyFocus } from "@/hooks/useCompanyFocus";
 
 /**
  * Builds the "Start preparing" dashboard from real data:
@@ -87,6 +88,10 @@ export type DashboardArea = {
   total: number;
   progress: number;
   nextHref: string;
+  /** Topics here a target company asks often (0 when no target company is set). */
+  companyTopics: number;
+  /** Matched target company names, e.g. ["Google"]. */
+  companyNames: string[];
 };
 
 export type DashboardTask = {
@@ -271,9 +276,19 @@ export function usePrepDashboard({ profile, activePlan, roleDomainKeys, ready }:
   }, [ready]);
 
   // 4. Areas with the topics this candidate needs.
+  //    With a target company set in setup, topics it asks often (and that suit the
+  //    candidate's level) are included and move to the front, so they reach today's tasks first.
   const experience = String(profile?.experienceLevel ?? "");
+  const companyNames = useMemo(() => targetCompanyNames(profile), [profile]);
+  const { focus: companyFocus } = useCompanyFocus(companyNames);
   const areas: DashboardArea[] = useMemo(() => {
     const allowed = priorityAllowed(experience);
+    const years = /fresher|student/i.test(experience) ? 0 : Number(experience.match(/\d+/)?.[0] ?? 0);
+    const fitsLevel = (difficulty: string) =>
+      years < 3 ? difficulty !== "ADVANCED" && difficulty !== "EXPERT" : years < 6 ? difficulty !== "EXPERT" : true;
+    const asked = companyFocus?.matched.length ? companyFocus.topics : {};
+    const boostOf = (t: CurriculumTopicSummary) =>
+      asked[t.slug] && fitsLevel(String(t.difficulty ?? "")) ? asked[t.slug].frequency : 0;
     return slugs
       .filter((slug) => hierarchies[slug])
       .map((slug) => {
@@ -283,8 +298,9 @@ export function usePrepDashboard({ profile, activePlan, roleDomainKeys, ready }:
           .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
           .flatMap((c) =>
             c.topics
-              .filter((t: CurriculumTopicSummary) => allowed(String(t.priority)))
+              .filter((t: CurriculumTopicSummary) => allowed(String(t.priority)) || boostOf(t) > 0)
               .map((t) => ({
+                boost: boostOf(t),
                 slug: t.slug,
                 title: t.title,
                 category: c.name,
@@ -293,7 +309,19 @@ export function usePrepDashboard({ profile, activePlan, roleDomainKeys, ready }:
                 priority: String(t.priority),
                 href: t.practiceHref || getPracticeSessionUrl(slug, t.slug),
               })),
-          );
+          )
+          // Stable: company topics first (most asked first), the rest keep curriculum order.
+          .sort((a, b) => b.boost - a.boost)
+          .map((t) => ({
+            slug: t.slug,
+            title: t.title,
+            category: t.category,
+            domainSlug: t.domainSlug,
+            durationMin: t.durationMin,
+            priority: t.priority,
+            href: t.href,
+          }));
+        const companyTopics = h.categories.reduce((n, c) => n + c.topics.filter((t) => boostOf(t) > 0).length, 0);
         const done = topics.filter((t) => practiced.has(t.slug)).length;
         const next = topics.find((t) => !practiced.has(t.slug)) ?? topics[0];
         return {
@@ -306,10 +334,12 @@ export function usePrepDashboard({ profile, activePlan, roleDomainKeys, ready }:
           total: topics.length,
           progress: topics.length ? Math.round((done / topics.length) * 100) : 0,
           nextHref: next?.href ?? "/practice",
+          companyTopics,
+          companyNames: companyFocus?.matched.map((m) => m.name) ?? [],
         };
       })
       .filter((a) => a.total > 0);
-  }, [slugs, hierarchies, practiced, experience, weights]);
+  }, [slugs, hierarchies, practiced, experience, weights, companyFocus]);
 
   // 5. Plan timing: current week, milestone, days left.
   const totalWeeks = Number(activePlan?.timelineWeeks ?? profile?.timelineWeeks ?? 4) || 4;
