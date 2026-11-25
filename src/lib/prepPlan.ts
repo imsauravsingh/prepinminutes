@@ -10,6 +10,8 @@
  * Inside an area, topics are ranked for the candidate (company topics that suit
  * their level, then priority for their experience, then difficulty fit, then
  * curriculum order) and split into Must do / If time allows / Skip for now.
+ * Stacks the candidate doesn't use (e.g. PHP for a Spring Boot developer) stay
+ * out of Must do once they've picked their technologies.
  */
 
 import { evaluateCandidateProfileDomains } from "@/components/dashboard/InteractiveRoadmap";
@@ -17,6 +19,7 @@ import { companyAreaShares, type CompanyFocus } from "@/hooks/useCompanyFocus";
 import type { CandidateOverlaysMap } from "@/hooks/useCurriculum";
 import { KEY_TO_SLUG, WEIGHT_TO_SLUG, daysSince, priorityAllowed } from "@/hooks/usePrepDashboard";
 import { getPracticeSessionUrl } from "@/lib/practice-router";
+import { chosenStackCategory, deprioritisedCategory } from "@/lib/techStack";
 import type { CurriculumHierarchyResponse } from "@/types/curriculum";
 
 export type TopicStatus = "done" | "in-progress" | "not-started";
@@ -171,6 +174,7 @@ export function buildAreaPlan({
   overlays,
   minutesAvailable,
   focus,
+  technologies = [],
 }: {
   slug: string;
   hierarchy: CurriculumHierarchyResponse;
@@ -179,12 +183,16 @@ export function buildAreaPlan({
   overlays: CandidateOverlaysMap;
   minutesAvailable: number | null;
   focus: CompanyFocus | null;
+  /** Technologies from setup; categories of stacks they don't use drop out of Must do. */
+  technologies?: string[];
 }): AreaPlan {
+  const otherStack = deprioritisedCategory(technologies);
+  const ownStack = chosenStackCategory(technologies);
   const allowed = priorityAllowed(experience);
   const years = yearsOf(experience);
   const matched = focus?.matched.length ? focus : null;
 
-  type Raw = AreaTopic & { order: number; eligible: boolean; penalty: number; boost: number };
+  type Raw = AreaTopic & { order: number; eligible: boolean; penalty: number; boost: number; stack: boolean };
   const cats = hierarchy.categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   let order = 0;
   const raw: Raw[] = cats.flatMap((c) =>
@@ -213,7 +221,8 @@ export function buildAreaPlan({
         score: typeof ov?.readiness === "number" && ov.readiness > 0 ? Math.round(ov.readiness) : null,
         companies: asked ? asked.companies : null,
         order: order++,
-        eligible: allowed(priority) || boost > 0,
+        eligible: !otherStack(c.name) && (allowed(priority) || boost > 0),
+        stack: ownStack(c.name),
         penalty,
         boost,
       };
@@ -227,6 +236,8 @@ export function buildAreaPlan({
         Number(!a.eligible) - Number(!b.eligible) ||
         b.boost - a.boost ||
         (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3) ||
+        // At equal priority, the candidate's own stack (e.g. Spring Boot → Java & JVM) comes first.
+        Number(b.stack) - Number(a.stack) ||
         a.penalty - b.penalty ||
         a.order - b.order,
     );

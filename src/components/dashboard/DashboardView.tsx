@@ -3,9 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { backendApi } from "@/lib/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { OnboardingHeader } from "@/components/dashboard/OnboardingHeader";
 import { OnboardingFormCard } from "@/components/dashboard/OnboardingFormCard";
-import { OnboardingHelpCard } from "@/components/dashboard/OnboardingHelpCard";
 import { StartPreparingWorkspace } from "@/components/dashboard/StartPreparingWorkspace";
 import { StudyRoom } from "@/components/dashboard/room/StudyRoom";
 
@@ -103,9 +101,8 @@ export function DashboardView() {
   // Otherwise, show Step 1 "Set Up" onboarding
   return (
     <StudyRoom phase="setup">
-      <OnboardingHeader />
+      {/* The form carries its own title and intro panel. */}
       <OnboardingFormCard />
-      <OnboardingHelpCard />
     </StudyRoom>
   );
 }

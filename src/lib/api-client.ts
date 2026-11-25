@@ -258,6 +258,10 @@ export interface CandidateProfilePayload {
   targetRole: string;
   experienceLevel: string;
   fresherForte?: string | null;
+  /** Technologies the candidate works with, e.g. ["Spring Boot", "React"]. */
+  languages?: string[];
+  /** The one language for coding / DSA rounds, e.g. "Java". */
+  codingLanguage?: string | null;
   targetCompanies?: string[];
   timelineWeeks?: number;
   timelineLabel?: string;

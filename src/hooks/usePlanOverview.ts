@@ -211,6 +211,7 @@ export function usePlanOverview() {
           overlays,
           minutesAvailable: minutes,
           focus: matched,
+          technologies: Array.isArray(profile?.languages) ? (profile.languages as unknown[]).map(String) : [],
         });
         return { ...a, slug, name: SHORT_NAME[slug] ?? hierarchies[slug].domainName, sharePct: Math.round((share[slug] ?? 0) * 100), minutes };
       })

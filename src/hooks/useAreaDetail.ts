@@ -149,6 +149,7 @@ export function useAreaDetail(slug: string) {
       overlays: typeof window === "undefined" ? {} : getStoredCandidateOverlays(),
       minutesAvailable,
       focus: matched,
+      technologies: Array.isArray(profile?.languages) ? (profile.languages as unknown[]).map(String) : [],
     });
 
     // This week's focus (from the plan's weekly milestones).
