@@ -16,7 +16,6 @@
 
 import { evaluateCandidateProfileDomains } from "@/components/dashboard/InteractiveRoadmap";
 import { companyAreaShares, type CompanyFocus } from "@/hooks/useCompanyFocus";
-import type { CandidateOverlaysMap } from "@/hooks/useCurriculum";
 import { KEY_TO_SLUG, WEIGHT_TO_SLUG, daysSince, priorityAllowed } from "@/hooks/usePrepDashboard";
 import { getPracticeSessionUrl } from "@/lib/practice-router";
 import { chosenStackCategory, deprioritisedCategory } from "@/lib/techStack";
@@ -171,7 +170,7 @@ export function buildAreaPlan({
   hierarchy,
   experience,
   practiced,
-  overlays,
+  progress,
   minutesAvailable,
   focus,
   technologies = [],
@@ -180,7 +179,8 @@ export function buildAreaPlan({
   hierarchy: CurriculumHierarchyResponse;
   experience: string;
   practiced: Set<string>;
-  overlays: CandidateOverlaysMap;
+  /** Practice status and score per topic slug, from the database. */
+  progress: Record<string, { status: string; score: number | null }>;
   minutesAvailable: number | null;
   focus: CompanyFocus | null;
   /** Technologies from setup; categories of stacks they don't use drop out of Must do. */
@@ -198,8 +198,8 @@ export function buildAreaPlan({
   const raw: Raw[] = cats.flatMap((c) =>
     c.topics.map((t) => {
       const priority = String(t.priority);
-      const ov = overlays[t.slug];
-      const done = practiced.has(t.slug) || ov?.status === "Practiced";
+      const ov = progress[t.slug];
+      const done = practiced.has(t.slug) || ov?.status === "PRACTICED" || ov?.status === "MASTERED";
       const penalty = difficultyPenalty(years, String(t.difficulty ?? ""));
       const asked = matched?.topics[t.slug];
       // Company topics are boosted only when they suit the candidate's level.
@@ -213,12 +213,8 @@ export function buildAreaPlan({
         difficulty: String(t.difficulty ?? ""),
         href: t.practiceHref || getPracticeSessionUrl(slug, t.slug),
         bucket: "skip" as Bucket,
-        status: (done
-          ? "done"
-          : ov?.status === "In Progress" || ov?.status === "Needs Practice"
-            ? "in-progress"
-            : "not-started") as TopicStatus,
-        score: typeof ov?.readiness === "number" && ov.readiness > 0 ? Math.round(ov.readiness) : null,
+        status: (done ? "done" : ov ? "in-progress" : "not-started") as TopicStatus,
+        score: ov?.score ?? null,
         companies: asked ? asked.companies : null,
         order: order++,
         eligible: !otherStack(c.name) && (allowed(priority) || boost > 0),

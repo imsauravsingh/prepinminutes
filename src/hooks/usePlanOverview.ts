@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { backendApi } from "@/lib/api-client";
 import type { CurriculumHierarchyResponse } from "@/types/curriculum";
-import { HIERARCHY_CACHE_PREFIX, getStoredCandidateOverlays, type CachedItem } from "@/hooks/useCurriculum";
+import { HIERARCHY_CACHE_PREFIX, type CachedItem } from "@/hooks/useCurriculum";
 import { SHORT_NAME, readJSON, todayKey, weekStartKey } from "@/hooks/usePrepDashboard";
 import { targetCompanyNames, useCompanyFocus } from "@/hooks/useCompanyFocus";
+import { readSnapshot, safePlan, safeProfile, writeSnapshot } from "@/lib/clientSnapshot";
 import {
   areaShares,
   buildAreaPlan,
@@ -116,13 +117,48 @@ function groupTopics(topics: WeekTopic[]): WeekGroup[] {
   return [...map.values()];
 }
 
+/**
+ * Small snapshot of the last plan inputs, to open My Plan instantly (see lib/clientSnapshot:
+ * no resume, JD or personal details; expires after 7 days; cleared on sign-out).
+ */
+const INPUTS_KEY = "pim_plan_inputs";
+type InputsCache = {
+  profile: Record<string, unknown> | null;
+  plan: Record<string, unknown> | null;
+  practiced: string[];
+  doneAt: Record<string, string>;
+  progress?: Record<string, { status: string; score: number | null }>;
+};
+
+function readInputsCache(): InputsCache | null {
+  if (typeof window === "undefined") return null;
+  const c = readSnapshot<InputsCache>(INPUTS_KEY);
+  return c && (c.profile || c.plan) ? c : null;
+}
+
+function cachedHierarchies(slugs: string[]) {
+  const out: Record<string, CurriculumHierarchyResponse> = {};
+  for (const slug of slugs) {
+    const c = readJSON<CachedItem<CurriculumHierarchyResponse>>(`${HIERARCHY_CACHE_PREFIX}${slug}`);
+    if (c?.data?.categories) out[slug] = c.data;
+  }
+  return out;
+}
+
 export function usePlanOverview() {
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
-  const [plan, setPlan] = useState<Record<string, unknown> | null>(null);
-  const [practiced, setPracticed] = useState<Set<string>>(new Set());
-  const [doneAt, setDoneAt] = useState<Record<string, string>>({});
-  const [hierarchies, setHierarchies] = useState<Record<string, CurriculumHierarchyResponse>>({});
-  const [loading, setLoading] = useState(true);
+  // Like My Focus: start from what this browser saw last time (instant page), then refresh.
+  const [cached] = useState(() => readInputsCache());
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(cached?.profile ?? null);
+  const [plan, setPlan] = useState<Record<string, unknown> | null>(cached?.plan ?? null);
+  const [practiced, setPracticed] = useState<Set<string>>(() => new Set(cached?.practiced ?? []));
+  const [doneAt, setDoneAt] = useState<Record<string, string>>(cached?.doneAt ?? {});
+  const [progressMap, setProgressMap] = useState<Record<string, { status: string; score: number | null }>>(
+    cached?.progress ?? {},
+  );
+  const [hierarchies, setHierarchies] = useState<Record<string, CurriculumHierarchyResponse>>(() =>
+    cached ? cachedHierarchies(candidateAreaSlugs(cached.profile, cached.plan)) : {},
+  );
+  const [loading, setLoading] = useState(!cached);
   const companyNames = useMemo(() => targetCompanyNames(profile), [profile]);
   const { focus, ready: companyReady } = useCompanyFocus(companyNames);
   // The plan as this browser last saw it (read once on load).
@@ -179,11 +215,22 @@ export function usePlanOverview() {
       setProfile(p);
       setPlan(ap);
       setPracticed(new Set(progress?.practicedTopicSlugs ?? []));
+      const pmap = Object.fromEntries(
+        (progress?.topicProgress ?? []).map((r) => [r.slug, { status: r.status, score: r.score }]),
+      );
+      setProgressMap(pmap);
       const dates: Record<string, string> = {};
       for (const t of progress?.practicedTopics ?? []) if (t.at) dates[t.slug] = t.at;
       setDoneAt(dates);
       setHierarchies(next);
       setLoading(false);
+      writeSnapshot<InputsCache>(INPUTS_KEY, {
+        profile: safeProfile(p),
+        plan: safePlan(ap),
+        practiced: progress?.practicedTopicSlugs ?? [],
+        doneAt: dates,
+        progress: pmap,
+      });
     });
     return () => {
       alive = false;
@@ -198,7 +245,6 @@ export function usePlanOverview() {
     const matched = focus?.matched.length ? focus : null;
     const { share } = areaShares(slugs, planWeightsBySlug(plan), matched);
     const timing = planTiming(profile, plan);
-    const overlays = typeof window === "undefined" ? {} : getStoredCandidateOverlays();
 
     const areas: PlanArea[] = slugs
       .map((slug) => {
@@ -208,7 +254,7 @@ export function usePlanOverview() {
           hierarchy: hierarchies[slug],
           experience,
           practiced,
-          overlays,
+          progress: progressMap,
           minutesAvailable: minutes,
           focus: matched,
           technologies: Array.isArray(profile?.languages) ? (profile.languages as unknown[]).map(String) : [],
@@ -374,7 +420,7 @@ export function usePlanOverview() {
       hasTimeline: timing.totalMinutes !== null,
       snapshot: { must: mustSet, companies: companiesNow, done: mustDone },
     };
-  }, [loading, companyReady, profile, plan, hierarchies, practiced, doneAt, focus, prev]);
+  }, [loading, companyReady, profile, plan, hierarchies, practiced, progressMap, doneAt, focus, prev]);
 
   useEffect(() => {
     if (!overview) return;

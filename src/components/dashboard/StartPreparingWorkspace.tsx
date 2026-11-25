@@ -8,6 +8,7 @@ import {
   evaluateCandidateProfileDomains,
 } from "@/components/dashboard/InteractiveRoadmap";
 import { backendApi } from "@/lib/api-client";
+import { readSnapshot, safeProfile, writeSnapshot } from "@/lib/clientSnapshot";
 import {
   BookOpen,
   Code2,
@@ -28,10 +29,9 @@ export function StartPreparingWorkspace({
   const { enabled: showNextStep } = useNextStepFlow();
   const [profile, setProfile] = useState<Record<string, any> | null>(() => {
     if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("pim_profile_cache");
-        if (cached) return JSON.parse(cached);
-      } catch {}
+      // Small, non-sensitive snapshot (no resume, JD or personal details), max 7 days old.
+      const cached = readSnapshot<Record<string, any>>("pim_profile_cache");
+      if (cached) return cached;
     }
     return null;
   });
@@ -52,12 +52,7 @@ export function StartPreparingWorkspace({
         if (res.profile) {
           setProfile(res.profile);
           if (typeof window !== "undefined") {
-            try {
-              localStorage.setItem(
-                "pim_profile_cache",
-                JSON.stringify(res.profile),
-              );
-            } catch {}
+            writeSnapshot("pim_profile_cache", safeProfile(res.profile));
           }
         }
         if (res.activePlan) setActivePlan(res.activePlan);

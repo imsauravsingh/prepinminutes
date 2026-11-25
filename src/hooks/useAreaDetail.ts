@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { backendApi } from "@/lib/api-client";
 import type { CurriculumHierarchyResponse } from "@/types/curriculum";
-import { HIERARCHY_CACHE_PREFIX, getStoredCandidateOverlays, type CachedItem } from "@/hooks/useCurriculum";
+import { HIERARCHY_CACHE_PREFIX, type CachedItem } from "@/hooks/useCurriculum";
 import { KEY_TO_SLUG, SHORT_NAME, WEIGHT_TO_SLUG, readJSON, todayKey, weekStartKey } from "@/hooks/usePrepDashboard";
 import { targetCompanyNames, useCompanyFocus } from "@/hooks/useCompanyFocus";
 import {
@@ -35,7 +35,7 @@ export type { AreaCategory, AreaTopic, Bucket, TopicStatus } from "@/lib/prepPla
  * - profile + active plan       → experience, plan weight, this week's focus, days left
  * - curriculum hierarchy        → categories and topics (shared local cache)
  * - dashboard progress (Postgres) → topics marked practiced
- * - local topic overlays        → "in progress" / readiness from practice sessions
+ * - topic progress (Postgres)   → "in progress" and scores from practice sessions
  */
 
 export type AreaDetail = {
@@ -79,6 +79,7 @@ export function useAreaDetail(slug: string) {
     return readJSON<CachedItem<CurriculumHierarchyResponse>>(`${HIERARCHY_CACHE_PREFIX}${slug}`)?.data ?? null;
   });
   const [practiced, setPracticed] = useState<Set<string>>(new Set());
+  const [progressMap, setProgressMap] = useState<Record<string, { status: string; score: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const companyNames = useMemo(() => targetCompanyNames(profile), [profile]);
@@ -122,6 +123,7 @@ export function useAreaDetail(slug: string) {
       setProfile(prof?.profile ?? null);
       setPlan(prof?.activePlan ?? null);
       setPracticed(new Set(progress?.practicedTopicSlugs ?? []));
+      setProgressMap(Object.fromEntries((progress?.topicProgress ?? []).map((r) => [r.slug, r])));
       setLoading(false);
     });
     return () => {
@@ -146,7 +148,7 @@ export function useAreaDetail(slug: string) {
       hierarchy,
       experience,
       practiced,
-      overlays: typeof window === "undefined" ? {} : getStoredCandidateOverlays(),
+      progress: progressMap,
       minutesAvailable,
       focus: matched,
       technologies: Array.isArray(profile?.languages) ? (profile.languages as unknown[]).map(String) : [],
@@ -188,7 +190,7 @@ export function useAreaDetail(slug: string) {
           }
         : null,
     };
-  }, [hierarchy, profile, plan, practiced, slug, companyFocus, companyNames]);
+  }, [hierarchy, profile, plan, practiced, progressMap, slug, companyFocus, companyNames]);
 
   return { loading, failed, detail };
 }

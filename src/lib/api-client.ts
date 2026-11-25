@@ -199,11 +199,16 @@ export type DashboardTaskRow = {
   isCompleted: boolean;
 };
 
+/** One topic's practice status from the database. */
+export type TopicProgressRow = { slug: string; status: string; score: number | null };
+
 export type DashboardProgressResponse = {
   success: boolean;
   practicedTopicSlugs: string[];
   /** When each practiced topic was finished (ISO date), for placing it in the right plan week. */
   practicedTopics?: { slug: string; at: string | null }[];
+  /** Status and score of every topic with practice on record (from the database). */
+  topicProgress?: TopicProgressRow[];
   todayTasks: DashboardTaskRow[];
   week: Record<string, { total: number; done: number }>;
   completedHours: number;

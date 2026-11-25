@@ -54,7 +54,7 @@ export function PlanOverviewWorkspace() {
   const [openWeek, setOpenWeek] = useState<number | null>(null);
   const [showArt, setShowArt] = useState(true);
 
-  if (loading || !o) return <p className="py-20 text-center text-sm text-ink-muted">Building your plan…</p>;
+  if (loading || !o) return <PlanSkeleton />;
   if (!o.areas.length) {
     return (
       <div className={`${card} mx-auto max-w-xl p-8 text-center`}>
@@ -74,7 +74,7 @@ export function PlanOverviewWorkspace() {
     <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex min-w-0 flex-col gap-5">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl border border-[#f6e2d6] bg-gradient-to-br from-[#fff1e8] via-[#fffaf6] to-[#fdf2ea] p-5 sm:p-6">
+        <section className="rise-in relative overflow-hidden rounded-3xl border border-[#f6e2d6] bg-gradient-to-br from-[#fff1e8] via-[#fffaf6] to-[#fdf2ea] p-5 sm:p-6">
           <div className="flex items-center gap-5">
             <div className="hidden size-[120px] shrink-0 items-center justify-center sm:flex">
               {showArt ? (
@@ -144,7 +144,7 @@ export function PlanOverviewWorkspace() {
         </section>
 
         {/* Plan */}
-        <section className={`${card} p-5 sm:p-6`}>
+        <section className={`rise-in ${card} p-5 sm:p-6`} style={enter(80)}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="font-display text-[22px] font-extrabold text-ink">Your Preparation Plan</h2>
@@ -189,10 +189,16 @@ export function PlanOverviewWorkspace() {
 
       {/* Right column */}
       <aside className="flex flex-col gap-5">
-        <PlanOverviewCard o={o} />
-        <TimeCard o={o} />
-        <ThisWeekCard o={o} onOpen={() => o.currentWeek && setOpenWeek(o.currentWeek.index)} />
-        <section className={`${card} p-5`}>
+        <div className="rise-in" style={enter(120)}>
+          <PlanOverviewCard o={o} />
+        </div>
+        <div className="rise-in empty:hidden" style={enter(180)}>
+          <TimeCard o={o} />
+        </div>
+        <div className="rise-in empty:hidden" style={enter(240)}>
+          <ThisWeekCard o={o} onOpen={() => o.currentWeek && setOpenWeek(o.currentWeek.index)} />
+        </div>
+        <section className={`rise-in ${card} p-5`} style={enter(300)}>
           <h2 className="flex items-center gap-2 font-display text-[16px] font-extrabold text-ink">
             <RefreshCw className="size-4 text-brand" aria-hidden="true" />
             What changed
@@ -213,6 +219,55 @@ export function PlanOverviewWorkspace() {
       </aside>
 
       {week && <WeekDrawer week={week} color={color} onClose={() => setOpenWeek(null)} />}
+    </div>
+  );
+}
+
+/** Staggered entrance, same animation as My Focus. */
+const enter = (ms: number) => ({ "--enter-delay": `${ms}ms` }) as React.CSSProperties;
+
+/** First visit only (later visits render from saved data straight away): the page's shape, shimmering. */
+function PlanSkeleton() {
+  const bar = "animate-pulse rounded-full bg-[#efe7dd]";
+  return (
+    <div
+      className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"
+      aria-busy="true"
+      aria-label="Loading your plan"
+    >
+      <div className="flex min-w-0 flex-col gap-5">
+        <div className="rounded-3xl border border-[#f6e2d6] bg-gradient-to-br from-[#fff1e8] via-[#fffaf6] to-[#fdf2ea] p-6">
+          <div className="flex items-center gap-5">
+            <div className="hidden size-[110px] animate-pulse rounded-[28px] bg-white/70 sm:block" />
+            <div className="flex flex-1 flex-col gap-3">
+              <div className={`h-8 w-2/3 ${bar}`} />
+              <div className={`h-4 w-1/2 ${bar}`} />
+            </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            {[110, 130, 120, 170].map((w) => (
+              <div key={w} className="h-9 animate-pulse rounded-2xl bg-white/80" style={{ width: w }} />
+            ))}
+          </div>
+        </div>
+        <div className={`${card} flex flex-col gap-4 p-6`}>
+          <div className={`h-6 w-56 ${bar}`} />
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-4">
+              <div className="size-6 shrink-0 animate-pulse rounded-full bg-[#efe7dd]" />
+              <div className="flex flex-1 flex-col gap-2">
+                <div className={`h-5 w-1/3 ${bar}`} />
+                <div className={`h-4 w-3/4 ${bar}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-5">
+        {[180, 150, 200].map((h) => (
+          <div key={h} className={`${card} animate-pulse`} style={{ height: h }} />
+        ))}
+      </div>
     </div>
   );
 }

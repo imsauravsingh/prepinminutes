@@ -8,6 +8,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAppAuth();
   const router = useRouter();
   const [hasRedirected, setHasRedirected] = useState(false);
+  // Saved sessions open the page almost instantly; only show the "verifying" message if
+  // checking actually takes a while, so normal page loads don't flash it.
+  const [showWait, setShowWait] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setShowWait(true), 450);
+    return () => window.clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !hasRedirected) {
@@ -29,6 +36,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, [isLoaded, isSignedIn, hasRedirected, router]);
 
   if (!isLoaded || !isSignedIn) {
+    if (!isLoaded && !showWait) return <div className="min-h-screen flex-1 bg-[#fbf9f4]" aria-busy="true" />;
     return (
       <div className="flex flex-1 items-center justify-center bg-[#fbf9f4] py-24 min-h-screen">
         <div className="flex flex-col items-center gap-3">

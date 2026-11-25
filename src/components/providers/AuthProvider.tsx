@@ -88,6 +88,16 @@ export interface AppAuthContextValue {
 
 const AppAuthContext = createContext<AppAuthContextValue | null>(null);
 
+/** True when the token's exp claim is in the past (or the token can't be read). */
+function isJwtExpired(token: string): boolean {
+  try {
+    const p = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof p.exp === "number" ? p.exp * 1000 <= Date.now() : false;
+  } catch {
+    return true;
+  }
+}
+
 function parseJwtUser(token: string): AuthenticatedCandidateUser | null {
   try {
     const parts = token.split(".");
@@ -162,27 +172,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Ignore localStorage error
       }
 
+      // A saved, unexpired session lets pages render straight away (smooth loading);
+      // the server still verifies it below and signs the candidate out if it's no longer valid.
+      const optimistic = Boolean(initialToken && initialUser && !isJwtExpired(initialToken));
       if (mounted) {
         if (initialToken) {
           setToken(initialToken);
           setClientAuthSession(initialToken, initialUser);
         }
         if (initialUser) setUser(initialUser);
+        if (optimistic) setIsLoaded(true);
       }
 
-      // 1b. Fetch dynamic SSO runtime configuration from backend
-      try {
-        const config: SsoConfigResponse = await backendApi.getAuthConfig();
-        if (mounted && config.success) {
-          setActiveProvider(config.activeProvider || "google");
-          setGoogleFlow(config.googleFlow || "both");
-          if (config.googleClientId) {
-            setGoogleClientId(config.googleClientId);
+      // 1b. SSO runtime configuration (only the sign-in buttons need it), fetched in the background
+      backendApi
+        .getAuthConfig()
+        .then((config: SsoConfigResponse) => {
+          if (mounted && config.success) {
+            setActiveProvider(config.activeProvider || "google");
+            setGoogleFlow(config.googleFlow || "both");
+            if (config.googleClientId) {
+              setGoogleClientId(config.googleClientId);
+            }
           }
-        }
-      } catch {
-        // Backend offline / static preview — keep default Google SSO settings
-      }
+        })
+        .catch(() => {
+          // Backend offline / static preview — keep default Google SSO settings
+        });
 
       // 1c. If token exists, verify & refresh session with backend
       if (initialToken) {

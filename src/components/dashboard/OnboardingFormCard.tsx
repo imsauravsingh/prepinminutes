@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { backendApi, ApiError } from "@/lib/api-client";
 import { CODING_LANGUAGES, defaultCodingLanguage, techGroupsForRole } from "@/lib/techStack";
+import { safeProfile, writeSnapshot } from "@/lib/clientSnapshot";
 
 export const TARGET_ROLE_CATEGORIES = [
   {
@@ -520,19 +521,17 @@ export function OnboardingFormCard() {
 
       if (typeof window !== "undefined") {
         try {
-          localStorage.setItem(
+          writeSnapshot(
             "pim_profile_cache",
-            JSON.stringify({
+            safeProfile({
               targetRole: finalTargetRole,
               experienceLevel: experience,
               languages,
+              codingLanguage: effectiveCodingLanguage,
               timelineLabel: timeline,
               weeklyGoalHours: weeklyHours,
               targetCompanies,
-              completedActivities: 0,
-              completedDays: 0,
-              readinessScore: 0,
-            })
+            }),
           );
         } catch {}
       }

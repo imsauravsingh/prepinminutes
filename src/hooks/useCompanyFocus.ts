@@ -24,26 +24,38 @@ export function targetCompanyNames(profile: Record<string, unknown> | null): str
   return Array.isArray(raw) ? raw.map((c) => String(c).trim()).filter(Boolean) : [];
 }
 
+function readCachedFocus(key: string): CompanyFocus | null {
+  if (!key || typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(`${CACHE_PREFIX}${key.toLowerCase()}`);
+    return raw ? (JSON.parse(raw) as CompanyFocus) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function useCompanyFocus(names: string[]) {
   const key = names.join(",");
-  const [focus, setFocus] = useState<CompanyFocus | null>(null);
-  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  // Saved answer for these companies, read straight away so pages don't wait (refreshed below).
+  const [initial] = useState(() => readCachedFocus(key));
+  const [focus, setFocus] = useState<CompanyFocus | null>(initial);
+  const [loadedKey, setLoadedKey] = useState<string | null>(initial ? key : null);
 
   useEffect(() => {
     if (!key) return;
     let alive = true;
     const cacheKey = `${CACHE_PREFIX}${key.toLowerCase()}`;
+    // Show the saved answer straight away, then refresh it in the background.
+    let hadCache = false;
     try {
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = localStorage.getItem(cacheKey);
       if (cached) {
+        hadCache = true;
         Promise.resolve().then(() => {
           if (!alive) return;
           setFocus(JSON.parse(cached) as CompanyFocus);
           setLoadedKey(key);
         });
-        return () => {
-          alive = false;
-        };
       }
     } catch {}
     backendApi
@@ -52,10 +64,12 @@ export function useCompanyFocus(names: string[]) {
         if (!alive) return;
         setFocus(res);
         try {
-          sessionStorage.setItem(cacheKey, JSON.stringify(res));
+          localStorage.setItem(cacheKey, JSON.stringify(res));
         } catch {}
       })
-      .catch(() => alive && setFocus(null))
+      .catch(() => {
+        if (alive && !hadCache) setFocus(null);
+      })
       .finally(() => alive && setLoadedKey(key));
     return () => {
       alive = false;
