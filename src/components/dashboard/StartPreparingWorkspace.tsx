@@ -75,8 +75,6 @@ export function StartPreparingWorkspace({
         try {
           localStorage.removeItem("pim_profile_cache");
           localStorage.removeItem("prep_onboarding_completed");
-          localStorage.removeItem("pim_primary_language");
-          localStorage.removeItem("pim_fresher_prompt_dismissed");
         } catch {}
       }
       setShowResetModal(false);
@@ -100,164 +98,14 @@ export function StartPreparingWorkspace({
       .toLowerCase()
       .includes("fresher");
 
-  // AI-Driven Primary Language Detection for Freshers and General Profiles
-  const detectedLanguageInfo = useMemo(() => {
-    if (profile?.primaryLanguage) {
-      return {
-        recommendedLanguage: profile.primaryLanguage,
-        detectedLanguages: [profile.primaryLanguage],
-        rationale: "Selected in your profile setup",
-      };
-    }
-
-    const textToScan = [
-      profile?.fresherForte || "",
-      profile?.jobDescriptionText || "",
-      profile?.targetRole || "",
-      Array.isArray(profile?.skills)
-        ? profile.skills.join(" ")
-        : profile?.skills || "",
-      profile?.resumeText || "",
-      JSON.stringify(profile?.resumeParsedJson || ""),
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    const scores: Record<string, number> = {
-      Python: 0,
-      Java: 0,
-      "C++": 0,
-      "Node.js": 0,
-      Go: 0,
-    };
-
-    // Python mentions
-    if (textToScan.includes("python")) scores.Python += 3;
-    if (
-      textToScan.includes("django") ||
-      textToScan.includes("fastapi") ||
-      textToScan.includes("flask")
-    ) {
-      scores.Python += 2;
-    }
-    if (
-      textToScan.includes("pytorch") ||
-      textToScan.includes("pandas") ||
-      textToScan.includes("numpy")
-    ) {
-      scores.Python += 1;
-    }
-
-    // Java mentions (exclude javascript)
-    const javaMatches = textToScan.match(/\bjava\b/g);
-    if (javaMatches) scores.Java += javaMatches.length * 3;
-    if (
-      textToScan.includes("spring") ||
-      textToScan.includes("springboot") ||
-      textToScan.includes("jvm") ||
-      textToScan.includes("hibernate")
-    ) {
-      scores.Java += 2;
-    }
-
-    // C++ mentions
-    if (
-      textToScan.includes("c++") ||
-      textToScan.includes("cpp") ||
-      textToScan.includes("stl")
-    ) {
-      scores["C++"] += 3;
-    }
-
-    // Node.js / JavaScript / TypeScript mentions
-    if (textToScan.includes("node") || textToScan.includes("nodejs")) {
-      scores["Node.js"] += 3;
-    }
-    if (
-      textToScan.includes("typescript") ||
-      textToScan.includes("javascript") ||
-      textToScan.includes("react") ||
-      textToScan.includes("express")
-    ) {
-      scores["Node.js"] += 2;
-    }
-
-    // Go mentions
-    if (textToScan.includes("golang") || textToScan.includes("goroutine")) {
-      scores.Go += 3;
-    }
-
-    const detected = Object.keys(scores).filter((k) => scores[k] > 0);
-    detected.sort((a, b) => scores[b] - scores[a]);
-
-    if (detected.length > 0 && scores[detected[0]] > 0) {
-      const top = detected[0];
-      return {
-        recommendedLanguage: top,
-        detectedLanguages: detected,
-        rationale: `AI detected strongest experience in ${top} from your projects & skills`,
-      };
-    }
-
-    return {
-      recommendedLanguage: "Python",
-      detectedLanguages: ["Python", "Java", "C++", "Node.js"],
-      rationale:
-        "AI Recommended: Most widely tested language in entry-level coding rounds",
-    };
-  }, [profile]);
-
-  // Selected language state (synced with localStorage & roadmap)
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("pim_primary_language");
-        if (saved) return saved;
-      } catch {}
-    }
-    return profile?.primaryLanguage || detectedLanguageInfo.recommendedLanguage;
-  });
-
-  // Prompt banner visibility state for freshers (prompt to choose or skip)
-  const [showFresherPrompt, setShowFresherPrompt] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        if (localStorage.getItem("pim_fresher_prompt_dismissed") === "true")
-          return false;
-        if (localStorage.getItem("pim_primary_language")) return false;
-      } catch {}
-    }
-    return true;
-  });
-
-  const handleConfirmLanguage = (lang: string) => {
-    setSelectedLanguage(lang);
-    setShowFresherPrompt(false);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("pim_primary_language", lang);
-        localStorage.setItem("pim_fresher_prompt_dismissed", "true");
-      } catch {}
-    }
-  };
-
-  const handleSkipLanguagePrompt = () => {
-    setShowFresherPrompt(false);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("pim_fresher_prompt_dismissed", "true");
-      } catch {}
-    }
-  };
-
-  const handleLanguageChange = (lang: string) => {
-    setSelectedLanguage(lang);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("pim_primary_language", lang);
-      } catch {}
-    }
-  };
+  // The old fresher "primary language" prompt is gone (setup now asks for the coding language);
+  // remove its leftover keys from browsers that still have them.
+  useEffect(() => {
+    try {
+      localStorage.removeItem("pim_primary_language");
+      localStorage.removeItem("pim_fresher_prompt_dismissed");
+    } catch {}
+  }, []);
 
   const displayRole = profile?.targetRole
     ? isFresher && profile?.fresherForte
